@@ -127,7 +127,7 @@ const FPL_SUCCESS_TIPS = [
 
 
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/+$/, "");
 
 export default function Home() {
   const [teamId, setTeamId] = useState('');
@@ -222,7 +222,7 @@ export default function Home() {
   const textHighlight = isDarkMode ? "text-gray-200" : "text-[#1a202c]";
 
   const fetchTeam = async (overrideId?: string) => {
-    const idToFetch = overrideId || teamId;
+    const idToFetch = (overrideId || teamId)?.toString().trim();
     if (!idToFetch) return;
     setLoading(true);
     setError('');
@@ -232,7 +232,7 @@ export default function Home() {
     setTransferRecs([]);
     try {
       const res = await fetch(`${API_BASE_URL}/api/dashboard/${idToFetch}`);
-      if (!res.ok) throw new Error(isEnglish ? 'Failed to fetch team - check ID' : 'שגיאה בטעינת הקבוצה - וודא שה-ID נכון');
+      if (!res.ok) throw new Error(`[Debug] HTTP ${res.status} from ${res.url} | ID: '${idToFetch}'`);
       const result = await res.json();
       setOriginalData(result);
       localStorage.setItem('fpl_team_id', idToFetch);
