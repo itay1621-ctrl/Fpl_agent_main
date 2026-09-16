@@ -569,7 +569,7 @@ export default function Home() {
   );
 
   return (
-    <main className={`min-h-screen font-sans transition-colors duration-300 ${bgMain}`} dir={isEnglish ? "ltr" : "rtl"}>
+    <main className={`min-h-screen font-sans pb-24 md:pb-0 transition-colors duration-300 ${bgMain}`} dir={isEnglish ? "ltr" : "rtl"}>
       
       {!data && !initLoading && (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-green-900 text-white relative overflow-hidden">
@@ -676,7 +676,7 @@ export default function Home() {
           </div>
 
           {/* Tabs Menu */}
-          <div className="flex overflow-x-auto gap-6 border-b border-gray-200 mb-6 pb-2 text-sm font-bold whitespace-nowrap scrollbar-hide">
+          <div className="hidden md:flex overflow-x-auto gap-6 border-b border-gray-200 mb-6 pb-2 text-sm font-bold whitespace-nowrap scrollbar-hide">
             <button onClick={() => setActiveTab('pitch')} className={`${activeTab === 'pitch' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.pitchTab}</button>
             <button onClick={() => setActiveTab('transfer')} className={`${activeTab === 'transfer' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.transferTab}</button>
             <button onClick={() => setActiveTab('analysis')} className={`${activeTab === 'analysis' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.analysisTab}</button>
@@ -1173,7 +1173,29 @@ export default function Home() {
           />
         </div>
       )}
+
+      {/* Mobile Bottom Navigation */}
+      {data && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-[100] flex overflow-x-auto scrollbar-hide shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+          {[
+            { id: 'pitch', icon: '🏟️', nameEn: 'Pitch', nameHe: 'מגרש' },
+            { id: 'transfer', icon: '🔄', nameEn: 'Transfers', nameHe: 'העברות' },
+            { id: 'planner', icon: '📝', nameEn: 'Planner', nameHe: 'תכנון' },
+            { id: 'analysis', icon: '📊', nameEn: 'Analysis', nameHe: 'ניתוח' },
+            { id: 'radar', icon: '🎯', nameEn: 'Radar', nameHe: 'ראדאר' },
+            { id: 'budget', icon: '💰', nameEn: 'Budget', nameHe: 'תקציב' },
+            { id: 'leagues', icon: '🏆', nameEn: 'Leagues', nameHe: 'ליגות' },
+            { id: 'tips', icon: '💡', nameEn: 'Tips', nameHe: 'טיפים' }
+          ].map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-shrink-0 flex flex-col items-center justify-center w-[72px] py-3 gap-1 ${activeTab === tab.id ? 'text-red-500 font-black' : 'text-gray-500 dark:text-gray-400 font-medium'}`}>
+              <span className={`text-xl transition-transform ${activeTab === tab.id ? 'scale-110' : ''}`}>{tab.icon}</span>
+              <span className="text-[10px]">{isEnglish ? tab.nameEn : tab.nameHe}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </main>
+
   );
 }
 
