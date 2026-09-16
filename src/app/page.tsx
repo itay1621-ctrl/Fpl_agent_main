@@ -143,7 +143,7 @@ export default function Home() {
   const [error, setError] = useState('');
   
   const [swapSourceId, setSwapSourceId] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<'pitch' | 'transfer' | 'planner' | 'analytics' | 'settings' | 'leagues' | 'tips'>('planner');
+  const [activeTab, setActiveTab] = useState<'pitch' | 'transfer' | 'planner' | 'analysis' | 'radar' | 'budget' | 'leagues' | 'tips'>('planner');
   const [appAlert, setAppAlert] = useState<string | null>(null);
   const [transferOutId, setTransferOutId] = useState<number | null>(null);
   const [transferRecs, setTransferRecs] = useState<any[]>([]);
@@ -711,7 +711,7 @@ export default function Home() {
                 </select>
               </div>
               <div className="flex-none">
-                <button onClick={fetchTeam} className={`w-full md:w-auto px-6 py-2 border rounded-md text-sm font-bold hover:opacity-80 transition-opacity text-white bg-red-600 border-red-700 shadow-md`}>
+                <button onClick={() => fetchTeam()} className={`w-full md:w-auto px-6 py-2 border rounded-md text-sm font-bold hover:opacity-80 transition-opacity text-white bg-red-600 border-red-700 shadow-md`}>
                   {isEnglish ? '🔄 Reset Virtual Changes' : '🔄 איפוס סגל וחילופים'}
                 </button>
               </div>
@@ -1331,12 +1331,14 @@ function PlayerCard({
   player, 
   isBench = false, 
   activeId, 
-  onActionClick
+  onActionClick,
+  transferMode = false
 }: { 
   player: any, 
   isBench?: boolean, 
   activeId: number | null,
-  onActionClick: (id: number) => void
+  onActionClick: (id: number) => void,
+  transferMode?: boolean
 }) {
   const shirtImg = `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${player.team_code}-66.webp`;
   
