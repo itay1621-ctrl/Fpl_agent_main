@@ -599,7 +599,7 @@ export default function Home() {
                   onKeyDown={(e) => e.key === 'Enter' && fetchTeam()} 
                 />
                 <button 
-                  onClick={handleReset} 
+                  onClick={fetchTeam} 
                   disabled={loading || !teamId} 
                   className="w-full bg-[#01fc7a] hover:bg-[#00e36d] text-[#37003c] px-6 py-4 rounded-xl font-black text-lg shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                 >
