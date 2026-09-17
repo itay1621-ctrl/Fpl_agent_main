@@ -823,9 +823,10 @@ export default function Home() {
 
           });
 
-          const recs = await res.json();
-
-          setTransferRecs(recs);
+          const recsData = await res.json();
+          let finalRecs = recsData.candidates || recsData;
+          if (!Array.isArray(finalRecs)) { finalRecs = []; }
+          setTransferRecs(finalRecs);
 
         } catch (err) {
 
