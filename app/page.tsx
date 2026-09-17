@@ -4144,7 +4144,7 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 
         <h3 className={`text-xl font-black mb-4 flex items-center gap-2 ${textHighlight}`}>
 
-          <span>⏱️</span> {isEnglish ? '60-Second Pre-Deadline Checklist:' : 'צ'ק-ליסט 60 שניות לפני דדליין המחזור:'}
+          <span>⏱️</span> {isEnglish ? '60-Second Pre-Deadline Checklist:' : "צ'ק-ליסט 60 שניות לפני דדליין המחזור:"}
 
         </h3>
 
