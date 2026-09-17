@@ -272,6 +272,20 @@ def get_transfer_recommendations(req: TransferRequest):
                     xp *= 1.2  # Reward easy fixtures
 
                 cost = p["now_cost"] / 10
+                opponent = "Blank"
+                diff = 5
+                for f in gw_fixtures:
+                    if f["team_h"] == team_id_fpl:
+                        opp = teams.get(f["team_a"], "UNK")
+                        opponent = f"{opp} (H)"
+                        diff = f["team_h_difficulty"]
+                        break
+                    elif f["team_a"] == team_id_fpl:
+                        opp = teams.get(f["team_h"], "UNK")
+                        opponent = f"{opp} (A)"
+                        diff = f["team_a_difficulty"]
+                        break
+
                 candidates.append({
                     "id": p["id"],
                     "name": p["web_name"],
@@ -280,7 +294,9 @@ def get_transfer_recommendations(req: TransferRequest):
                     "pos_code": p["element_type"],
                     "cost": cost,
                     "xp": xp,
-                    "total_points": p.get("total_points", 0)
+                    "total_points": p.get("total_points", 0),
+                    "fixture": opponent,
+                    "fixture_diff": diff
                 })
         # Sort by XP descending and return all (frontend will slice top 3 and allow searching the rest)
         candidates = sorted(candidates, key=lambda x: x["xp"], reverse=True)
@@ -457,3 +473,42 @@ def get_budget_scenarios(team_id: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@app.get("/api/price-changes")
+def get_price_changes():
+    try:
+        bootstrap = fetch_bootstrap()
+        elements = bootstrap.get("elements", [])
+        teams = {t["id"]: t["short_name"] for t in bootstrap.get("teams", [])}
+        
+        players = []
+        for p in elements:
+            net_transfers = p.get("transfers_in_event", 0) - p.get("transfers_out_event", 0)
+            ownership = float(p.get("selected_by_percent", 0.0))
+            
+            # Simple heuristic proxy for target progress
+            if net_transfers > 0:
+                threshold = 75000 + (ownership * 500)
+                progress = min(100.0, (net_transfers / threshold) * 100)
+            else:
+                threshold = 55000 + (ownership * 300)
+                progress = min(100.0, (abs(net_transfers) / threshold) * 100)
+                
+            players.append({
+                "id": p["id"],
+                "name": p["web_name"],
+                "team": teams.get(p["team"], "UNK"),
+                "cost": p["now_cost"] / 10,
+                "transfers_in": p.get("transfers_in_event", 0),
+                "transfers_out": p.get("transfers_out_event", 0),
+                "net_transfers": net_transfers,
+                "progress": round(progress, 1),
+                "ownership": ownership
+            })
+            
+        risers = sorted([p for p in players if p["net_transfers"] > 0], key=lambda x: x["progress"], reverse=True)[:50]
+        fallers = sorted([p for p in players if p["net_transfers"] < 0], key=lambda x: x["progress"], reverse=True)[:50]
+        
+        return {"risers": risers, "fallers": fallers}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

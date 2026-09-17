@@ -1368,6 +1368,7 @@ export default function Home() {
             <button onClick={() => setActiveTab('leagues')} className={`${activeTab === 'leagues' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.leaguesTab}</button>
 
             <button onClick={() => setActiveTab('tips')} className={`${activeTab === 'tips' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.tipsTab}</button>
+            <button onClick={() => setActiveTab('prices')} className={`${activeTab === 'prices' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.pricesTab}</button>
 
           </div>
 
@@ -1381,7 +1382,7 @@ export default function Home() {
 
               <button onClick={handleReset} className={`px-4 py-1.5 border rounded text-xs font-bold hover:opacity-80 transition-opacity text-white bg-red-600 border-red-700 shadow-sm`}>
 
-                {isEnglish ? 'Reset Changes' : 'איפוס שינויים'}
+                {isEnglish ? 'Reset Virtual Changes' : 'איפוס שינויים וירטואליים'}
 
               </button>
 
@@ -2301,7 +2302,10 @@ export default function Home() {
 
 
 
-      {activeTab === 'tips' && (
+      {activeTab === 'prices' && (
+          <PriceChangesTab isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} />
+        )}
+        {activeTab === 'tips' && (
 
         <div className={`mt-4 relative`}>
 
@@ -2691,7 +2695,7 @@ function ActionModal({ player, onClose, onSwap, onCaptain, onVice, onSell, isEng
         
         <div className="flex flex-col gap-2 mt-2">
           <button onClick={() => { onSwap(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
-            <span>🔄</span> {isEnglish ? 'Swap' : 'חילוף שחקן'}
+            <span>🔄</span> {isEnglish ? 'Substitute / Swap' : 'חילוף שחקן'}
           </button>
           
           <button onClick={() => { onCaptain(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
@@ -4270,4 +4274,74 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 
   );
 
+}
+
+function PriceChangesTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any) {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<'risers'|'fallers'>('risers');
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/price-changes`)
+      .then(r => r.json())
+      .then(d => { setData(d); setLoading(false); })
+      .catch(e => { console.error(e); setLoading(false); });
+  }, []);
+
+  if (loading) return <div className="p-8 text-center"><div className="w-8 h-8 mx-auto border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div><p className="mt-4 font-bold">Loading Predictions...</p></div>;
+  if (!data) return <div className="text-center text-red-500 font-bold p-8">Error loading data</div>;
+
+  const currentList = view === 'risers' ? data.risers : data.fallers;
+  const barColor = view === 'risers' ? 'bg-green-500' : 'bg-red-500';
+
+  return (
+    <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+      <div className="flex justify-center gap-4 mb-6">
+        <button onClick={() => setView('risers')} className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-black transition-all ${view === 'risers' ? 'bg-green-500 text-white shadow-lg scale-105' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+          {isEnglish ? '📈 Rising' : '📈 צפי עליות'}
+        </button>
+        <button onClick={() => setView('fallers')} className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-black transition-all ${view === 'fallers' ? 'bg-red-500 text-white shadow-lg scale-105' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+          {isEnglish ? '📉 Falling' : '📉 צפי ירידות'}
+        </button>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+        <table className={`w-full text-sm ${isEnglish ? 'text-left' : 'text-right'}`}>
+          <thead className={`text-xs uppercase font-black ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+            <tr>
+              <th className="px-4 py-3">{isEnglish ? 'Player' : 'שחקן'}</th>
+              <th className="px-4 py-3 text-center">{isEnglish ? 'Cost' : 'מחיר'}</th>
+              <th className="px-4 py-3 text-center">{isEnglish ? 'Net Transfers' : 'מאזן העברות'}</th>
+              <th className="px-4 py-3 text-center min-w-[150px]">{isEnglish ? 'Target' : 'יעד (Progress)'}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentList.map((p: any) => (
+              <tr key={p.id} className={`border-b last:border-0 ${isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                <td className="px-4 py-3 font-bold flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                  <span className={textHighlight}>{p.name}</span>
+                  <span className={`text-[10px] sm:text-xs px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 ${textMuted} w-fit`}>{p.team}</span>
+                </td>
+                <td className={`px-4 py-3 text-center font-bold ${textHighlight}`}>£{p.cost.toFixed(1)}m</td>
+                <td className={`px-4 py-3 text-center font-bold ${view === 'risers' ? 'text-green-500' : 'text-red-500'}`} dir="ltr">
+                  {p.net_transfers > 0 ? '+' : ''}{p.net_transfers.toLocaleString()}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2 w-full max-w-[200px] mx-auto">
+                    <div className="w-full h-3 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden border border-gray-300 dark:border-gray-500" dir="ltr">
+                      <div className={`h-full ${barColor} transition-all duration-1000 ease-out`} style={{ width: `${Math.min(100, Math.max(0, p.progress))}%` }}></div>
+                    </div>
+                    <span className={`text-xs font-black w-12 text-center ${view === 'risers' ? 'text-green-500' : 'text-red-500'}`} dir="ltr">{p.progress.toFixed(1)}%</span>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {currentList.length === 0 && (
+              <tr><td colSpan={4} className="text-center py-8">{isEnglish ? 'No data' : 'אין נתונים'}</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
