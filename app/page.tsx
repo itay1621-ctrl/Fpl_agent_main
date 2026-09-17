@@ -1646,7 +1646,7 @@ export default function Home() {
                               <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 rounded-lg flex items-center gap-2">
                                 <span className="text-xl">✋</span>
                                 <p className="text-sm font-bold text-yellow-800 dark:text-yellow-200">
-                                  {isEnglish ? \'Recommendation: HOLD. No available transfer improves your squad by more than 2.0 expected points.\' : \'המלצה: HOLD (המתן). אין אף שחקן שמשפר את הצפי ביותר מ-2.0 נקודות.\'}
+                                  {isEnglish ? 'Recommendation: HOLD. No available transfer improves your squad by more than 2.0 expected points.' : 'המלצה: HOLD (המתן). אין אף שחקן שמשפר את הצפי ביותר מ-2.0 נקודות.'}
                                 </p>
                               </div>
                             )}
@@ -2058,7 +2058,7 @@ export default function Home() {
                               <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 rounded-lg flex items-center gap-2">
                                 <span className="text-xl">✋</span>
                                 <p className="text-sm font-bold text-yellow-800 dark:text-yellow-200">
-                                  {isEnglish ? \'Recommendation: HOLD. No available transfer improves your squad by more than 2.0 expected points.\' : \'המלצה: HOLD (המתן). אין אף שחקן שמשפר את הצפי ביותר מ-2.0 נקודות.\'}
+                                  {isEnglish ? 'Recommendation: HOLD. No available transfer improves your squad by more than 2.0 expected points.' : 'המלצה: HOLD (המתן). אין אף שחקן שמשפר את הצפי ביותר מ-2.0 נקודות.'}
                                 </p>
                               </div>
                             )}
@@ -4144,7 +4144,7 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 
         <h3 className={`text-xl font-black mb-4 flex items-center gap-2 ${textHighlight}`}>
 
-          <span>⏱️</span> {isEnglish ? '60-Second Pre-Deadline Checklist:' : 'צ\'ק-ליסט 60 שניות לפני דדליין המחזור:'}
+          <span>⏱️</span> {isEnglish ? '60-Second Pre-Deadline Checklist:' : 'צ'ק-ליסט 60 שניות לפני דדליין המחזור:'}
 
         </h3>
 
