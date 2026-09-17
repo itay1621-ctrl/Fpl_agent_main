@@ -1878,6 +1878,28 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
             {bench.map((p: any) => renderPlayer(p, true))}
           </div>
         </div>
+
+
+             {/* Schedule Sidebar */}
+        <div className={`w-full lg:w-1/4 rounded-xl border p-4 shadow-sm flex flex-col h-fit ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <h4 className={`text-lg font-black mb-4 ${textHighlight}`}>{isEnglish ? `GW ${selectedGwNumber} Fixtures` : `משחקי מחזור ${selectedGwNumber}`}</h4>
+          <div className="flex flex-col gap-2 overflow-y-auto max-h-[600px] pr-1">
+            {scheduleForGw.map((match: any, idx: number) => (
+              <div key={idx} className={`flex items-center justify-between p-2 rounded border ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-100'} text-xs font-bold`}>
+                <div className="flex items-center gap-1.5 w-2/5 justify-end">
+                  <span className={isDarkMode ? 'text-gray-200' : 'text-gray-800'}>{match.home_team}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-[9px] ${getFdrBadgeColor(match.home_diff)}`}>{match.home_diff}</span>
+                </div>
+                <div className={`text-[10px] px-1 ${textMuted}`}>vs</div>
+                <div className="flex items-center gap-1.5 w-2/5 justify-start">
+                  <span className={`px-1.5 py-0.5 rounded text-[9px] ${getFdrBadgeColor(match.away_diff)}`}>{match.away_diff}</span>
+                  <span className={isDarkMode ? 'text-gray-200' : 'text-gray-800'}>{match.away_team}</span>
+                </div>
+              </div>
+            ))}
+            {scheduleForGw.length === 0 && <p className={`text-center text-sm ${textMuted}`}>{isEnglish ? 'No fixtures' : 'אין משחקים'}</p>}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -2110,27 +2132,6 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
                   ))}
                 </div>
               </div>
-
-             {/* Schedule Sidebar */}
-        <div className={`w-full lg:w-1/4 rounded-xl border p-4 shadow-sm flex flex-col h-fit ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <h4 className={`text-lg font-black mb-4 ${textHighlight}`}>{isEnglish ? `GW ${selectedGwNumber} Fixtures` : `משחקי מחזור ${selectedGwNumber}`}</h4>
-          <div className="flex flex-col gap-2 overflow-y-auto max-h-[600px] pr-1">
-            {scheduleForGw.map((match: any, idx: number) => (
-              <div key={idx} className={`flex items-center justify-between p-2 rounded border ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-100'} text-xs font-bold`}>
-                <div className="flex items-center gap-1.5 w-2/5 justify-end">
-                  <span className={isDarkMode ? 'text-gray-200' : 'text-gray-800'}>{match.home_team}</span>
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] ${getFdrBadgeColor(match.home_diff)}`}>{match.home_diff}</span>
-                </div>
-                <div className={`text-[10px] px-1 ${textMuted}`}>vs</div>
-                <div className="flex items-center gap-1.5 w-2/5 justify-start">
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] ${getFdrBadgeColor(match.away_diff)}`}>{match.away_diff}</span>
-                  <span className={isDarkMode ? 'text-gray-200' : 'text-gray-800'}>{match.away_team}</span>
-                </div>
-              </div>
-            ))}
-            {scheduleForGw.length === 0 && <p className={`text-center text-sm ${textMuted}`}>{isEnglish ? 'No fixtures' : 'אין משחקים'}</p>}
-          </div>
-        </div>
 
          {/* Differentials */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
