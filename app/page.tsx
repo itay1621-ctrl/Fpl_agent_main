@@ -415,7 +415,7 @@ export default function Home() {
 
       loading: "Loading...",
 
-      engineFor: "AI Engine for GW",
+      engineFor: "Planning for GW",
 
       teamWord: "Team:"
 
@@ -1584,7 +1584,7 @@ export default function Home() {
 
                   </div>
 
-                  <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t-2 border-white/20 border-dashed border-4 border-t-0 border-purple-500/50">
+                  <div className={`mt-0 w-full p-1 md:p-4 flex justify-around shadow-inner z-20 relative border-4 border-t-0 border-purple-500/50 rounded-b-lg ${isDarkMode ? 'bg-gray-800' : 'bg-[#e0e0e0]'}`}>
 
                     {bench.sort((a: any, b: any) => a.position - b.position).map((p: any) => (
 
@@ -1642,7 +1642,7 @@ export default function Home() {
 
                             <h4 className={`text-sm font-bold mb-3 ${textMuted}`}>
 
-                              {isEnglish ? 'Top 3 AI Recommendations:' : '3 ההמלצות המובילות של המערכת (לפי xP):'}
+                              {isEnglish ? 'Top 3 Smart Recommendations:' : '3 ההמלצות המובילות של המערכת (לפי xP):'}
 
                             </h4>
 
@@ -1824,7 +1824,7 @@ export default function Home() {
 
                     <p className={textMuted}>
 
-                      {isEnglish ? 'Select a player from the pitch to see AI recommendations and search for replacements.' : 'בחר שחקן מהמגרש כדי לראות המלצות חכמות ולחפש לו מחליפים.'}
+                      {isEnglish ? 'Select a player from the pitch to see recommendations and search for replacements.' : 'בחר שחקן מהמגרש כדי לראות המלצות חכמות ולחפש לו מחליפים.'}
 
                     </p>
 
@@ -2040,7 +2040,7 @@ export default function Home() {
 
                             <h4 className={`text-sm font-bold mb-3 ${textMuted}`}>
 
-                              {isEnglish ? 'Top 3 AI Recommendations:' : '3 ההמלצות המובילות של המערכת (לפי xP):'}
+                              {isEnglish ? 'Top 3 Smart Recommendations:' : '3 ההמלצות המובילות של המערכת (לפי xP):'}
 
                             </h4>
 
@@ -2928,7 +2928,7 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
 
         isEnglish ? 'SCOUT PICKS (Top xP)' : 'בחירות הסקאוט (תוחלת הנקודות הגבוהה ביותר)', 
 
-        isEnglish ? 'Players with the highest expected points (xP) for the upcoming gameweek based on AI models and fixture difficulty.' : 'שחקנים עם תוחלת הנקודות (xP) הגבוהה ביותר למחזור הקרוב, על בסיס מודלי AI וקושי משחקים.'
+        isEnglish ? 'Players with the highest expected points (xP) for the upcoming gameweek based on statistical models and fixture difficulty.' : 'שחקנים עם תוחלת הנקודות (xP) הגבוהה ביותר למחזור הקרוב, על בסיס מודלי AI וקושי משחקים.'
 
       )}
 
@@ -2992,7 +2992,7 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
 
 
 
-  if (loading) return <div className="text-center p-10 font-bold">{isEnglish ? 'Analyzing weak links and calculating replacements...' : 'מנתח חוליות חלשות ומחשב חלופות אידיאליות...'} 🤖</div>;
+  if (loading) return <div className="text-center p-10 font-bold">{isEnglish ? 'Analyzing weak links and calculating replacements...' : 'מנתח חוליות חלשות ומחשב חלופות אידיאליות...'}</div>;
 
   if (error) return <div className="text-center p-10 font-bold text-red-500">{error}</div>;
 
@@ -3026,7 +3026,7 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
 
         {isEnglish 
 
-          ? 'The AI has identified the following weak links in your squad based on tough fixtures, poor form, or injury risks. Here are the top affordable replacements.' 
+          ? 'The algorithm has identified the following weak links in your squad based on tough fixtures, poor form, or injury risks. Here are the top affordable replacements.' 
 
           : 'המערכת איתרה את החוליות החלשות בסגל שלך על בסיס משחקים קשים, פציעות או תוחלת נקודות נמוכה. אלו המחליפים הטובים ביותר שתוכל להרשות לעצמך בתקציב הנוכחי.'}
 
@@ -3222,78 +3222,22 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
 
   const renderPlayer = (p: any, isBench: boolean = false) => {
-
     const fix0 = p.upcoming_fixtures?.[selectedGwOffset];
-
-    const isSelected = swapSourceId === p.id;
-
-    const isTransfer = !originalSquadIds.includes(p.id);
-
-
-
+    const mappedPlayer = {
+      ...p,
+      fixture: fix0 ? fix0.opponent : 'Blank',
+      fixture_diff: fix0 ? fix0.difficulty : 5,
+    };
     return (
-
-      <button key={p.id} onClick={() => swapSourceId !== null ? onSwap(p.id) : setActionPlayer(p)} className={`flex flex-col items-center w-[46px] min-[400px]:w-[52px] sm:w-24 transition-transform hover:scale-105 cursor-pointer ${isBench ? 'opacity-90 hover:opacity-100' : ''}`}>
-
-        <div className="relative mb-0 sm:mb-1">
-
-          <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${p.team_code}-66.webp`} className="w-7 min-[400px]:w-8 sm:w-12 h-9 min-[400px]:h-10 sm:h-16 object-contain drop-shadow-md" />
-
-          {p.is_captain && <div className="absolute -bottom-1 -right-2 bg-black text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-yellow-400 shadow z-10">C</div>}
-
-          {p.is_vice_captain && <div className="absolute -bottom-1 -right-2 bg-white text-black text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-black shadow z-10">V</div>}
-
-        </div>
-
-        
-
-        <div className={`text-[9px] min-[400px]:text-[10px] sm:text-xs font-black px-0.5 sm:px-1.5 py-0 rounded shadow-sm mt-[-4px] whitespace-nowrap overflow-hidden text-ellipsis w-[110%] text-center border ${
-
-            isSelected ? 'bg-blue-600 text-white border-blue-700' :
-
-            p.chance_of_playing === 0 ? 'bg-red-600 text-white border-red-700' :
-
-            (p.chance_of_playing !== null && p.chance_of_playing !== undefined && p.chance_of_playing < 100) ? 'bg-orange-500 text-white border-orange-600' :
-
-            (isDarkMode ? 'bg-white text-gray-900 border-gray-300' : 'bg-white text-gray-900 border-gray-200')
-
-          }`}
-
-          title={p.news || ''}
-          dir="ltr">
-
-          {p.name}
-
-        </div>
-
-        
-
-        <div className="flex flex-col w-[110%] mt-1 gap-1">
-
-          {fix0 ? (
-
-            <div className={`text-[7.5px] min-[400px]:text-[9px] sm:text-xs font-bold py-0 w-full text-center rounded shadow-sm border ${getFDRColor(fix0.difficulty)}`}>{fix0.opponent}</div>
-
-          ) : (
-
-            <div className={`text-[7.5px] min-[400px]:text-[9px] sm:text-xs font-bold py-0 w-full text-center rounded shadow-sm border bg-gray-500 text-white border-gray-600`}>Blank</div>
-
-          )}
-
-        </div>
-
-        
-
-        <div className={`mt-0 text-[7px] sm:text-[10px] font-bold w-full text-center drop-shadow-sm ${isBench ? (isDarkMode ? 'text-gray-300' : 'text-gray-700') : 'text-white'}`}>
-
-          £{p.cost.toFixed(1)}m
-
-        </div>
-      </button>
+      <PlayerCard 
+        key={p.id} 
+        player={mappedPlayer} 
+        isBench={isBench} 
+        activeId={swapSourceId} 
+        onActionClick={(id: number) => { swapSourceId !== null ? onSwap(id) : setActionPlayer(p) }} 
+      />
     );
   };
-
-
 
   return (
 
@@ -3502,9 +3446,9 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
         {/* Pitch Container */}
 
-        <div className={`w-full lg:w-3/4 max-w-5xl mx-auto rounded-3xl shadow-xl overflow-hidden border-4 flex flex-col ${isDarkMode ? 'border-gray-800' : 'border-gray-300'}`}>
+        <div className={`relative w-full max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl mt-4 sm:mt-8 border-4 sm:border-8 border-white ${isDarkMode ? 'opacity-90' : ''}`}>
 
-          <div className="bg-[#126b3f] p-1 sm:p-6 md:p-8 relative flex flex-col justify-around min-h-[420px] md:min-h-[600px] flex-grow">
+          <div className="bg-[#126b3f] rounded-t-lg p-1 md:p-4 relative shadow-md overflow-hidden min-h-[380px] md:min-h-[500px] flex flex-col justify-around">
 
             <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
 
@@ -3552,7 +3496,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
           
 
-          <div className={`p-2 sm:p-6 md:p-8 flex justify-around w-full border-t-2 border-white/20 border-dashed z-20 bg-[#0e5230]`}>
+          <div className={`mt-0 w-full p-2 sm:p-4 flex justify-around shadow-inner z-20 ${isDarkMode ? 'bg-gray-800 border-t-2 border-gray-700' : 'bg-[#e0e0e0] border-t-4 border-[#b0b0b0]'}`}>
 
             {bench.map((p: any) => renderPlayer(p, true))}
 
