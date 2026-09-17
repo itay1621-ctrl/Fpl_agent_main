@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 from fpl_api import fetch_bootstrap, fetch_user_team, fetch_fixtures, fetch_all_fixtures
 import math
 
@@ -15,56 +15,62 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams):
+# Default calibrated weights (to be updated by Backtest findings)
+DEFAULT_WEIGHTS = {
+    "form_weight": 0.5,
+    "defcon_weight": 0.033,  # 1/30
+    "xg_weight": 1.0,
+    "xa_weight": 1.0,
+    "fdr_scale": 1.0,
+    "opportunity_cost": 2.0
+}
+
+def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weights=None):
+    if weights is None:
+        weights = DEFAULT_WEIGHTS
+        
     team_id_fpl = p["team"]
     pos_code = p["element_type"]
     
-    # Probabilities
+    # 1. Availability
     chance = p.get("chance_of_playing_next_round")
     availability_prob = 1.0 if chance is None else float(chance) / 100.0
     
-    # Minutes per start proxy
+    # 2. Expected Minutes (Basic rotation model)
     total_mins = p.get("minutes", 0)
     starts = p.get("starts", 0)
     mins_per_start = total_mins / starts if starts > 0 else 0
-    if mins_per_start == 0 and p.get("form", "0.0") != "0.0":
-        mins_per_start = 60 # Default for non-starters who get minutes
+    if mins_per_start == 0 and float(p.get("form", 0) or 0) > 0:
+        mins_per_start = 60 # Default for non-starters getting minutes
         
     expected_minutes = mins_per_start * availability_prob
     if expected_minutes > 90: expected_minutes = 90
-    
-    # 90s multiplier
     x_90s = expected_minutes / 90.0
     
-    # Stats per 90 (using FPL's native stats where available)
-    xg_90 = float(p.get("expected_goals_per_90", 0) or 0)
-    xa_90 = float(p.get("expected_assists_per_90", 0) or 0)
+    # 3. Base Per-90 Stats
+    xg_90 = float(p.get("expected_goals_per_90", 0) or 0) * weights["xg_weight"]
+    xa_90 = float(p.get("expected_assists_per_90", 0) or 0) * weights["xa_weight"]
     xgc_90 = float(p.get("expected_goals_conceded_per_90", 0) or 0)
     defcon_90 = float(p.get("defensive_contribution_per_90", 0) or 0)
     
-    # Goal / Assist Points by Position
+    # Goal / Assist Points
     goal_pts = {1: 6, 2: 6, 3: 5, 4: 4}.get(pos_code, 4)
     assist_pts = 3
     
-    # Base attacking expectation
+    # Base expectations
     xAtt_90 = (xg_90 * goal_pts) + (xa_90 * assist_pts)
     
-    # Defensive expectation (CS)
     cs_pts = {1: 4, 2: 4, 3: 1, 4: 0}.get(pos_code, 0)
     cs_prob_90 = math.exp(-xgc_90) if xgc_90 > 0 else 0.5
     xDef_90 = cs_prob_90 * cs_pts
     
-    # Saves (GK) & BPS (DefCon)
     xSave_90 = 0
     if pos_code == 1:
         saves_90 = float(p.get("saves_per_90", 0) or 0)
-        xSave_90 = (saves_90 / 3.0) * 1  # 1 pt per 3 saves
+        xSave_90 = (saves_90 / 3.0) * 1
         
-    xBPS_90 = defcon_90 / 30.0 # Very rough estimation
+    xBPS_90 = defcon_90 * weights["defcon_weight"]
     
-    base_xP_90 = xAtt_90 + xDef_90 + xSave_90 + xBPS_90
-    
-    # Multi-GW Fixture Evaluation
     gw_range = min(5, 38 - next_gw + 1)
     
     next_gw_opponent = "Blank"
@@ -90,40 +96,46 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams):
                 next_gw_opponent = f"{teams.get(opp_id, 'UNK')} ({'H' if is_home else 'A'})"
                 next_gw_diff = diff
             
+            # FDR Multiplier
+            # We scale the FDR intensity using fdr_scale
             fdr_multiplier = 1.0
-            if diff == 1: fdr_multiplier = 1.3
-            elif diff == 2: fdr_multiplier = 1.15
+            if diff == 1: fdr_multiplier = 1.0 + (0.3 * weights["fdr_scale"])
+            elif diff == 2: fdr_multiplier = 1.0 + (0.15 * weights["fdr_scale"])
             elif diff == 3: fdr_multiplier = 1.0
-            elif diff == 4: fdr_multiplier = 0.85
-            elif diff == 5: fdr_multiplier = 0.7
+            elif diff == 4: fdr_multiplier = 1.0 - (0.15 * weights["fdr_scale"])
+            elif diff == 5: fdr_multiplier = 1.0 - (0.3 * weights["fdr_scale"])
+            
+            # FIX: FDR ONLY applies to attacking and defensive potential, NOT appearance or saves
+            match_xAtt = xAtt_90 * x_90s * fdr_multiplier
+            match_xDef = xDef_90 * x_90s * fdr_multiplier
+            match_xSave = xSave_90 * x_90s
+            match_xBPS = xBPS_90 * x_90s
             
             appearance_pts = 0
             if expected_minutes >= 60: appearance_pts = 2 * availability_prob
             elif expected_minutes > 0: appearance_pts = 1 * availability_prob
             
-            match_xp = (base_xP_90 * x_90s * fdr_multiplier) + appearance_pts
-            gw_proj += match_xp
+            gw_proj += match_xAtt + match_xDef + match_xSave + match_xBPS + appearance_pts
             
         total_5gw_projection += gw_proj
         
     form_val = float(p.get("form", 0) or 0)
-    total_5gw_projection += (form_val * 0.5)
+    total_5gw_projection += (form_val * weights["form_weight"])
     total_5gw_projection = max(0.0, total_5gw_projection)
     
+    # Confidence metrics based on uncertainty, not just DGW
     confidence = "Medium"
-    if availability_prob < 0.9:
-        confidence = "Low (Minutes Risk)"
-    elif fixtures_found > gw_range:
-        confidence = "High (DGWs included)"
-    elif total_mins > 500 and availability_prob == 1.0:
-        confidence = "High (Nailed starter)"
+    if availability_prob < 0.9 or expected_minutes < 45:
+        confidence = "Low (Minutes Uncertainty)"
+    elif total_mins > 500 and availability_prob == 1.0 and fixtures_found >= gw_range:
+        confidence = "High"
         
     reasons = []
     reasons.append(f"Expected Minutes: {int(expected_minutes)}/match")
-    reasons.append(f"Base Projection: {round(base_xP_90, 2)} pts/90")
+    if form_val > 0:
+        reasons.append(f"Form Adjustment: +{round(form_val * weights['form_weight'], 2)} pts")
     if xg_90 > 0.3 or xa_90 > 0.3:
         reasons.append(f"Strong attacking threat (xG/90: {xg_90}, xA/90: {xa_90})")
-    
     if cs_prob_90 > 0.4 and pos_code in [1, 2]:
         reasons.append(f"High Clean Sheet probability ({int(cs_prob_90*100)}%)")
         
@@ -388,9 +400,8 @@ def get_transfer_recommendations(req: TransferRequest):
         recommendation = "TRANSFER"
         delta = 0.0
         
-        # Transfer Economics V3.0
-        transfer_cost = 0.0 # Assuming Free Transfer
-        opportunity_cost = 2.0 # Statistical value of a banked FT
+        transfer_cost = 0.0
+        opportunity_cost = DEFAULT_WEIGHTS["opportunity_cost"]
         threshold = transfer_cost + opportunity_cost
         
         if current_player and best_candidate:
@@ -435,9 +446,8 @@ def get_radar():
         scout_picks = sorted(all_players, key=lambda x: x["xp"], reverse=True)[:10]
         hot_form = sorted(all_players, key=lambda x: x["form"], reverse=True)[:10]
         
-        # Differential: Ownership < 10% AND strong projection!
         differentials = sorted([p for p in all_players if p["selected_by_percent"] < 10.0 and p["xp"] > 15.0], key=lambda x: x["xp"], reverse=True)[:10]
-        if not differentials: # Fallback if projections are generally low
+        if not differentials:
             differentials = sorted([p for p in all_players if p["selected_by_percent"] < 10.0], key=lambda x: x["xp"], reverse=True)[:10]
             
         return {
@@ -478,8 +488,8 @@ def get_budget_scenarios(team_id: int):
             if sp.get("chance_of_playing") is not None and sp.get("chance_of_playing") < 75:
                 reason = "Injury / Doubtful"
             elif sp.get("form", 0) < 2.0 and sp.get("xp", 0) < 3.0:
-                reason = "Poor Output (Low Form & V3 Projection)"
-            elif sp.get("xp", 0) < 15.0: # 5 GW projection threshold
+                reason = "Poor Output (Low Form & Projection)"
+            elif sp.get("xp", 0) < 15.0:
                 reason = "Tough Upcoming Run (Low 5GW Projection)"
                 
             if reason:
