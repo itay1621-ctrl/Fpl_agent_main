@@ -1658,10 +1658,6 @@ export default function Home() {
                                 )}
                               </div>
                             )}
-                                <div>
-                                </p>
-                              </div>
-                            )}
 
                             <h4 className={`text-sm font-black mb-3 ${textMuted}`}>
 
@@ -2080,10 +2076,6 @@ export default function Home() {
                                     {transferRecs[0]?.reason}
                                   </div>
                                 )}
-                              </div>
-                            )}
-                                <div>
-                                </p>
                               </div>
                             )}
 
