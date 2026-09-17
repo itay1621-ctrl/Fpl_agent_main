@@ -647,21 +647,21 @@ export default function Home() {
 
           {/* Metrics Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className={`border-2 border-red-300 rounded-xl p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
+            <div className={`border-2 border-red-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
               <p className={`text-xs font-bold ${textMuted}`}>{t.overallRank}</p>
-              <p className="text-2xl font-black">{data.rank.toLocaleString()}</p>
+              <p className="text-lg sm:text-2xl font-black">{data.rank.toLocaleString()}</p>
             </div>
-            <div className={`border-2 border-orange-300 rounded-xl p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
+            <div className={`border-2 border-orange-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
               <p className={`text-xs font-bold ${textMuted}`}>{t.bank}</p>
-              <p className="text-2xl font-black">£{data.bank.toFixed(1)}m</p>
+              <p className="text-lg sm:text-2xl font-black">£{data.bank.toFixed(1)}m</p>
             </div>
-            <div className={`border-2 border-blue-300 rounded-xl p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
+            <div className={`border-2 border-blue-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
               <p className={`text-xs font-bold ${textMuted}`}>{t.xp}</p>
-              <p className="text-2xl font-black">{totalXP.toFixed(1)}</p>
+              <p className="text-lg sm:text-2xl font-black">{totalXP.toFixed(1)}</p>
             </div>
-            <div className={`border-2 border-green-300 rounded-xl p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
+            <div className={`border-2 border-green-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
               <p className={`text-xs font-bold ${textMuted}`}>{t.squadScore}</p>
-              <p className="text-2xl font-black">{calculatedSquadScore || 0} <span className={`text-sm ${textMuted}`}>/ 100</span></p>
+              <p className="text-lg sm:text-2xl font-black">{calculatedSquadScore || 0} <span className={`text-sm ${textMuted}`}>/ 100</span></p>
             </div>
           </div>
 
@@ -694,7 +694,7 @@ export default function Home() {
           {/* FPL Pitch Area */}
           {activeTab === 'pitch' && (
             <div className="max-w-4xl mx-auto">
-              <div className="bg-[#126b3f] rounded-t-lg p-1 md:p-4 relative shadow-md overflow-hidden min-h-[360px] md:min-h-[500px] flex flex-col justify-around">
+              <div className="bg-[#126b3f] rounded-t-lg p-1 md:p-4 relative shadow-md overflow-hidden min-h-[550px] md:min-h-[500px] flex flex-col justify-around">
                 <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
                   {/* Center Line & Circle */}
                   <div className="absolute top-1/2 left-0 right-0 h-1 bg-white"></div>
@@ -762,7 +762,7 @@ export default function Home() {
                     )}
                   </div>
 
-                  <div className="bg-[#126b3f] rounded-lg p-2 sm:p-4 relative shadow-inner min-h-[400px] flex flex-col justify-around border-4 border-purple-500/50 overflow-hidden">
+                  <div className="bg-[#126b3f] rounded-lg p-2 sm:p-4 relative shadow-inner min-h-[550px] sm:min-h-[400px] flex flex-col justify-around border-4 border-purple-500/50 overflow-hidden">
                     <div className="absolute inset-0 opacity-20 pointer-events-none">
                       <div className="absolute top-1/2 left-0 right-0 h-1 bg-white"></div>
                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 border-4 border-white rounded-full"></div>
@@ -1812,19 +1812,19 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className={`border rounded-xl p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+          <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
             <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Expected Points (xP)' : 'תוחלת נקודות (xP)'}</span>
-            <span className="text-2xl font-black">{totalXP.toFixed(1)}</span>
+            <span className="text-lg sm:text-2xl font-black">{totalXP.toFixed(1)}</span>
           </div>
-          <div className={`border rounded-xl p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+          <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
             <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Bank Balance' : 'יתרה בבנק'}</span>
             <span className={`text-2xl font-black ${data.bank < 0 ? 'text-red-500' : ''}`}>£{data.bank.toFixed(1)}m</span>
           </div>
-          <div className={`border rounded-xl p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+          <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
             <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Hit Points' : 'קנס נקודות (Hits)'}</span>
             <span className={`text-2xl font-black ${hitPoints < 0 ? 'text-red-500' : 'text-gray-500'}`}>{hitPoints}</span>
           </div>
-          <div className={`border rounded-xl p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+          <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
             <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Available Transfers' : 'חילופים זמינים'}</span>
             <div className="flex items-center gap-2">
               <button 
@@ -1843,31 +1843,10 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
         </div>
       </div>
 
-      <div className="flex flex-col-reverse lg:flex-row gap-6 items-start">
-        {/* Schedule Sidebar */}
-        <div className={`w-full lg:w-1/4 rounded-xl border p-4 shadow-sm flex flex-col h-fit ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <h4 className={`text-lg font-black mb-4 ${textHighlight}`}>{isEnglish ? `GW ${selectedGwNumber} Fixtures` : `משחקי מחזור ${selectedGwNumber}`}</h4>
-          <div className="flex flex-col gap-2 overflow-y-auto max-h-[600px] pr-1">
-            {scheduleForGw.map((match: any, idx: number) => (
-              <div key={idx} className={`flex items-center justify-between p-2 rounded border ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-100'} text-xs font-bold`}>
-                <div className="flex items-center gap-1.5 w-2/5 justify-end">
-                  <span className={isDarkMode ? 'text-gray-200' : 'text-gray-800'}>{match.home_team}</span>
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] ${getFdrBadgeColor(match.home_diff)}`}>{match.home_diff}</span>
-                </div>
-                <div className={`text-[10px] px-1 ${textMuted}`}>vs</div>
-                <div className="flex items-center gap-1.5 w-2/5 justify-start">
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] ${getFdrBadgeColor(match.away_diff)}`}>{match.away_diff}</span>
-                  <span className={isDarkMode ? 'text-gray-200' : 'text-gray-800'}>{match.away_team}</span>
-                </div>
-              </div>
-            ))}
-            {scheduleForGw.length === 0 && <p className={`text-center text-sm ${textMuted}`}>{isEnglish ? 'No fixtures' : 'אין משחקים'}</p>}
-          </div>
-        </div>
-
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
         {/* Pitch Container */}
         <div className={`w-full lg:w-3/4 max-w-5xl mx-auto rounded-3xl shadow-xl overflow-hidden border-4 flex flex-col ${isDarkMode ? 'border-gray-800' : 'border-gray-300'}`}>
-          <div className="bg-[#126b3f] p-1 sm:p-6 md:p-8 relative flex flex-col justify-around min-h-[400px] md:min-h-[600px] flex-grow">
+          <div className="bg-[#126b3f] p-1 sm:p-6 md:p-8 relative flex flex-col justify-around min-h-[600px] md:min-h-[600px] flex-grow">
             <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
               <div className="absolute top-1/2 left-0 right-0 h-1 bg-white"></div>
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 md:w-48 h-32 md:h-48 border-4 border-white rounded-full"></div>
@@ -2133,7 +2112,28 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
                 </div>
               </div>
 
-              {/* Differentials */}
+             {/* Schedule Sidebar */}
+        <div className={`w-full lg:w-1/4 rounded-xl border p-4 shadow-sm flex flex-col h-fit ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <h4 className={`text-lg font-black mb-4 ${textHighlight}`}>{isEnglish ? `GW ${selectedGwNumber} Fixtures` : `משחקי מחזור ${selectedGwNumber}`}</h4>
+          <div className="flex flex-col gap-2 overflow-y-auto max-h-[600px] pr-1">
+            {scheduleForGw.map((match: any, idx: number) => (
+              <div key={idx} className={`flex items-center justify-between p-2 rounded border ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-100'} text-xs font-bold`}>
+                <div className="flex items-center gap-1.5 w-2/5 justify-end">
+                  <span className={isDarkMode ? 'text-gray-200' : 'text-gray-800'}>{match.home_team}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-[9px] ${getFdrBadgeColor(match.home_diff)}`}>{match.home_diff}</span>
+                </div>
+                <div className={`text-[10px] px-1 ${textMuted}`}>vs</div>
+                <div className="flex items-center gap-1.5 w-2/5 justify-start">
+                  <span className={`px-1.5 py-0.5 rounded text-[9px] ${getFdrBadgeColor(match.away_diff)}`}>{match.away_diff}</span>
+                  <span className={isDarkMode ? 'text-gray-200' : 'text-gray-800'}>{match.away_team}</span>
+                </div>
+              </div>
+            ))}
+            {scheduleForGw.length === 0 && <p className={`text-center text-sm ${textMuted}`}>{isEnglish ? 'No fixtures' : 'אין משחקים'}</p>}
+          </div>
+        </div>
+
+         {/* Differentials */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <h5 className="font-bold text-sm mb-3 text-blue-500">
