@@ -1643,10 +1643,22 @@ export default function Home() {
 
                           <div className="mb-6">
                             {transferRecs[0]?.is_hold && (
-                              <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 rounded-lg flex items-center gap-2">
-                                <span className="text-xl">✋</span>
-                                <p className="text-sm font-bold text-yellow-800 dark:text-yellow-200">
-                                  {isEnglish ? 'Recommendation: HOLD. No available transfer improves your squad by more than 2.0 expected points.' : 'המלצה: HOLD (המתן). אין אף שחקן שמשפר את הצפי ביותר מ-2.0 נקודות.'}
+                              <div className="mb-4">
+                                <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 rounded-lg flex items-center gap-2 mb-2">
+                                  <span className="text-xl">✋</span>
+                                  <p className="text-sm font-bold text-yellow-800 dark:text-yellow-200">
+                                    {isEnglish ? `Recommendation: HOLD. The best transfer only improves projection by +${transferRecs[0]?.delta || 0} pts (Threshold: +2.0).` : `המלצה: HOLD (המתן). ההעברה הטובה ביותר משפרת את הצפי רק ב-+${transferRecs[0]?.delta || 0} נק' (הסף הוא 2.0).`}
+                                  </p>
+                                </div>
+                                {transferRecs[0]?.reason && (
+                                  <div className="p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg text-xs font-medium text-blue-800 dark:text-blue-200 whitespace-pre-line">
+                                    <span className="font-bold">AI Logic (Confidence: {transferRecs[0]?.confidence}):</span><br/>
+                                    {transferRecs[0]?.reason}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                                <div>
                                 </p>
                               </div>
                             )}
@@ -2055,10 +2067,22 @@ export default function Home() {
 
                           <div className="mb-6 shrink-0">
                             {transferRecs[0]?.is_hold && (
-                              <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 rounded-lg flex items-center gap-2">
-                                <span className="text-xl">✋</span>
-                                <p className="text-sm font-bold text-yellow-800 dark:text-yellow-200">
-                                  {isEnglish ? 'Recommendation: HOLD. No available transfer improves your squad by more than 2.0 expected points.' : 'המלצה: HOLD (המתן). אין אף שחקן שמשפר את הצפי ביותר מ-2.0 נקודות.'}
+                              <div className="mb-4">
+                                <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 rounded-lg flex items-center gap-2 mb-2">
+                                  <span className="text-xl">✋</span>
+                                  <p className="text-sm font-bold text-yellow-800 dark:text-yellow-200">
+                                    {isEnglish ? `Recommendation: HOLD. The best transfer only improves projection by +${transferRecs[0]?.delta || 0} pts (Threshold: +2.0).` : `המלצה: HOLD (המתן). ההעברה הטובה ביותר משפרת את הצפי רק ב-+${transferRecs[0]?.delta || 0} נק' (הסף הוא 2.0).`}
+                                  </p>
+                                </div>
+                                {transferRecs[0]?.reason && (
+                                  <div className="p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg text-xs font-medium text-blue-800 dark:text-blue-200 whitespace-pre-line">
+                                    <span className="font-bold">AI Logic (Confidence: {transferRecs[0]?.confidence}):</span><br/>
+                                    {transferRecs[0]?.reason}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                                <div>
                                 </p>
                               </div>
                             )}
