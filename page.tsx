@@ -7,103 +7,627 @@ import { useState, useMemo, useEffect } from 'react';
 
 
 const FPL_SUCCESS_TIPS = [
+
   {
+
       "num": 1,
+
       "icon": "⏳",
+
       "title_he": "שמירת חילופים (Roll Transfers)",
+
       "title_en": "Roll Your Free Transfers",
+
       "desc_he": "אל תבצע חילוף אוטומטי בכל מחזור רק כי יש לך חילוף פנוי. צבירת 2 עד 5 חילופים חינמיים מעניקה גמישות אסטרטגית אדירה למהפכות סגל קטנות ללא קנס נקודות.",
+
       "desc_en": "Never burn a free transfer just because you have one. Stacking 2 to 5 free transfers provides massive strategic leverage to overhaul multiple positions without taking point hits.",
+
       "rule_he": "אין מהלך בוער? שמור את החילוף ותהנה מכוח תמרון כפול במחזור הבא.",
+
       "rule_en": "No urgent move? Roll the transfer and gain double flexibility next week.",
+
       "tag_he": "סבלנות",
+
       "tag_en": "Patience",
+
   },
+
   {
+
       "num": 2,
-      "icon": "🚑",
-      "title_he": "הימנעות מקנסות מיותרים (Avoid -4 Hits)",
+
+      "icon": "🛡️",
+
+      "title_he": "הימנעות ממינוסים מיותרים (Avoid -4 Hits)",
+
       "title_en": "Avoid Unnecessary -4 Point Hits",
-      "desc_he": "שחקן שנקנה במינוס 4 חייב להחזיר שער או בישול רק כדי לכסות את עלות ההעברה שלו. קח מינוסים אך ורק עבור משברי פציעות או קפטנים לטווח ארוך.",
+
+      "desc_he": "שחקן שנרכש בקנס 4- נקודות נדרש להבקיע או לבשל רק כדי לאפס את העלות שלו. קח מינוס רק במקרה חירום של חוסר 11 שחקנים כשירים או עבור קפטן מובהק לטווח ארוך.",
+
       "desc_en": "A player bought on a -4 hit must effectively return a goal or assist just to break even. Take hits strictly for injury crises or long-term high-ceiling captains.",
-      "rule_he": "מינוסים שוחקים את הדירוג: קח אותם רק בחירום.",
+
+      "rule_he": "מינוסים מצטברים שוחקים את הדירוג: הימנע מהם ככל האפשר.",
+
       "rule_en": "Point hits erode long-term rank. Take them only for emergencies or long-term holds.",
+
       "tag_he": "משמעת",
+
       "tag_en": "Discipline",
+
   },
+
   {
+
       "num": 3,
+
       "icon": "👑",
+
       "title_he": "משמעת קפטן ובעלות אפקטיבית (Captaincy)",
+
       "title_en": "Captaincy Discipline & Effective Ownership",
-      "desc_he": "אל תהמר על קפטנים 'דיפרנציאלים' פראיים. למעלה מ-60% מהתקדמות הדירוג שלך תלויה בקפטן; סמוך על שחקני עוגן עם xP גבוה, בעלות אפקטיבית גבוהה ולוח משחקים נוח.",
+
+      "desc_he": "אל תהמר על קפטן הרפתקני רק כדי 'להתחכם'. מעל 60% מהניקוד מגיע מהקפטן; בחר בשחקן המוביל עם ה-xP והבעלות הגבוהים ביותר (כמו האלנד או ברונו פרננדס).",
+
       "desc_en": "Don't gamble on wild differential captains. Over 60% of your rank progress relies on the armband; trust high-xP, high-ownership talismans with favorable fixtures.",
-      "rule_he": "הקפטן שומר על הדירוג שלך - תן לשחקני השדה ליצור את הפער.",
+
+      "rule_he": "הקפטן מגן על הדירוג - את הדיפרנציאלים מייצרים בשחקני השדה.",
+
       "rule_en": "The armband protects your rank - let your outfield picks provide the differential edge.",
+
       "tag_he": "קפטן",
+
       "tag_en": "Captaincy",
+
   },
+
   {
+
       "num": 4,
-      "icon": "📅",
-      "title_he": "תכנון של 3-5 מחזורים (3-5 GW Blocks)",
+
+      "icon": "🗓️",
+
+      "title_he": "תכנון בטווחי 3-5 מחזורים (3-5 GW Blocks)",
+
       "title_en": "Plan in 3-5 Gameweek Horizons",
-      "desc_he": "לעולם אל תקנה שחקן עבור משחק בודד. תמיד תעריך את 3 עד 5 המשחקים הקרובים (FDR) כדי למנוע בזבוז חילופים עתידיים על תיקון החלטות קצרות טווח.",
+
+      "desc_he": "לעולם אל תקנה שחקן בשביל משחק אחד בלבד. בחן תמיד את לוח המשחקים (FDR) של 3 עד 5 המחזורים הבאים כדי להימנע מחילופי 'כיבוי שריפות' שבוע לאחר מכן.",
+
       "desc_en": "Never buy a player for a single fixture. Always evaluate the upcoming 3 to 5 gameweek run (FDR) to avoid burning future transfers fixing short-term punts.",
-      "rule_he": "תמיד סקור את 3-5 המשחקים הבאים לפני אישור כל העברה בשוק.",
+
+      "rule_he": "חשוב תמיד שבועיים-שלושה קדימה לפני כל לחיצה על כפתור הרכש.",
+
       "rule_en": "Always review the next 3-5 fixtures before confirming any market transfer.",
+
       "tag_he": "תכנון",
+
       "tag_en": "Planning",
+
   },
+
   {
+
       "num": 5,
-      "icon": "🎙️",
-      "title_he": "המתנה למסיבות עיתונאים (Wait for Press Conferences)",
+
+      "icon": "⏱️",
+
+      "title_he": "החלטות סמוך לדדליין (Wait for Press Conferences)",
+
       "title_en": "Wait for Press Conferences & News",
-      "desc_he": "השהה העברות עד למסיבות העיתונאים של יום שישי וחדשות סגל ודאיות. העברות מוקדמות באמצע השבוע חושפות אותך לסיכוני פציעות באימונים והפתעות רוטציה מאירופה.",
+
+      "desc_he": "המתן למסיבות העיתונאים של ימי שישי ולעדכוני פציעות אחרונים לפני ביצוע חילוף. העברות מוקדמות באמצע השבוע מסתכנות בפציעות באימונים או בגביעים אירופיים.",
+
       "desc_en": "Delay transfers until Friday press conferences and verified deadline team news. Mid-week transfers risk training knocks and European rotation surprises.",
-      "rule_he": "סבלנות מונעת טעויות: המתן עם חילופים עד אחרי מסיבות העיתונאים.",
+
+      "rule_he": "סבלנות מונעת אסונות: המתן לעדכוני המאמנים הרשמיים לפני חילופים.",
+
       "rule_en": "Patience prevents blunders: hold transfers until verified press conferences.",
+
       "tag_he": "תזמון",
+
       "tag_en": "Timing",
+
   },
+
   {
+
       "num": 6,
+
       "icon": "🪑",
-      "title_he": "ספסל חכם ומאפשר (Smart Bench Enablers)",
+
+      "title_he": "ספסל חסכוני ובטוח דקות (Smart Bench Enablers)",
+
       "title_en": "Smart Bench & Budget Enablers",
-      "desc_he": "אל תלכוד ערך רב מדי על הספסל שלך. החזק 1-2 שחקני הרכב זולים וודאיים (£4.0m-£4.5m) כרשת ביטחון אוטומטית, ומקסם את התקציב על ה-11 הפותחים שלך.",
+
+      "desc_he": "אל תקבור מיליונים יקרים בספסל. דאג לשחקן ספסל אחד או שניים בטוחים לפתוח במחיר רצפה (£4.0m-£4.5m) שייכנסו אוטומטית בעת הצורך, והשקע את הכסף ב-11 הפותחים.",
+
       "desc_en": "Do not trap valuable team value on your bench. Keep 1-2 cheap, guaranteed starters (£4.0m-£4.5m) as auto-sub safety nets while maximizing funds on your Starting XI.",
-      "rule_he": "ספסל זול עם דקות בטוחות מאפשר לך לממן שחקני פרמיום בהרכב הפותח.",
+
+      "rule_he": "ספסל זול עם דקות קבועות מאפשר הרכב פותח עתיר כוכבים.",
+
       "rule_en": "A cheap bench with secure minutes funds premium heavy hitters in your starting XI.",
+
       "tag_he": "תקציב",
+
       "tag_en": "Budget",
+
   },
+
   {
+
       "num": 7,
+
       "icon": "📊",
-      "title_he": "הימנעות מפאניקה וסמך על נתונים (Trust Underlying Data)",
+
+      "title_he": "ללא פאניקה - אמון בנתונים (Trust Underlying Data)",
+
       "title_en": "Avoid Knee-Jerking & Trust Analytics",
-      "desc_he": "אל תמכור שחקני פרמיום בגלל משחק אחד חלש, ואל תרדוף אחרי שחקני הגנה שהבקיעו במקרה. סמוך על מדדים מתקדמים כמו xG, xA, ו-xP במקום על אירועים נקודתיים.",
+
+      "desc_he": "אל תמכור שחקן איכותי רק כי סיים עם 2 נקודות במחזור בודד, ואל תרוץ לקנות שחקן שהבקיע שער מקרי. סמוך על מדדי ה-xG/xA והנתונים הסטטיסטיים לאורך זמן.",
+
       "desc_en": "Do not rage-sell premium assets after a single blank, nor chase random defensive flukes. Trust underlying expected metrics (xG, xA, xP) over past variance.",
-      "rule_he": "סטייה היא זמנית, תהליך הוא קבוע: סמוך על כוכבי xG/xA.",
+
+      "rule_he": "מזל חולף, תוחלת מנצחת: שחקן שמייצר מצבים טובים יחזיר נקודות לאורך זמן.",
+
       "rule_en": "Variance is temporary, underlying process is permanent: trust high-xG/xA stars.",
+
       "tag_he": "אנליטיקה",
+
       "tag_en": "Analytics",
+
   },
+
   {
+
       "num": 8,
-      "icon": "💰",
-      "title_he": "שמירת נזילות בקופה (£0.5m-£1.0m ITB)",
+
+      "icon": "🏦",
+
+      "title_he": "שמירה על רזרבה בבנק (£0.5m-£1.0m ITB)",
+
       "title_en": "Keep Liquidity In The Bank (£0.5m-£1.0m ITB)",
-      "desc_he": "שמירת £0.5m-£1.0m בקופה מעניקה לך את היכולת לקפוץ על טרנדים חמים ושחקנים פורצים מבלי שתצטרך לבצע מספר חילופים במקביל כדי למצוא תקציב.",
+
+      "desc_he": "השארת סכום צנוע של 0.5-1.0 מיליון ליש\"ט בבנק מעניקה גמישות אדירה לעבור מיד לשחקן פורץ או כוכב בכושר בלי צורך לפרק חצי סגל או לקחת מינוסים.",
+
       "desc_en": "Maintaining £0.5m-£1.0m in the bank allows you to instantly jump onto emerging breakout stars without requiring multi-transfer squad surgery.",
-      "rule_he": "מזומן בקופה שווה גמישות: זה מגן עליך מפני עליות מחיר מהירות.",
+
+      "rule_he": "כסף בבנק הוא חופש תמרון שמגן עליך משינויי מחירים מהירים.",
+
       "rule_en": "Cash in the bank equals agility: it shields you from rapid market price rises.",
+
       "tag_he": "גמישות",
+
       "tag_en": "Flexibility",
-  }
-];
+
+  },
+
+  {
+
+      "num": 9,
+
+      "icon": "⚡",
+
+      "title_he": "תזמון צ'יפים במחזורים מיוחדים (DGW & BGW)",
+
+      "title_en": "Strategic Chip Timing (DGW & BGW)",
+
+      "desc_he": "שמור את הצ'יפים החזקים (Wildcard, Free Hit, Bench Boost, Triple Captain) למחזורים הכפולים (DGW) והריקים (BGW) בחצי השני של העונה לקצירת עשרות נקודות יתרון.",
+
+      "desc_en": "Preserve high-impact chips (Wildcard, Free Hit, Bench Boost, Triple Captain) for late-season Double (DGW) and Blank (BGW) weeks to exploit massive point swings.",
+
+      "rule_he": "צ'יפ במחזור כפול שווה פי שניים או שלושה לעומת מחזור רגיל.",
+
+      "rule_en": "A chip played in a Double Gameweek yields massively higher returns.",
+
+      "tag_he": "צ'יפים",
+
+      "tag_en": "Chips",
+
+  },
+
+  {
+
+      "num": 10,
+
+      "icon": "🎯",
+
+      "title_he": "דיפרנציאלים מחושבים לטיפוס בליגה (Target Differentials)",
+
+      "title_en": "Target High-Upside Differentials",
+
+      "desc_he": "שחקנים בבעלות של מעל 60% מגנים על הדירוג שלך; אבל כדי לסגור פערים בליגה הפרטית שלך כשאתה רודף מאחור, שחקני מפתח איכותיים בבעלות מתחת ל-10% הם המנוע לניצחון.",
+
+      "desc_en": "High-ownership players protect rank; but to bridge deficits in private mini-leagues, high-upside low-ownership differentials (<10%) are the true accelerators.",
+
+      "rule_he": "שמור על שלד בטוח להגנה על הדירוג, והוסף 1-2 דיפרנציאלים לעקיפה.",
+
+      "rule_en": "Anchor with essential template players, and hunt differentials to bridge gaps.",
+
+      "tag_he": "מיני-ליגות",
+
+      "tag_en": "Mini-Leagues",
+
+  },
+
+]
+
+
+
+
+
+
+
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/+$/, "");
+
+
+
+export default function Home() {
+
+  const [teamId, setTeamId] = useState('');
+
+  const [data, setData] = useState<any>(null);
+
+
+
+  const [initLoading, setInitLoading] = useState(true);
+
+  const [tipIndex, setTipIndex] = useState(0);
+
+
+
+
+
+
+
+  const [originalData, setOriginalData] = useState<any>(null);
+
+  const [loading, setLoading] = useState(false);
+
+  const [error, setError] = useState('');
+
+  
+
+  const [swapSourceId, setSwapSourceId] = useState<number | null>(null);
+  const [actionPlayer, setActionPlayer] = useState<any>(null);
+
+  const [activeTab, setActiveTab] = useState<'pitch' | 'transfer' | 'planner' | 'analysis' | 'radar' | 'budget' | 'leagues' | 'tips' | 'prices'>('planner');
+
+  const [appAlert, setAppAlert] = useState<string | null>(null);
+
+  const [transferOutId, setTransferOutId] = useState<number | null>(null);
+
+  const [transferRecs, setTransferRecs] = useState<any[]>([]);
+
+  const [loadingRecs, setLoadingRecs] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const [transferError, setTransferError] = useState('');
+
+
+
+  // חדש: מצב כהה ושפות
+
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const [isEnglish, setIsEnglish] = useState(false);
+
+
+
+  // מילון תרגומים
+
+  const dict = {
+
+    he: {
+
+      changeTeam: "החלף קבוצה",
+
+      darkMode: "מצב כהה",
+
+      lightMode: "מצב בהיר",
+
+      overallRank: "דירוג כללי",
+
+      bank: "יתרה בבנק",
+
+      xp: "תוחלת נקודות (xP)",
+
+      squadScore: "ציון סגל נוכחי",
+
+      timeUntil: "זמן נותר עד נעילת חילופים",
+
+      pitchTab: "הסגל על המגרש",
+
+      transferTab: "מעבדת חילופים",
+
+      analysisTab: "ניתוח סגל וחסרונות",
+
+      radarTab: "רדאר רכש עילית",
+
+      budgetTab: "תרחישי תקציב",
+
+      plannerTab: "מתכנן מחזורים",
+
+      leaguesTab: "מיני-ליגות וראש בראש",
+
+      tipsTab: "טיפים להצלחה 💡",
+
+      cap: "קפטן (C):",
+
+      vcap: "סגן קפטן (VC):",
+
+      enterId: "הזן את מספר הקבוצה שלך",
+
+      placeholder: "לדוגמה: 139103",
+
+      connect: "התחבר",
+
+      loading: "טוען...",
+
+      engineFor: "מנוע המלצות למחזור",
+
+      teamWord: "קבוצה:"
+
+    },
+
+    en: {
+
+      changeTeam: "Change Team",
+
+      darkMode: "Dark Mode",
+
+      lightMode: "Light Mode",
+
+      overallRank: "Overall Rank",
+
+      bank: "Bank Balance",
+
+      xp: "Expected Points (xP)",
+
+      squadScore: "Squad Score",
+
+      timeUntil: "Time until GW deadline",
+
+      pitchTab: "Pitch View",
+
+      transferTab: "Transfer Lab",
+
+      analysisTab: "Squad Analysis",
+
+      radarTab: "Elite Radar",
+
+      budgetTab: "Budget Scenarios",
+
+      plannerTab: "GW Planner",
+
+      leaguesTab: "Mini-Leagues & H2H",
+
+      tipsTab: "Tips & Tricks 💡",
+
+      cap: "Captain (C):",
+
+      vcap: "Vice Captain (VC):",
+
+      enterId: "Enter your Team ID",
+
+      placeholder: "Example: 139103",
+
+      connect: "Connect",
+
+      loading: "Loading...",
+
+      engineFor: "Planning for GW",
+
+      teamWord: "Team:"
+
+    }
+
+  };
+
+  
+
+  const t = isEnglish ? dict.en : dict.he;
+
+  
+
+  // צבעי המערכת בהתאם למצב (Dark/Light)
+
+  const bgMain = isDarkMode ? "bg-gray-900 text-gray-100" : "bg-[#f8f9fa] text-gray-900";
+
+  const bgCard = isDarkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900";
+
+  const bgBox = isDarkMode ? "bg-gray-800 shadow-md text-white" : "bg-white shadow-sm text-gray-900";
+
+
+
+  const textMuted = isDarkMode ? "text-gray-400" : "text-gray-500";
+
+  const textHighlight = isDarkMode ? "text-gray-200" : "text-[#1a202c]";
+
+
+
+  const fetchTeam = async (overrideId?: string) => {
+
+    const idToFetch = (overrideId || teamId)?.toString().trim();
+
+    if (!idToFetch) return;
+
+    setLoading(true);
+
+    setError('');
+
+    setTransferError('');
+
+    setSwapSourceId(null);
+
+    setTransferOutId(null);
+
+    setTransferRecs([]);
+
+    try {
+
+      const res = await fetch(`${API_BASE_URL}/api/dashboard/${idToFetch}`);
+
+      if (!res.ok) throw new Error(`[Debug] HTTP ${res.status} from ${res.url} | ID: '${idToFetch}'`);
+
+      const result = await res.json();
+
+      setOriginalData(JSON.parse(JSON.stringify(result)));
+
+      localStorage.setItem('fpl_team_id', idToFetch);
+
+      
+
+      const savedPlanStr = localStorage.getItem(`fpl_plan_${idToFetch}`);
+
+      if (savedPlanStr) {
+
+        try {
+
+          const savedPlan = JSON.parse(savedPlanStr);
+
+          // Only load if it matches the current upcoming GW, so outdated plans are wiped
+
+          if (savedPlan.next_gw === result.next_gw) {
+
+            setData(savedPlan);
+
+            return;
+
+          }
+
+        } catch (e) {}
+
+      }
+
+      setData(JSON.parse(JSON.stringify(result)));
+
+    } catch (err: any) {
+
+      setError(err.message);
+
+      if (overrideId) localStorage.removeItem('fpl_team_id');
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+
+
+  useEffect(() => {
+
+    const savedId = localStorage.getItem('fpl_team_id');
+
+    if (savedId) {
+
+      setTeamId(savedId);
+
+      fetchTeam(savedId).finally(() => setInitLoading(false));
+
+    } else {
+
+      setInitLoading(false);
+
+    }
+
+    
+
+    const interval = setInterval(() => {
+
+      setTipIndex(prev => (prev + 1) % FPL_SUCCESS_TIPS.length);
+
+    }, 6000);
+
+    return () => clearInterval(interval);
+
+  }, []);
+
+
+
+  useEffect(() => {
+
+    if (data && data.team_id) {
+
+      localStorage.setItem(`fpl_plan_${data.team_id}`, JSON.stringify(data));
+
+    }
+
+  }, [data]);
+
+
+
+  const handleReset = () => {
+
+    if (originalData) {
+
+      setData(JSON.parse(JSON.stringify(originalData)));
+
+      setSwapSourceId(null);
+
+      setTransferOutId(null);
+
+      localStorage.removeItem(`fpl_plan_${originalData.team_id}`);
+
+    }
+
+  };
+
+
+
+  const handleRestorePlayer = (position: number) => {
+
+    if (!originalData) return;
+
+    const originalPlayer = originalData.squad.find((p: any) => p.position === position);
+
+    const currentPlayer = data.squad.find((p: any) => p.position === position);
+
+    if (!originalPlayer || !currentPlayer) return;
+
+
+
+    const newBank = data.bank + currentPlayer.cost - originalPlayer.cost;
+
+    const newSquad = data.squad.map((p: any) => p.position === position ? originalPlayer : p);
+
+    
+
+    setData({ ...data, squad: newSquad, bank: newBank });
+
+  };
+
+
+
+  const executeTransfer = (newPlayer: any) => {
+
+    if (!transferOutId) return;
+
+    const oldPlayer = data.squad.find((p: any) => p.id === transferOutId);
+
+    if (!oldPlayer) return;
+
+
+
+    const newBank = data.bank + oldPlayer.cost - newPlayer.cost;
+
+    
+
+    // בדיקת חריגה מהתקציב - הוסרה לבקשת המשתמש כדי לאפשר תכנון
+
+    // if (newBank < 0) {
+
+    //   setTransferError(isEnglish ? `Cannot afford ${newPlayer.name}. You are short £${Math.abs(newBank).toFixed(1)}M.` : `אין לך מספיק תקציב עבור ${newPlayer.name}. חסר לך £${Math.abs(newBank).toFixed(1)}M.`);
+
+    //   return;
+
+    // }
+
+
+
+    const upcoming_fixtures = [];
 
     for (let offset = 0; offset <= 38 - data.next_gw; offset++) {
 
@@ -299,9 +823,14 @@ const FPL_SUCCESS_TIPS = [
 
           });
 
-          const recs = await res.json();
-
-          setTransferRecs(recs);
+          const recsData = await res.json();
+          if (recsData.candidates && recsData.candidates.length > 0) {
+            recsData.candidates[0].is_hold = (recsData.recommendation === "HOLD");
+            recsData.candidates[0].reason = recsData.best_transfer?.reason || "";
+            recsData.candidates[0].confidence = recsData.best_transfer?.confidence || "";
+            recsData.candidates[0].delta = recsData.delta || 0;
+          }
+          setTransferRecs(recsData.candidates || recsData);
 
         } catch (err) {
 
@@ -844,6 +1373,7 @@ const FPL_SUCCESS_TIPS = [
             <button onClick={() => setActiveTab('leagues')} className={`${activeTab === 'leagues' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.leaguesTab}</button>
 
             <button onClick={() => setActiveTab('tips')} className={`${activeTab === 'tips' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.tipsTab}</button>
+            <button onClick={() => setActiveTab('prices')} className={`${activeTab === 'prices' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{isEnglish ? 'Price Target' : 'שינויי מחיר'}</button>
 
           </div>
 
@@ -1118,22 +1648,6 @@ const FPL_SUCCESS_TIPS = [
                         {searchQuery === '' && transferRecs.length > 0 && (
 
                           <div className="mb-6">
-                            {transferRecs[0]?.is_hold && (
-                              <div className="mb-4">
-                                <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 rounded-lg flex items-center gap-2 mb-2">
-                                  <span className="text-xl">✋</span>
-                                  <p className="text-sm font-bold text-yellow-800 dark:text-yellow-200">
-                                    {isEnglish ? `Recommendation: HOLD. The best transfer only improves projection by +${transferRecs[0]?.delta || 0} pts (Threshold: +2.0).` : `המלצה: HOLD (המתן). ההעברה הטובה ביותר משפרת את הצפי רק ב-+${transferRecs[0]?.delta || 0} נק' (הסף הוא 2.0).`}
-                                  </p>
-                                </div>
-                                {transferRecs[0]?.reason && (
-                                  <div className="p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg text-xs font-medium text-blue-800 dark:text-blue-200 whitespace-pre-line">
-                                    <span className="font-bold">AI Logic (Confidence: {transferRecs[0]?.confidence}):</span><br/>
-                                    {transferRecs[0]?.reason}
-                                  </div>
-                                )}
-                              </div>
-                            )}
 
                             <h4 className={`text-sm font-black mb-3 ${textMuted}`}>
 
@@ -1455,11 +1969,16 @@ const FPL_SUCCESS_TIPS = [
 
                       headers: { 'Content-Type': 'application/json' },
 
-                      body: JSON.stringify({ pos_code: playerToSell.pos_code, max_budget: budget, current_squad_ids: currentSquadIds, transfer_out_id: playerToSell.id })
+                      body: JSON.stringify({ pos_code: playerToSell.pos_code, max_budget: budget, current_squad_ids: currentSquadIds })
 
-                    }).then(res => res.json()).then(recs => {
-
-                      setTransferRecs(recs);
+                    }).then(res => res.json()).then(recsData => {
+                      if (recsData.candidates && recsData.candidates.length > 0) {
+                        recsData.candidates[0].is_hold = (recsData.recommendation === "HOLD");
+                        recsData.candidates[0].reason = recsData.best_transfer?.reason || "";
+                        recsData.candidates[0].confidence = recsData.best_transfer?.confidence || "";
+                        recsData.candidates[0].delta = recsData.delta || 0;
+                      }
+                      setTransferRecs(recsData.candidates || recsData);
 
                     }).catch(err => {
 
@@ -1538,22 +2057,6 @@ const FPL_SUCCESS_TIPS = [
                         {searchQuery === '' && transferRecs.length > 0 && (
 
                           <div className="mb-6 shrink-0">
-                            {transferRecs[0]?.is_hold && (
-                              <div className="mb-4">
-                                <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 rounded-lg flex items-center gap-2 mb-2">
-                                  <span className="text-xl">✋</span>
-                                  <p className="text-sm font-bold text-yellow-800 dark:text-yellow-200">
-                                    {isEnglish ? `Recommendation: HOLD. The best transfer only improves projection by +${transferRecs[0]?.delta || 0} pts (Threshold: +2.0).` : `המלצה: HOLD (המתן). ההעברה הטובה ביותר משפרת את הצפי רק ב-+${transferRecs[0]?.delta || 0} נק' (הסף הוא 2.0).`}
-                                  </p>
-                                </div>
-                                {transferRecs[0]?.reason && (
-                                  <div className="p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-lg text-xs font-medium text-blue-800 dark:text-blue-200 whitespace-pre-line">
-                                    <span className="font-bold">AI Logic (Confidence: {transferRecs[0]?.confidence}):</span><br/>
-                                    {transferRecs[0]?.reason}
-                                  </div>
-                                )}
-                              </div>
-                            )}
 
                             <h4 className={`text-sm font-black mb-3 ${textMuted}`}>
 
@@ -1809,7 +2312,10 @@ const FPL_SUCCESS_TIPS = [
 
 
 
-      {activeTab === 'tips' && (
+      {activeTab === 'prices' && (
+          <PriceChangesTab isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} />
+        )}
+        {activeTab === 'tips' && (
 
         <div className={`mt-4 relative`}>
 
@@ -3636,7 +4142,7 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 
         <h3 className={`text-xl font-black mb-4 flex items-center gap-2 ${textHighlight}`}>
 
-          <span>⏱️</span> {isEnglish ? '60-Second Pre-Deadline Checklist:' : "צ'ק-ליסט 60 שניות לפני דדליין המחזור:"}
+          <span>⏱️</span> {isEnglish ? '60-Second Pre-Deadline Checklist:' : 'צ\'ק-ליסט 60 שניות לפני דדליין המחזור:'}
 
         </h3>
 
@@ -3778,4 +4284,74 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 
   );
 
+}
+
+function PriceChangesTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any) {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<'risers'|'fallers'>('risers');
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/price-changes`)
+      .then(r => r.json())
+      .then(d => { setData(d); setLoading(false); })
+      .catch(e => { console.error(e); setLoading(false); });
+  }, []);
+
+  if (loading) return <div className="p-8 text-center"><div className="w-8 h-8 mx-auto border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div><p className="mt-4 font-bold">Loading Predictions...</p></div>;
+  if (!data) return <div className="text-center text-red-500 font-bold p-8">Error loading data</div>;
+
+  const currentList = view === 'risers' ? data.risers : data.fallers;
+  const barColor = view === 'risers' ? 'bg-green-500' : 'bg-red-500';
+
+  return (
+    <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+      <div className="flex justify-center gap-4 mb-6">
+        <button onClick={() => setView('risers')} className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-black transition-all ${view === 'risers' ? 'bg-green-500 text-white shadow-lg scale-105' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+          {isEnglish ? 'Rising' : 'צפי עליות'}
+        </button>
+        <button onClick={() => setView('fallers')} className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-black transition-all ${view === 'fallers' ? 'bg-red-500 text-white shadow-lg scale-105' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+          {isEnglish ? 'Falling' : 'צפי ירידות'}
+        </button>
+      </div>
+
+      <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+        <table className={`w-full text-sm ${isEnglish ? 'text-left' : 'text-right'}`}>
+          <thead className={`text-xs uppercase font-black ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+            <tr>
+              <th className="px-4 py-3">{isEnglish ? 'Player' : 'שחקן'}</th>
+              <th className="px-4 py-3 text-center">{isEnglish ? 'Cost' : 'מחיר'}</th>
+              <th className="px-4 py-3 text-center">{isEnglish ? 'Net Transfers' : 'מאזן העברות'}</th>
+              <th className="px-4 py-3 text-center min-w-[150px]">{isEnglish ? 'Target' : 'יעד (Progress)'}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentList.map((p: any) => (
+              <tr key={p.id} className={`border-b last:border-0 ${isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                <td className="px-4 py-3 font-bold flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                  <span className={textHighlight}>{p.name}</span>
+                  <span className={`text-[10px] sm:text-xs px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 ${textMuted} w-fit`}>{p.team}</span>
+                </td>
+                <td className={`px-4 py-3 text-center font-bold ${textHighlight}`}>£{p.cost.toFixed(1)}m</td>
+                <td className={`px-4 py-3 text-center font-bold ${view === 'risers' ? 'text-green-500' : 'text-red-500'}`} dir="ltr">
+                  {p.net_transfers > 0 ? '+' : ''}{p.net_transfers.toLocaleString()}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2 w-full max-w-[200px] mx-auto">
+                    <div className="w-full h-3 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden border border-gray-300 dark:border-gray-500" dir="ltr">
+                      <div className={`h-full ${barColor} transition-all duration-1000 ease-out`} style={{ width: `${Math.min(100, Math.max(0, p.progress))}%` }}></div>
+                    </div>
+                    <span className={`text-xs font-black w-12 text-center ${view === 'risers' ? 'text-green-500' : 'text-red-500'}`} dir="ltr">{p.progress.toFixed(1)}%</span>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {currentList.length === 0 && (
+              <tr><td colSpan={4} className="text-center py-8">{isEnglish ? 'No data' : 'אין נתונים'}</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
