@@ -234,7 +234,7 @@ export default function Home() {
       const res = await fetch(`${API_BASE_URL}/api/dashboard/${idToFetch}`);
       if (!res.ok) throw new Error(`[Debug] HTTP ${res.status} from ${res.url} | ID: '${idToFetch}'`);
       const result = await res.json();
-      setOriginalData(result);
+      setOriginalData(JSON.parse(JSON.stringify(result)));
       localStorage.setItem('fpl_team_id', idToFetch);
       
       const savedPlanStr = localStorage.getItem(`fpl_plan_${idToFetch}`);
@@ -248,7 +248,7 @@ export default function Home() {
           }
         } catch (e) {}
       }
-      setData(result);
+      setData(JSON.parse(JSON.stringify(result)));
     } catch (err: any) {
       setError(err.message);
       if (overrideId) localStorage.removeItem('fpl_team_id');
@@ -280,7 +280,7 @@ export default function Home() {
 
   const handleReset = () => {
     if (originalData) {
-      setData(originalData);
+      setData(JSON.parse(JSON.stringify(originalData)));
       setSwapSourceId(null);
       setTransferOutId(null);
       localStorage.removeItem(`fpl_plan_${originalData.team_id}`);
@@ -586,27 +586,7 @@ export default function Home() {
               <h1 className="text-5xl md:text-6xl font-black mb-2 text-[#01fc7a] tracking-tight">FPL Elite Scout</h1>
               <p className="text-purple-200 font-medium text-lg">{isEnglish ? 'Next-Gen AI Squad Planner' : 'מערכת תכנון סגל מבוססת AI'}</p>
         
-      {!isBench && onCaptainClick && onViceClick && !transferMode && (
-        <div className="flex justify-center gap-1 mt-1 w-[110%] z-20">
-          <button 
-            onClick={() => onCaptainClick(player.id)}
-            disabled={activeId !== null}
-            title="Set Captain"
-            className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${activeId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'} ${player.is_captain ? 'bg-black text-yellow-400 border border-yellow-400' : 'bg-gray-100 text-gray-700 border border-gray-300'}`}
-          >
-            <span className="text-[8px] sm:text-xs font-black">C</span>
-          </button>
-          <button 
-            onClick={() => onViceClick(player.id)}
-            disabled={activeId !== null}
-            title="Set Vice Captain"
-            className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${activeId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'} ${player.is_vice_captain ? 'bg-white text-black border border-black' : 'bg-gray-100 text-gray-700 border border-gray-300'}`}
-          >
-            <span className="text-[8px] sm:text-xs font-black">V</span>
-          </button>
-        </div>
-      )}
-    </div>
+
 
             <div className="bg-white p-8 rounded-2xl shadow-xl w-full text-[#37003c]" dir={isEnglish ? "ltr" : "rtl"}>
               <h2 className="text-xl font-bold mb-6 text-center text-[#37003c]">{t.enterId}</h2>
@@ -707,8 +687,8 @@ export default function Home() {
           {/* Reset Squad */}
           {activeTab === 'pitch' && (
             <div className="flex justify-end mb-4">
-              <button onClick={handleReset} className={`w-full md:w-auto px-6 py-2 border rounded-md text-sm font-bold hover:opacity-80 transition-opacity text-white bg-red-600 border-red-700 shadow-md`}>
-                {isEnglish ? '🔄 Reset Virtual Changes' : '🔄 איפוס שינויים וירטואליים'}
+              <button onClick={handleReset} className={`px-4 py-1.5 border rounded text-xs font-bold hover:opacity-80 transition-opacity text-white bg-red-600 border-red-700 shadow-sm`}>
+                {isEnglish ? 'Reset Virtual Changes' : 'איפוס שינויים וירטואליים'}
               </button>
             </div>
           )}
@@ -1425,6 +1405,26 @@ function PlayerCard({
       )}
       {player.is_vice_captain && !isSelected && (
         <div className="absolute -top-2 -right-2 bg-gray-100 text-gray-800 text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold z-20 shadow border border-gray-300">V</div>
+      )}
+      {!isBench && onCaptainClick && onViceClick && !transferMode && (
+        <div className="flex justify-center gap-1 mt-1 w-[110%] z-20">
+          <button 
+            onClick={(e) => { e.stopPropagation(); onCaptainClick(player.id); }}
+            disabled={activeId !== null}
+            title="Set Captain"
+            className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${activeId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'} ${player.is_captain ? 'bg-black text-yellow-400 border border-yellow-400' : 'bg-gray-100 text-gray-700 border border-gray-300'}`}
+          >
+            <span className="text-[8px] sm:text-xs font-black">C</span>
+          </button>
+          <button 
+            onClick={(e) => { e.stopPropagation(); onViceClick(player.id); }}
+            disabled={activeId !== null}
+            title="Set Vice Captain"
+            className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${activeId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'} ${player.is_vice_captain ? 'bg-white text-black border border-black' : 'bg-gray-100 text-gray-700 border border-gray-300'}`}
+          >
+            <span className="text-[8px] sm:text-xs font-black">V</span>
+          </button>
+        </div>
       )}
     </div>
   );
