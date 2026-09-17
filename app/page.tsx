@@ -1368,7 +1368,7 @@ export default function Home() {
             <button onClick={() => setActiveTab('leagues')} className={`${activeTab === 'leagues' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.leaguesTab}</button>
 
             <button onClick={() => setActiveTab('tips')} className={`${activeTab === 'tips' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.tipsTab}</button>
-            <button onClick={() => setActiveTab('prices')} className={`${activeTab === 'prices' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{isEnglish ? '📈 Price Target' : '📈 שינויי מחיר'}</button>
+            <button onClick={() => setActiveTab('prices')} className={`${activeTab === 'prices' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{isEnglish ? 'Price Target' : 'שינויי מחיר'}</button>
 
           </div>
 
@@ -4298,10 +4298,10 @@ function PriceChangesTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBo
     <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
       <div className="flex justify-center gap-4 mb-6">
         <button onClick={() => setView('risers')} className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-black transition-all ${view === 'risers' ? 'bg-green-500 text-white shadow-lg scale-105' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
-          {isEnglish ? '📈 Rising' : '📈 צפי עליות'}
+          {isEnglish ? 'Rising' : 'צפי עליות'}
         </button>
         <button onClick={() => setView('fallers')} className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-black transition-all ${view === 'fallers' ? 'bg-red-500 text-white shadow-lg scale-105' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
-          {isEnglish ? '📉 Falling' : '📉 צפי ירידות'}
+          {isEnglish ? 'Falling' : 'צפי ירידות'}
         </button>
       </div>
 
