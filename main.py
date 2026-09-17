@@ -138,10 +138,13 @@ def get_dashboard_data(team_id: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+from typing import Optional
+
 class TransferRequest(BaseModel):
     pos_code: int
     max_budget: float
     current_squad_ids: List[int]
+    transfer_out_id: Optional[int] = None
 
 @app.get("/api/league/{league_id}")
 async def get_league_standings(league_id: int, type: str = "classic"):
@@ -246,59 +249,107 @@ def get_transfer_recommendations(req: TransferRequest):
         elif not next_gw:
             next_gw = 1
             
-        gw_fixtures = fetch_fixtures(next_gw)
-        
+        all_fixtures = fetch_all_fixtures()
         elements = bootstrap.get("elements", [])
         teams = {t["id"]: t["short_name"] for t in bootstrap.get("teams", [])}
         
+        gw_range = min(5, 38 - next_gw + 1)
+        upcoming_fixtures_raw = [f for f in all_fixtures if f.get("event") and next_gw <= f["event"] <= next_gw + gw_range - 1]
+        
+        def calculate_player_score(p):
+            team_id_fpl = p["team"]
+            
+            # Base Projection
+            base_xp = float(p.get("ep_next", 0) or 0)
+            
+            # Minutes Risk (Probability)
+            chance = p.get("chance_of_playing_next_round")
+            prob = 1.0
+            if chance is not None:
+                prob = float(chance) / 100.0
+                
+            # Form & Underlying Stats Value
+            form_val = float(p.get("form", 0) or 0)
+            
+            # Fixture Multiplier across Multi-GW
+            total_fdr_multiplier = 0
+            fixtures_found = 0
+            
+            next_gw_opponent = "Blank"
+            next_gw_diff = 5
+            
+            weights = [0.4, 0.25, 0.15, 0.1, 0.1]
+            weighted_multiplier = 0
+            
+            for gw_inc in range(gw_range):
+                target_gw = next_gw + gw_inc
+                gw_fixs = [f for f in upcoming_fixtures_raw if f.get("event") == target_gw]
+                
+                player_fixs = [f for f in gw_fixs if f["team_h"] == team_id_fpl or f["team_a"] == team_id_fpl]
+                
+                gw_mult = 0
+                if len(player_fixs) == 0:
+                    gw_mult = 0 # Blank
+                else:
+                    # Could be Double GW
+                    for f in player_fixs:
+                        diff = f["team_h_difficulty"] if f["team_h"] == team_id_fpl else f["team_a_difficulty"]
+                        if gw_inc == 0 and fixtures_found == 0:
+                            opp_id = f["team_a"] if f["team_h"] == team_id_fpl else f["team_h"]
+                            next_gw_opponent = f"{teams.get(opp_id, 'UNK')} ({'H' if f['team_h'] == team_id_fpl else 'A'})"
+                            next_gw_diff = diff
+                            
+                        if diff >= 4:
+                            gw_mult += 0.8
+                        elif diff <= 2:
+                            gw_mult += 1.2
+                        else:
+                            gw_mult += 1.0
+                
+                fixtures_found += len(player_fixs)
+                weighted_multiplier += gw_mult * weights[gw_inc]
+            
+            if fixtures_found == 0:
+                weighted_multiplier = 0
+                
+            # Final Score
+            # If base_xp is very low, form can help push it up slightly.
+            raw_score = (base_xp * 0.7 + form_val * 0.3) * prob * weighted_multiplier
+            
+            cost = p["now_cost"] / 10
+            
+            return {
+                "id": p["id"],
+                "name": p["web_name"],
+                "team": teams.get(p["team"], "UNK"),
+                "team_code": p["team_code"],
+                "pos_code": p["element_type"],
+                "cost": cost,
+                "xp": raw_score, # We hijack XP field to send our custom V2 Score
+                "total_points": p.get("total_points", 0),
+                "fixture": next_gw_opponent,
+                "fixture_diff": next_gw_diff
+            }
+
+        # Calculate current player score if provided
+        current_player_score = 0
+        if req.transfer_out_id:
+            curr_p = next((p for p in elements if p["id"] == req.transfer_out_id), None)
+            if curr_p:
+                current_player_score = calculate_player_score(curr_p)["xp"]
+
         candidates = []
         for p in elements:
             if p["element_type"] == req.pos_code and p["id"] not in req.current_squad_ids:
-                team_id_fpl = p["team"]
-                difficulty = 3
-                for f in gw_fixtures:
-                    if f["team_h"] == team_id_fpl:
-                        difficulty = f["team_h_difficulty"]
-                        break
-                    elif f["team_a"] == team_id_fpl:
-                        difficulty = f["team_a_difficulty"]
-                        break
-                
-                xp = float(p.get("ep_next", 0) or 0)
-                # Adjust xp based on fixture difficulty to avoid recommending players with hard fixtures
-                if difficulty >= 4:
-                    xp *= 0.6  # Penalize hard fixtures heavily
-                elif difficulty <= 2:
-                    xp *= 1.2  # Reward easy fixtures
+                if (p["now_cost"] / 10) <= req.max_budget:
+                    c = calculate_player_score(p)
+                    # Hold logic flag
+                    c["is_hold"] = False
+                    if req.transfer_out_id and (c["xp"] - current_player_score < 2.0):
+                        c["is_hold"] = True
+                    candidates.append(c)
 
-                cost = p["now_cost"] / 10
-                opponent = "Blank"
-                diff = 5
-                for f in gw_fixtures:
-                    if f["team_h"] == team_id_fpl:
-                        opp = teams.get(f["team_a"], "UNK")
-                        opponent = f"{opp} (H)"
-                        diff = f["team_h_difficulty"]
-                        break
-                    elif f["team_a"] == team_id_fpl:
-                        opp = teams.get(f["team_h"], "UNK")
-                        opponent = f"{opp} (A)"
-                        diff = f["team_a_difficulty"]
-                        break
-
-                candidates.append({
-                    "id": p["id"],
-                    "name": p["web_name"],
-                    "team": teams.get(p["team"], "UNK"),
-                    "team_code": p["team_code"],
-                    "pos_code": p["element_type"],
-                    "cost": cost,
-                    "xp": xp,
-                    "total_points": p.get("total_points", 0),
-                    "fixture": opponent,
-                    "fixture_diff": diff
-                })
-        # Sort by XP descending and return all (frontend will slice top 3 and allow searching the rest)
+        # Sort by XP descending
         candidates = sorted(candidates, key=lambda x: x["xp"], reverse=True)
         return candidates
         

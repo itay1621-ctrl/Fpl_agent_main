@@ -1642,6 +1642,14 @@ export default function Home() {
                         {searchQuery === '' && transferRecs.length > 0 && (
 
                           <div className="mb-6">
+                            {transferRecs[0]?.is_hold && (
+                              <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 rounded-lg flex items-center gap-2">
+                                <span className="text-xl">✋</span>
+                                <p className="text-sm font-bold text-yellow-800 dark:text-yellow-200">
+                                  {isEnglish ? \'Recommendation: HOLD. No available transfer improves your squad by more than 2.0 expected points.\' : \'המלצה: HOLD (המתן). אין אף שחקן שמשפר את הצפי ביותר מ-2.0 נקודות.\'}
+                                </p>
+                              </div>
+                            )}
 
                             <h4 className={`text-sm font-black mb-3 ${textMuted}`}>
 
@@ -1963,7 +1971,7 @@ export default function Home() {
 
                       headers: { 'Content-Type': 'application/json' },
 
-                      body: JSON.stringify({ pos_code: playerToSell.pos_code, max_budget: budget, current_squad_ids: currentSquadIds })
+                      body: JSON.stringify({ pos_code: playerToSell.pos_code, max_budget: budget, current_squad_ids: currentSquadIds, transfer_out_id: playerToSell.id })
 
                     }).then(res => res.json()).then(recs => {
 
@@ -2046,6 +2054,14 @@ export default function Home() {
                         {searchQuery === '' && transferRecs.length > 0 && (
 
                           <div className="mb-6 shrink-0">
+                            {transferRecs[0]?.is_hold && (
+                              <div className="mb-4 p-3 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-600 rounded-lg flex items-center gap-2">
+                                <span className="text-xl">✋</span>
+                                <p className="text-sm font-bold text-yellow-800 dark:text-yellow-200">
+                                  {isEnglish ? \'Recommendation: HOLD. No available transfer improves your squad by more than 2.0 expected points.\' : \'המלצה: HOLD (המתן). אין אף שחקן שמשפר את הצפי ביותר מ-2.0 נקודות.\'}
+                                </p>
+                              </div>
+                            )}
 
                             <h4 className={`text-sm font-black mb-3 ${textMuted}`}>
 
