@@ -2748,6 +2748,7 @@ function PlayerCard({
           (player.chance_of_playing === 0 ? 'bg-red-600' : 
           (player.chance_of_playing !== null && player.chance_of_playing !== undefined && player.chance_of_playing < 100 ? 'bg-orange-500' : 'bg-[#2c3e50]'))}`}
         title={player.news || ''}
+        dir="ltr"
       >
         {player.name}
       </div>
@@ -3258,7 +3259,8 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
           }`}
 
-          title={p.news || ''}>
+          title={p.news || ''}
+          dir="ltr">
 
           {p.name}
 
@@ -3507,50 +3509,40 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
             <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
 
               <div className="absolute top-1/2 left-0 right-0 h-1 bg-white"></div>
-
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 md:w-48 h-32 md:h-48 border-4 border-white rounded-full"></div>
-
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-4 border-white rounded-full"></div>
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full"></div>
-
               
-
-              <div className="absolute top-0 left-1/4 right-1/4 h-32 md:h-40 border-4 border-t-0 border-white"></div>
-
-              <div className="absolute top-0 left-[38%] right-[38%] h-12 md:h-16 border-4 border-t-0 border-white"></div>
-
-              <div className="absolute top-[8rem] md:top-[10rem] left-1/2 -translate-x-1/2 w-24 h-12 border-4 border-transparent border-b-white rounded-full"></div>
-
+              <div className="absolute top-0 left-1/4 right-1/4 h-32 border-4 border-t-0 border-white"></div>
+              <div className="absolute top-0 left-[35%] right-[35%] h-12 border-4 border-t-0 border-white"></div>
+              <div className="absolute top-[8rem] left-1/2 -translate-x-1/2 w-20 h-10 border-4 border-transparent border-b-white rounded-full"></div>
               
-
-              <div className="absolute bottom-0 left-1/4 right-1/4 h-32 md:h-40 border-4 border-b-0 border-white"></div>
-
-              <div className="absolute bottom-0 left-[38%] right-[38%] h-12 md:h-16 border-4 border-b-0 border-white"></div>
-
-              <div className="absolute bottom-[8rem] md:bottom-[10rem] left-1/2 -translate-x-1/2 w-24 h-12 border-4 border-transparent border-t-white rounded-full"></div>
+              <div className="absolute bottom-0 left-1/4 right-1/4 h-32 border-4 border-b-0 border-white"></div>
+              <div className="absolute bottom-0 left-[35%] right-[35%] h-12 border-4 border-b-0 border-white"></div>
+              <div className="absolute bottom-[8rem] left-1/2 -translate-x-1/2 w-20 h-10 border-4 border-transparent border-t-white rounded-full"></div>
 
             </div>
 
             
 
-            <div className="flex justify-around w-full px-1 sm:px-4 z-10 sm:gap-6 md:gap-8">
+            <div className="flex justify-around w-full px-1 sm:px-4 z-10">
 
               {starters.filter((p: any) => p.pos_code === 1).map((p: any) => renderPlayer(p, false))}
 
             </div>
 
-            <div className="flex justify-around w-full px-1 sm:px-4 z-10 sm:gap-6 md:gap-8 mt-1 sm:mt-8">
+            <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-1 sm:mt-6">
 
               {starters.filter((p: any) => p.pos_code === 2).map((p: any) => renderPlayer(p, false))}
 
             </div>
 
-            <div className="flex justify-around w-full px-1 sm:px-4 z-10 sm:gap-6 md:gap-8 mt-1 sm:mt-8">
+            <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-1 sm:mt-6">
 
               {starters.filter((p: any) => p.pos_code === 3).map((p: any) => renderPlayer(p, false))}
 
             </div>
 
-            <div className="flex justify-around w-full px-1 sm:px-4 z-10 sm:gap-6 md:gap-8 mt-1 sm:mt-8">
+            <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-1 sm:mt-6">
 
               {starters.filter((p: any) => p.pos_code === 4).map((p: any) => renderPlayer(p, false))}
 
