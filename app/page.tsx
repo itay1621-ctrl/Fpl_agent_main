@@ -1372,8 +1372,7 @@ function PlayerCard({
       {/* Shirt */}
       <div className="relative">
         <img src={shirtImg} alt={player.name} className={`w-10 sm:w-14 h-auto drop-shadow-md transition-transform ${isSelected ? 'brightness-110 drop-shadow-xl' : ''}`} />
-        {player.is_captain && <div className="absolute -bottom-1 -right-1 sm:-right-2 bg-black text-white text-[8px] sm:text-[10px] font-bold w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center border border-yellow-400 shadow z-10">C</div>}
-        {player.is_vice_captain && <div className="absolute -bottom-1 -right-1 sm:-right-2 bg-white text-black text-[8px] sm:text-[10px] font-bold w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center border border-black shadow z-10">V</div>}
+        
       </div>
       
       {/* Name */}
