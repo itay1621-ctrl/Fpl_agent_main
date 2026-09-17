@@ -1170,6 +1170,9 @@ export default function Home() {
 
             <div className="mb-8 text-center">
 
+              <div className="w-28 h-28 sm:w-40 sm:h-40 mb-6 drop-shadow-2xl hover:scale-105 transition-transform duration-300 rounded-full overflow-hidden border-4 border-[#37003c] bg-white mx-auto flex items-center justify-center">
+                <img src="/logo.jpg" alt="FPL Elite Scout Logo" className="w-full h-full object-cover" />
+              </div>
               <h1 className="text-5xl md:text-6xl font-black mb-2 text-[#01fc7a] tracking-tight">FPL Elite Scout</h1>
 
               <p className="text-purple-200 font-medium text-lg">{isEnglish ? 'Next-Gen AI Squad Planner' : 'מערכת תכנון סגל מבוססת AI'}</p>
@@ -1378,7 +1381,7 @@ export default function Home() {
 
               <button onClick={handleReset} className={`px-4 py-1.5 border rounded text-xs font-bold hover:opacity-80 transition-opacity text-white bg-red-600 border-red-700 shadow-sm`}>
 
-                {isEnglish ? 'Reset Changes' : 'איפוס שינויים '}
+                {isEnglish ? 'Reset Virtual Changes' : 'איפוס שינויים וירטואליים'}
 
               </button>
 
@@ -2688,7 +2691,7 @@ function ActionModal({ player, onClose, onSwap, onCaptain, onVice, onSell, isEng
         
         <div className="flex flex-col gap-2 mt-2">
           <button onClick={() => { onSwap(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
-            <span>🔄</span> {isEnglish ? 'Swap' : 'חילוף שחקן'}
+            <span>🔄</span> {isEnglish ? 'Substitute / Swap' : 'חילוף שחקן'}
           </button>
           
           <button onClick={() => { onCaptain(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
