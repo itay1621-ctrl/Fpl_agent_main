@@ -823,14 +823,14 @@ export default function Home() {
 
           });
 
-          const data = await res.json();
-          if (data.candidates && data.candidates.length > 0) {
-            data.candidates[0].is_hold = (data.recommendation === "HOLD");
-            data.candidates[0].reason = data.best_transfer?.reason || "";
-            data.candidates[0].confidence = data.best_transfer?.confidence || "";
-            data.candidates[0].delta = data.delta || 0;
+          const recsData = await res.json();
+          if (recsData.candidates && recsData.candidates.length > 0) {
+            recsData.candidates[0].is_hold = (recsData.recommendation === "HOLD");
+            recsData.candidates[0].reason = recsData.best_transfer?.reason || "";
+            recsData.candidates[0].confidence = recsData.best_transfer?.confidence || "";
+            recsData.candidates[0].delta = recsData.delta || 0;
           }
-          setTransferRecs(data.candidates || data);
+          setTransferRecs(recsData.candidates || recsData);
 
         } catch (err) {
 
@@ -1986,14 +1986,14 @@ export default function Home() {
 
                       body: JSON.stringify({ pos_code: playerToSell.pos_code, max_budget: budget, current_squad_ids: currentSquadIds, transfer_out_id: playerToSell.id })
 
-                    }).then(res => res.json()).then(data => {
-                      if (data.candidates && data.candidates.length > 0) {
-                        data.candidates[0].is_hold = (data.recommendation === "HOLD");
-                        data.candidates[0].reason = data.best_transfer?.reason || "";
-                        data.candidates[0].confidence = data.best_transfer?.confidence || "";
-                        data.candidates[0].delta = data.delta || 0;
+                    }).then(res => res.json()).then(recsData => {
+                      if (recsData.candidates && recsData.candidates.length > 0) {
+                        recsData.candidates[0].is_hold = (recsData.recommendation === "HOLD");
+                        recsData.candidates[0].reason = recsData.best_transfer?.reason || "";
+                        recsData.candidates[0].confidence = recsData.best_transfer?.confidence || "";
+                        recsData.candidates[0].delta = recsData.delta || 0;
                       }
-                      setTransferRecs(data.candidates || data);
+                      setTransferRecs(recsData.candidates || recsData);
 
                     }).catch(err => {
 
