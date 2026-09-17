@@ -1528,7 +1528,7 @@ export default function Home() {
 
 
 
-                  <div className="bg-[#126b3f] rounded-lg p-2 sm:p-4 relative shadow-inner min-h-[550px] sm:min-h-[400px] flex flex-col justify-around border-4 border-purple-500/50 overflow-hidden">
+                  <div className="bg-[#126b3f] rounded-t-lg p-2 sm:p-4 relative shadow-inner min-h-[550px] sm:min-h-[400px] flex flex-col justify-around border-4 border-b-0 border-purple-500/50 overflow-hidden">
 
                     <div className="absolute inset-0 opacity-20 pointer-events-none">
 
@@ -1552,7 +1552,7 @@ export default function Home() {
 
                     </div>
 
-                    <div className="flex justify-center gap-2 sm:gap-4 z-10 mt-4">
+                    <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-1 sm:mt-6">
 
                       {starters.filter((p: any) => p.pos_code === 2).map((p: any) => (
 
@@ -1562,7 +1562,7 @@ export default function Home() {
 
                     </div>
 
-                    <div className="flex justify-center gap-2 sm:gap-4 z-10 mt-4">
+                    <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-1 sm:mt-6">
 
                       {starters.filter((p: any) => p.pos_code === 3).map((p: any) => (
 
@@ -1572,7 +1572,7 @@ export default function Home() {
 
                     </div>
 
-                    <div className="flex justify-center gap-2 sm:gap-4 z-10 mt-4">
+                    <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-1 sm:mt-6">
 
                       {starters.filter((p: any) => p.pos_code === 4).map((p: any) => (
 
@@ -1581,6 +1581,16 @@ export default function Home() {
                       ))}
 
                     </div>
+
+                  </div>
+
+                  <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t-2 border-white/20 border-dashed border-4 border-t-0 border-purple-500/50">
+
+                    {bench.sort((a: any, b: any) => a.position - b.position).map((p: any) => (
+
+                      <PlayerCard key={p.id} player={p} isBench activeId={transferOutId} onActionClick={handlePlayerClick} transferMode />
+
+                    ))}
 
                   </div>
 
