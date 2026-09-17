@@ -3,10 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 from fpl_api import fetch_bootstrap, fetch_user_team, fetch_fixtures, fetch_all_fixtures
+import math
 
 app = FastAPI(title="FPL Elite Scout API")
 
-# Update CORS to be more secure
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://fpl-agent-main-five.vercel.app", "http://localhost:3000"],
@@ -19,90 +19,116 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams):
     team_id_fpl = p["team"]
     pos_code = p["element_type"]
     
-    base_xp = float(p.get("ep_next", 0) or 0)
+    # Probabilities
     chance = p.get("chance_of_playing_next_round")
-    prob = 1.0
-    if chance is not None:
-        prob = float(chance) / 100.0
-        
-    form_val = float(p.get("form", 0) or 0)
-    xg = float(p.get("expected_goals", 0) or 0)
-    xa = float(p.get("expected_assists", 0) or 0)
-    xgc = float(p.get("expected_goals_conceded", 0) or 0)
-    defcon = float(p.get("defensive_contribution", 0) or 0)
+    availability_prob = 1.0 if chance is None else float(chance) / 100.0
     
-    underlying_adj = 0.0
-    if pos_code in [3, 4]:
-        underlying_adj = (xg + xa) * 0.2
-    else:
-        underlying_adj = (defcon * 0.02) - (xgc * 0.2)
+    # Minutes per start proxy
+    total_mins = p.get("minutes", 0)
+    starts = p.get("starts", 0)
+    mins_per_start = total_mins / starts if starts > 0 else 0
+    if mins_per_start == 0 and p.get("form", "0.0") != "0.0":
+        mins_per_start = 60 # Default for non-starters who get minutes
         
+    expected_minutes = mins_per_start * availability_prob
+    if expected_minutes > 90: expected_minutes = 90
+    
+    # 90s multiplier
+    x_90s = expected_minutes / 90.0
+    
+    # Stats per 90 (using FPL's native stats where available)
+    xg_90 = float(p.get("expected_goals_per_90", 0) or 0)
+    xa_90 = float(p.get("expected_assists_per_90", 0) or 0)
+    xgc_90 = float(p.get("expected_goals_conceded_per_90", 0) or 0)
+    defcon_90 = float(p.get("defensive_contribution_per_90", 0) or 0)
+    
+    # Goal / Assist Points by Position
+    goal_pts = {1: 6, 2: 6, 3: 5, 4: 4}.get(pos_code, 4)
+    assist_pts = 3
+    
+    # Base attacking expectation
+    xAtt_90 = (xg_90 * goal_pts) + (xa_90 * assist_pts)
+    
+    # Defensive expectation (CS)
+    cs_pts = {1: 4, 2: 4, 3: 1, 4: 0}.get(pos_code, 0)
+    cs_prob_90 = math.exp(-xgc_90) if xgc_90 > 0 else 0.5
+    xDef_90 = cs_prob_90 * cs_pts
+    
+    # Saves (GK) & BPS (DefCon)
+    xSave_90 = 0
+    if pos_code == 1:
+        saves_90 = float(p.get("saves_per_90", 0) or 0)
+        xSave_90 = (saves_90 / 3.0) * 1  # 1 pt per 3 saves
+        
+    xBPS_90 = defcon_90 / 30.0 # Very rough estimation
+    
+    base_xP_90 = xAtt_90 + xDef_90 + xSave_90 + xBPS_90
+    
+    # Multi-GW Fixture Evaluation
     gw_range = min(5, 38 - next_gw + 1)
-    weights = [0.4, 0.25, 0.15, 0.1, 0.1]
-    weighted_multiplier = 0
-    fixtures_found = 0
     
     next_gw_opponent = "Blank"
     next_gw_diff = 5
+    fixtures_found = 0
+    
+    total_5gw_projection = 0.0
     
     for gw_inc in range(gw_range):
         target_gw = next_gw + gw_inc
         gw_fixs = [f for f in upcoming_fixtures_raw if f.get("event") == target_gw]
         player_fixs = [f for f in gw_fixs if f["team_h"] == team_id_fpl or f["team_a"] == team_id_fpl]
         
-        gw_mult = 0
-        if len(player_fixs) == 0:
-            gw_mult = 0
-        else:
-            for f in player_fixs:
-                is_home = f["team_h"] == team_id_fpl
-                diff = f["team_h_difficulty"] if is_home else f["team_a_difficulty"]
-                
-                if gw_inc == 0 and fixtures_found == 0:
-                    opp_id = f["team_a"] if is_home else f["team_h"]
-                    next_gw_opponent = f"{teams.get(opp_id, 'UNK')} ({'H' if is_home else 'A'})"
-                    next_gw_diff = diff
-                    
-                if diff >= 4:
-                    gw_mult += 0.8
-                elif diff <= 2:
-                    gw_mult += 1.2
-                else:
-                    gw_mult += 1.0
-                    
-        fixtures_found += len(player_fixs)
-        weighted_multiplier += gw_mult * weights[gw_inc]
+        gw_proj = 0.0
         
-    if fixtures_found == 0:
-        weighted_multiplier = 0
+        for f in player_fixs:
+            fixtures_found += 1
+            is_home = (f["team_h"] == team_id_fpl)
+            diff = f["team_h_difficulty"] if is_home else f["team_a_difficulty"]
+            
+            if gw_inc == 0 and fixtures_found == 1:
+                opp_id = f["team_a"] if is_home else f["team_h"]
+                next_gw_opponent = f"{teams.get(opp_id, 'UNK')} ({'H' if is_home else 'A'})"
+                next_gw_diff = diff
+            
+            fdr_multiplier = 1.0
+            if diff == 1: fdr_multiplier = 1.3
+            elif diff == 2: fdr_multiplier = 1.15
+            elif diff == 3: fdr_multiplier = 1.0
+            elif diff == 4: fdr_multiplier = 0.85
+            elif diff == 5: fdr_multiplier = 0.7
+            
+            appearance_pts = 0
+            if expected_minutes >= 60: appearance_pts = 2 * availability_prob
+            elif expected_minutes > 0: appearance_pts = 1 * availability_prob
+            
+            match_xp = (base_xP_90 * x_90s * fdr_multiplier) + appearance_pts
+            gw_proj += match_xp
+            
+        total_5gw_projection += gw_proj
         
-    core_score = (base_xp * 0.5 + form_val * 0.3 + underlying_adj) * prob * weighted_multiplier
-    core_score = max(0.0, core_score)
+    form_val = float(p.get("form", 0) or 0)
+    total_5gw_projection += (form_val * 0.5)
+    total_5gw_projection = max(0.0, total_5gw_projection)
     
     confidence = "Medium"
-    if prob < 1.0:
-        confidence = "Low"
-    elif fixtures_found > 0 and len(player_fixs) > 1:
-        confidence = "High (DGW)"
-    elif base_xp > 5.0 and prob == 1.0:
-        confidence = "High"
+    if availability_prob < 0.9:
+        confidence = "Low (Minutes Risk)"
+    elif fixtures_found > gw_range:
+        confidence = "High (DGWs included)"
+    elif total_mins > 500 and availability_prob == 1.0:
+        confidence = "High (Nailed starter)"
         
     reasons = []
-    if core_score > 4.5:
-        reasons.append("+ Strong 5GW projection")
-    if prob < 1.0:
-        reasons.append(f"- Rotation/Injury risk ({int(prob*100)}% chance)")
-    if underlying_adj > 0.5:
-        reasons.append("+ Elite underlying stats")
-    elif underlying_adj < -0.3:
-        reasons.append("- Poor underlying stats")
-    if weighted_multiplier > 1.05:
-        reasons.append("+ Favorable upcoming fixtures")
-    elif weighted_multiplier < 0.9:
-        reasons.append("- Difficult upcoming fixtures")
+    reasons.append(f"Expected Minutes: {int(expected_minutes)}/match")
+    reasons.append(f"Base Projection: {round(base_xP_90, 2)} pts/90")
+    if xg_90 > 0.3 or xa_90 > 0.3:
+        reasons.append(f"Strong attacking threat (xG/90: {xg_90}, xA/90: {xa_90})")
+    
+    if cs_prob_90 > 0.4 and pos_code in [1, 2]:
+        reasons.append(f"High Clean Sheet probability ({int(cs_prob_90*100)}%)")
         
-    reason_str = "\n".join(reasons) if reasons else "Average overall profile."
-        
+    reason_str = "\n".join(reasons)
+    
     return {
         "id": p["id"],
         "name": p["web_name"],
@@ -110,7 +136,7 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams):
         "team_code": p["team_code"],
         "pos_code": pos_code,
         "cost": p["now_cost"] / 10,
-        "xp": round(core_score, 2),
+        "xp": round(total_5gw_projection, 2),
         "form": form_val,
         "total_points": p.get("total_points", 0),
         "selected_by_percent": float(p.get("selected_by_percent", 0) or 0),
@@ -118,9 +144,9 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams):
         "fixture_diff": next_gw_diff,
         "confidence": confidence,
         "reason": reason_str,
-        "prob": prob,
-        "xg": xg,
-        "xa": xa
+        "prob": availability_prob,
+        "xg": float(p.get("expected_goals", 0) or 0),
+        "xa": float(p.get("expected_assists", 0) or 0)
     }
 
 def enrich_picks(picks_ids, squad):
@@ -167,7 +193,6 @@ def get_dashboard_data(team_id: int):
         for pick in picks:
             player = elements.get(pick["element"])
             if player:
-                # Use the new projection core to enrich dashboard data
                 proj = calculate_player_projection(player, next_gw, upcoming_fixtures_raw, teams)
                 
                 upcoming_fixtures = []
@@ -362,11 +387,18 @@ def get_transfer_recommendations(req: TransferRequest):
         
         recommendation = "TRANSFER"
         delta = 0.0
-        threshold = 2.0
+        
+        # Transfer Economics V3.0
+        transfer_cost = 0.0 # Assuming Free Transfer
+        opportunity_cost = 2.0 # Statistical value of a banked FT
+        threshold = transfer_cost + opportunity_cost
         
         if current_player and best_candidate:
-            delta = round(best_candidate["xp"] - current_player["xp"], 2)
-            if delta < threshold:
+            raw_gain = round(best_candidate["xp"] - current_player["xp"], 2)
+            delta = raw_gain
+            net_gain = raw_gain - threshold
+            
+            if net_gain <= 0:
                 recommendation = "HOLD"
                 
         return {
@@ -402,8 +434,12 @@ def get_radar():
         
         scout_picks = sorted(all_players, key=lambda x: x["xp"], reverse=True)[:10]
         hot_form = sorted(all_players, key=lambda x: x["form"], reverse=True)[:10]
-        differentials = sorted([p for p in all_players if p["selected_by_percent"] < 10.0], key=lambda x: x["xp"], reverse=True)[:10]
         
+        # Differential: Ownership < 10% AND strong projection!
+        differentials = sorted([p for p in all_players if p["selected_by_percent"] < 10.0 and p["xp"] > 15.0], key=lambda x: x["xp"], reverse=True)[:10]
+        if not differentials: # Fallback if projections are generally low
+            differentials = sorted([p for p in all_players if p["selected_by_percent"] < 10.0], key=lambda x: x["xp"], reverse=True)[:10]
+            
         return {
             "scout_picks": scout_picks,
             "hot_form": hot_form,
@@ -442,9 +478,9 @@ def get_budget_scenarios(team_id: int):
             if sp.get("chance_of_playing") is not None and sp.get("chance_of_playing") < 75:
                 reason = "Injury / Doubtful"
             elif sp.get("form", 0) < 2.0 and sp.get("xp", 0) < 3.0:
-                reason = "Poor Output (Low Form & V2 Projection)"
-            elif sp.get("xp", 0) < 2.0:
-                reason = "Tough Upcoming Run (Low V2 Projection)"
+                reason = "Poor Output (Low Form & V3 Projection)"
+            elif sp.get("xp", 0) < 15.0: # 5 GW projection threshold
+                reason = "Tough Upcoming Run (Low 5GW Projection)"
                 
             if reason:
                 budget = bank + sp["cost"]
