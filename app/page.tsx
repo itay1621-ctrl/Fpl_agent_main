@@ -712,29 +712,29 @@ export default function Home() {
                   <div className="absolute bottom-[8rem] left-1/2 -translate-x-1/2 w-20 h-10 border-4 border-transparent border-t-white rounded-full"></div>
                 </div>
                 
-                <div className="flex justify-center z-10">
+                <div className="flex justify-around w-full px-1 sm:px-4 z-10">
                   {starters.filter((p: any) => p.pos_code === 1).map((p: any) => (
                     <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} onCaptainClick={handleSetCaptain} onViceClick={handleSetViceCaptain} />
                   ))}
                 </div>
-                <div className="flex justify-center gap-0 sm:gap-6 z-10 mt-3 sm:mt-6">
+                <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-3 sm:mt-6">
                   {starters.filter((p: any) => p.pos_code === 2).map((p: any) => (
                     <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} onCaptainClick={handleSetCaptain} onViceClick={handleSetViceCaptain} />
                   ))}
                 </div>
-                <div className="flex justify-center gap-0 sm:gap-6 z-10 mt-3 sm:mt-6">
+                <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-3 sm:mt-6">
                   {starters.filter((p: any) => p.pos_code === 3).map((p: any) => (
                     <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} onCaptainClick={handleSetCaptain} onViceClick={handleSetViceCaptain} />
                   ))}
                 </div>
-                <div className="flex justify-center gap-0 sm:gap-6 z-10 mt-3 sm:mt-6">
+                <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-3 sm:mt-6">
                   {starters.filter((p: any) => p.pos_code === 4).map((p: any) => (
                     <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} onCaptainClick={handleSetCaptain} onViceClick={handleSetViceCaptain} />
                   ))}
                 </div>
               </div>
               
-              <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-center gap-0 sm:gap-6 shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
+              <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
                 {bench.sort((a: any, b: any) => a.position - b.position).map((p: any) => (
                   <PlayerCard key={p.id} player={p} isBench activeId={swapSourceId} onActionClick={handleSwapClick} />
                 ))}
@@ -769,7 +769,7 @@ export default function Home() {
                       <div className="absolute top-0 left-1/4 right-1/4 h-24 border-4 border-t-0 border-white"></div>
                       <div className="absolute bottom-0 left-1/4 right-1/4 h-24 border-4 border-b-0 border-white"></div>
                     </div>
-                    <div className="flex justify-center z-10">
+                    <div className="flex justify-around w-full px-1 sm:px-4 z-10">
                       {starters.filter((p: any) => p.pos_code === 1).map((p: any) => (
                         <PlayerCard key={p.id} player={p} activeId={transferOutId} onActionClick={handlePlayerClick} transferMode />
                       ))}
@@ -1357,7 +1357,7 @@ function PlayerCard({
   const isActionMode = activeId !== null;
 
   return (
-    <div className={`relative flex flex-col items-center w-[46px] min-[400px]:w-[56px] sm:w-[95px] transition-all duration-300 ${isBench && !isActionMode ? 'opacity-90 hover:opacity-100' : ''} ${isSelected ? 'scale-110 z-30' : ''}`}>
+    <div className={`relative flex flex-col items-center w-[52px] min-[400px]:w-[60px] sm:w-[95px] transition-all duration-300 ${isBench && !isActionMode ? 'opacity-90 hover:opacity-100' : ''} ${isSelected ? 'scale-110 z-30' : ''}`}>
       
       {/* Swap/Cancel Button */}
       <button 
@@ -1377,7 +1377,7 @@ function PlayerCard({
       
       {/* Name */}
       <div 
-        className={`text-white text-[10px] sm:text-[11px] font-bold px-1 sm:px-2 py-0.5 rounded shadow w-full text-center truncate mt-[-3px] z-10 
+        className={`text-white text-[10px] min-[400px]:text-[11px] sm:text-sm font-bold px-1 sm:px-2 py-0.5 rounded shadow w-full text-center truncate mt-[-3px] z-10 
         ${isSelected ? 'bg-blue-600' : 
           (player.chance_of_playing === 0 ? 'bg-red-600' : 
           (player.chance_of_playing !== null && player.chance_of_playing !== undefined && player.chance_of_playing < 100 ? 'bg-orange-500' : 'bg-[#2c3e50]'))}`}
@@ -1387,12 +1387,12 @@ function PlayerCard({
       </div>
       
       {/* Fixture */}
-      <div className={`w-full text-center text-[7px] sm:text-[10px] font-bold py-0.5 shadow-sm ${getDiffColor(player.fixture_diff)}`}>
+      <div className={`w-full text-center text-[9px] min-[400px]:text-[10px] sm:text-xs font-bold py-0.5 shadow-sm ${getDiffColor(player.fixture_diff)}`}>
         {player.fixture || 'Blank'}
       </div>
 
       {/* Data Row */}
-      <div className="bg-white text-gray-900 text-[9px] sm:text-[11px] font-bold px-1 w-full text-center rounded-b shadow-sm flex justify-between items-center border-b border-x border-gray-200">
+      <div className="bg-white text-gray-900 text-[9px] min-[400px]:text-[10px] sm:text-xs font-bold px-1 w-full text-center rounded-b shadow-sm flex justify-between items-center border-b border-x border-gray-200">
         <span>£{player.cost.toFixed(1)}</span>
         <span className="text-[#126b3f]">{player.xp?.toFixed(1) || '0.0'}</span>
       </div>
@@ -1658,14 +1658,14 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
     const isTransfer = !originalSquadIds.includes(p.id);
 
     return (
-      <div key={p.id} className={`flex flex-col items-center w-12 sm:w-24 transition-transform hover:scale-105 ${isBench ? 'opacity-90 hover:opacity-100' : ''}`}>
+      <div key={p.id} className={`flex flex-col items-center w-[52px] min-[400px]:w-[60px] sm:w-24 transition-transform hover:scale-105 ${isBench ? 'opacity-90 hover:opacity-100' : ''}`}>
         <div className="relative mb-0 sm:mb-1">
-          <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${p.team_code}-66.webp`} className="w-7 sm:w-12 h-14 sm:h-16 object-contain drop-shadow-md" />
+          <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${p.team_code}-66.webp`} className="w-9 min-[400px]:w-10 sm:w-12 h-12 min-[400px]:h-14 sm:h-16 object-contain drop-shadow-md" />
           {p.is_captain && <div className="absolute -bottom-1 -right-2 bg-black text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-yellow-400 shadow z-10">C</div>}
           {p.is_vice_captain && <div className="absolute -bottom-1 -right-2 bg-white text-black text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-black shadow z-10">V</div>}
         </div>
         
-        <div className={`text-[10px] sm:text-[11px] font-black px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap overflow-hidden text-ellipsis w-[110%] text-center border ${
+        <div className={`text-[10px] min-[400px]:text-[11px] sm:text-sm font-black px-1 sm:px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap overflow-hidden text-ellipsis w-[110%] text-center border ${
             isSelected ? 'bg-blue-600 text-white border-blue-700' :
             p.chance_of_playing === 0 ? 'bg-red-600 text-white border-red-700' :
             (p.chance_of_playing !== null && p.chance_of_playing !== undefined && p.chance_of_playing < 100) ? 'bg-orange-500 text-white border-orange-600' :
@@ -1677,9 +1677,9 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
         
         <div className="flex flex-col w-[110%] mt-1 gap-[1px]">
           {fix0 ? (
-            <div className={`text-[9.5px] font-bold py-[3px] w-full text-center rounded shadow-sm border ${getFDRColor(fix0.difficulty)}`}>{fix0.opponent}</div>
+            <div className={`text-[9px] min-[400px]:text-[10px] sm:text-xs font-bold py-[3px] w-full text-center rounded shadow-sm border ${getFDRColor(fix0.difficulty)}`}>{fix0.opponent}</div>
           ) : (
-            <div className={`text-[9.5px] font-bold py-[3px] w-full text-center rounded shadow-sm border bg-gray-500 text-white border-gray-600`}>Blank</div>
+            <div className={`text-[9px] min-[400px]:text-[10px] sm:text-xs font-bold py-[3px] w-full text-center rounded shadow-sm border bg-gray-500 text-white border-gray-600`}>Blank</div>
           )}
         </div>
         
@@ -1860,21 +1860,21 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
               <div className="absolute bottom-[8rem] md:bottom-[10rem] left-1/2 -translate-x-1/2 w-24 h-12 border-4 border-transparent border-t-white rounded-full"></div>
             </div>
             
-            <div className="flex justify-center z-10 gap-0 sm:gap-6 md:gap-8">
+            <div className="flex justify-around w-full px-1 sm:px-4 z-10 sm:gap-6 md:gap-8">
               {starters.filter((p: any) => p.pos_code === 1).map((p: any) => renderPlayer(p, false))}
             </div>
-            <div className="flex justify-center z-10 gap-0 sm:gap-6 md:gap-8 mt-3 sm:mt-8">
+            <div className="flex justify-around w-full px-1 sm:px-4 z-10 sm:gap-6 md:gap-8 mt-3 sm:mt-8">
               {starters.filter((p: any) => p.pos_code === 2).map((p: any) => renderPlayer(p, false))}
             </div>
-            <div className="flex justify-center z-10 gap-0 sm:gap-6 md:gap-8 mt-3 sm:mt-8">
+            <div className="flex justify-around w-full px-1 sm:px-4 z-10 sm:gap-6 md:gap-8 mt-3 sm:mt-8">
               {starters.filter((p: any) => p.pos_code === 3).map((p: any) => renderPlayer(p, false))}
             </div>
-            <div className="flex justify-center z-10 gap-0 sm:gap-6 md:gap-8 mt-3 sm:mt-8">
+            <div className="flex justify-around w-full px-1 sm:px-4 z-10 sm:gap-6 md:gap-8 mt-3 sm:mt-8">
               {starters.filter((p: any) => p.pos_code === 4).map((p: any) => renderPlayer(p, false))}
             </div>
           </div>
           
-          <div className={`p-2 sm:p-6 md:p-8 flex justify-center gap-0 sm:gap-6 md:gap-8 border-t-2 border-white/20 border-dashed z-20 bg-[#0e5230]`}>
+          <div className={`p-2 sm:p-6 md:p-8 flex justify-around w-full border-t-2 border-white/20 border-dashed z-20 bg-[#0e5230]`}>
             {bench.map((p: any) => renderPlayer(p, true))}
           </div>
         </div>
