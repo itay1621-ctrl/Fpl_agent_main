@@ -234,7 +234,7 @@ export default function Home() {
       const res = await fetch(`${API_BASE_URL}/api/dashboard/${idToFetch}`);
       if (!res.ok) throw new Error(`[Debug] HTTP ${res.status} from ${res.url} | ID: '${idToFetch}'`);
       const result = await res.json();
-      setOriginalData(result);
+      setOriginalData(JSON.parse(JSON.stringify(result)));
       localStorage.setItem('fpl_team_id', idToFetch);
       
       const savedPlanStr = localStorage.getItem(`fpl_plan_${idToFetch}`);
@@ -248,7 +248,7 @@ export default function Home() {
           }
         } catch (e) {}
       }
-      setData(result);
+      setData(JSON.parse(JSON.stringify(result)));
     } catch (err: any) {
       setError(err.message);
       if (overrideId) localStorage.removeItem('fpl_team_id');
@@ -280,7 +280,7 @@ export default function Home() {
 
   const handleReset = () => {
     if (originalData) {
-      setData(originalData);
+      setData(JSON.parse(JSON.stringify(originalData)));
       setSwapSourceId(null);
       setTransferOutId(null);
       localStorage.removeItem(`fpl_plan_${originalData.team_id}`);
@@ -707,8 +707,8 @@ export default function Home() {
           {/* Reset Squad */}
           {activeTab === 'pitch' && (
             <div className="flex justify-end mb-4">
-              <button onClick={handleReset} className={`w-full md:w-auto px-6 py-2 border rounded-md text-sm font-bold hover:opacity-80 transition-opacity text-white bg-red-600 border-red-700 shadow-md`}>
-                {isEnglish ? '🔄 Reset Virtual Changes' : '🔄 איפוס שינויים וירטואליים'}
+              <button onClick={handleReset} className={`px-4 py-1.5 border rounded text-xs font-bold hover:opacity-80 transition-opacity text-white bg-red-600 border-red-700 shadow-sm`}>
+                {isEnglish ? 'Reset Virtual Changes' : 'איפוס שינויים וירטואליים'}
               </button>
             </div>
           )}
