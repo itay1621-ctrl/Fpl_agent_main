@@ -289,7 +289,7 @@ export default function Home() {
   const [swapSourceId, setSwapSourceId] = useState<number | null>(null);
   const [actionPlayer, setActionPlayer] = useState<any>(null);
 
-  const [activeTab, setActiveTab] = useState<'pitch' | 'transfer' | 'planner' | 'analysis' | 'radar' | 'budget' | 'leagues' | 'tips'>('planner');
+  const [activeTab, setActiveTab] = useState<'pitch' | 'transfer' | 'planner' | 'analysis' | 'radar' | 'budget' | 'leagues' | 'tips' | 'prices'>('planner');
 
   const [appAlert, setAppAlert] = useState<string | null>(null);
 
@@ -1368,7 +1368,7 @@ export default function Home() {
             <button onClick={() => setActiveTab('leagues')} className={`${activeTab === 'leagues' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.leaguesTab}</button>
 
             <button onClick={() => setActiveTab('tips')} className={`${activeTab === 'tips' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.tipsTab}</button>
-            <button onClick={() => setActiveTab('prices')} className={`${activeTab === 'prices' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.pricesTab}</button>
+            <button onClick={() => setActiveTab('prices')} className={`${activeTab === 'prices' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{isEnglish ? '📈 Price Target' : '📈 שינויי מחיר'}</button>
 
           </div>
 
