@@ -12,21 +12,21 @@ const FPL_SUCCESS_TIPS = [
 
       "num": 1,
 
-      "icon": "ג³",
+      "icon": "⏳",
 
-      "title_he": "׳©׳׳™׳¨׳× ׳—׳™׳׳•׳₪׳™׳ (Roll Transfers)",
+      "title_he": "שמירת חילופים (Roll Transfers)",
 
       "title_en": "Roll Your Free Transfers",
 
-      "desc_he": "׳׳ ׳×׳‘׳¦׳¢ ׳—׳™׳׳•׳£ ׳׳•׳˜׳•׳׳˜׳™ ׳‘׳›׳ ׳׳—׳–׳•׳¨ ׳¨׳§ ׳›׳™ ׳™׳© ׳׳ ׳—׳™׳׳•׳£ ׳₪׳ ׳•׳™. ׳¦׳‘׳™׳¨׳× 2 ׳¢׳“ 5 ׳—׳™׳׳•׳₪׳™׳ ׳—׳™׳ ׳׳™׳™׳ ׳׳¢׳ ׳™׳§׳” ׳’׳׳™׳©׳•׳× ׳׳¡׳˜׳¨׳˜׳’׳™׳× ׳׳“׳™׳¨׳” ׳׳׳”׳₪׳›׳•׳× ׳¡׳’׳ ׳§׳˜׳ ׳•׳× ׳׳׳ ׳§׳ ׳¡ ׳ ׳§׳•׳“׳•׳×.",
+      "desc_he": "אל תבצע חילוף אוטומטי בכל מחזור רק כי יש לך חילוף פנוי. צבירת 2 עד 5 חילופים חינמיים מעניקה גמישות אסטרטגית אדירה למהפכות סגל קטנות ללא קנס נקודות.",
 
       "desc_en": "Never burn a free transfer just because you have one. Stacking 2 to 5 free transfers provides massive strategic leverage to overhaul multiple positions without taking point hits.",
 
-      "rule_he": "׳׳™׳ ׳׳”׳׳ ׳‘׳•׳¢׳¨? ׳©׳׳•׳¨ ׳׳× ׳”׳—׳™׳׳•׳£ ׳•׳×׳”׳ ׳” ׳׳›׳•׳— ׳×׳׳¨׳•׳ ׳›׳₪׳•׳ ׳‘׳׳—׳–׳•׳¨ ׳”׳‘׳.",
+      "rule_he": "אין מהלך בוער? שמור את החילוף ותהנה מכוח תמרון כפול במחזור הבא.",
 
       "rule_en": "No urgent move? Roll the transfer and gain double flexibility next week.",
 
-      "tag_he": "׳¡׳‘׳׳ ׳•׳×",
+      "tag_he": "סבלנות",
 
       "tag_en": "Patience",
 
@@ -36,21 +36,21 @@ const FPL_SUCCESS_TIPS = [
 
       "num": 2,
 
-      "icon": "נ›¡ן¸",
+      "icon": "🛡️",
 
-      "title_he": "׳”׳™׳׳ ׳¢׳•׳× ׳׳׳™׳ ׳•׳¡׳™׳ ׳׳™׳•׳×׳¨׳™׳ (Avoid -4 Hits)",
+      "title_he": "הימנעות ממינוסים מיותרים (Avoid -4 Hits)",
 
       "title_en": "Avoid Unnecessary -4 Point Hits",
 
-      "desc_he": "׳©׳—׳§׳ ׳©׳ ׳¨׳›׳© ׳‘׳§׳ ׳¡ 4- ׳ ׳§׳•׳“׳•׳× ׳ ׳“׳¨׳© ׳׳”׳‘׳§׳™׳¢ ׳׳• ׳׳‘׳©׳ ׳¨׳§ ׳›׳“׳™ ׳׳׳₪׳¡ ׳׳× ׳”׳¢׳׳•׳× ׳©׳׳•. ׳§׳— ׳׳™׳ ׳•׳¡ ׳¨׳§ ׳‘׳׳§׳¨׳” ׳—׳™׳¨׳•׳ ׳©׳ ׳—׳•׳¡׳¨ 11 ׳©׳—׳§׳ ׳™׳ ׳›׳©׳™׳¨׳™׳ ׳׳• ׳¢׳‘׳•׳¨ ׳§׳₪׳˜׳ ׳׳•׳‘׳”׳§ ׳׳˜׳•׳•׳— ׳׳¨׳•׳.",
+      "desc_he": "שחקן שנרכש בקנס 4- נקודות נדרש להבקיע או לבשל רק כדי לאפס את העלות שלו. קח מינוס רק במקרה חירום של חוסר 11 שחקנים כשירים או עבור קפטן מובהק לטווח ארוך.",
 
       "desc_en": "A player bought on a -4 hit must effectively return a goal or assist just to break even. Take hits strictly for injury crises or long-term high-ceiling captains.",
 
-      "rule_he": "׳׳™׳ ׳•׳¡׳™׳ ׳׳¦׳˜׳‘׳¨׳™׳ ׳©׳•׳—׳§׳™׳ ׳׳× ׳”׳“׳™׳¨׳•׳’: ׳”׳™׳׳ ׳¢ ׳׳”׳ ׳›׳›׳ ׳”׳׳₪׳©׳¨.",
+      "rule_he": "מינוסים מצטברים שוחקים את הדירוג: הימנע מהם ככל האפשר.",
 
       "rule_en": "Point hits erode long-term rank. Take them only for emergencies or long-term holds.",
 
-      "tag_he": "׳׳©׳׳¢׳×",
+      "tag_he": "משמעת",
 
       "tag_en": "Discipline",
 
@@ -60,21 +60,21 @@ const FPL_SUCCESS_TIPS = [
 
       "num": 3,
 
-      "icon": "נ‘‘",
+      "icon": "👑",
 
-      "title_he": "׳׳©׳׳¢׳× ׳§׳₪׳˜׳ ׳•׳‘׳¢׳׳•׳× ׳׳₪׳§׳˜׳™׳‘׳™׳× (Captaincy)",
+      "title_he": "משמעת קפטן ובעלות אפקטיבית (Captaincy)",
 
       "title_en": "Captaincy Discipline & Effective Ownership",
 
-      "desc_he": "׳׳ ׳×׳”׳׳¨ ׳¢׳ ׳§׳₪׳˜׳ ׳”׳¨׳₪׳×׳§׳ ׳™ ׳¨׳§ ׳›׳“׳™ '׳׳”׳×׳—׳›׳'. ׳׳¢׳ 60% ׳׳”׳ ׳™׳§׳•׳“ ׳׳’׳™׳¢ ׳׳”׳§׳₪׳˜׳; ׳‘׳—׳¨ ׳‘׳©׳—׳§׳ ׳”׳׳•׳‘׳™׳ ׳¢׳ ׳”-xP ׳•׳”׳‘׳¢׳׳•׳× ׳”׳’׳‘׳•׳”׳™׳ ׳‘׳™׳•׳×׳¨ (׳›׳׳• ׳”׳׳׳ ׳“ ׳׳• ׳‘׳¨׳•׳ ׳• ׳₪׳¨׳ ׳ ׳“׳¡).",
+      "desc_he": "אל תהמר על קפטן הרפתקני רק כדי 'להתחכם'. מעל 60% מהניקוד מגיע מהקפטן; בחר בשחקן המוביל עם ה-xP והבעלות הגבוהים ביותר (כמו האלנד או ברונו פרננדס).",
 
       "desc_en": "Don't gamble on wild differential captains. Over 60% of your rank progress relies on the armband; trust high-xP, high-ownership talismans with favorable fixtures.",
 
-      "rule_he": "׳”׳§׳₪׳˜׳ ׳׳’׳ ׳¢׳ ׳”׳“׳™׳¨׳•׳’ - ׳׳× ׳”׳“׳™׳₪׳¨׳ ׳¦׳™׳׳׳™׳ ׳׳™׳™׳¦׳¨׳™׳ ׳‘׳©׳—׳§׳ ׳™ ׳”׳©׳“׳”.",
+      "rule_he": "הקפטן מגן על הדירוג - את הדיפרנציאלים מייצרים בשחקני השדה.",
 
       "rule_en": "The armband protects your rank - let your outfield picks provide the differential edge.",
 
-      "tag_he": "׳§׳₪׳˜׳",
+      "tag_he": "קפטן",
 
       "tag_en": "Captaincy",
 
@@ -84,21 +84,21 @@ const FPL_SUCCESS_TIPS = [
 
       "num": 4,
 
-      "icon": "נ—“ן¸",
+      "icon": "🗓️",
 
-      "title_he": "׳×׳›׳ ׳•׳ ׳‘׳˜׳•׳•׳—׳™ 3-5 ׳׳—׳–׳•׳¨׳™׳ (3-5 GW Blocks)",
+      "title_he": "תכנון בטווחי 3-5 מחזורים (3-5 GW Blocks)",
 
       "title_en": "Plan in 3-5 Gameweek Horizons",
 
-      "desc_he": "׳׳¢׳•׳׳ ׳׳ ׳×׳§׳ ׳” ׳©׳—׳§׳ ׳‘׳©׳‘׳™׳ ׳׳©׳—׳§ ׳׳—׳“ ׳‘׳׳‘׳“. ׳‘׳—׳ ׳×׳׳™׳“ ׳׳× ׳׳•׳— ׳”׳׳©׳—׳§׳™׳ (FDR) ׳©׳ 3 ׳¢׳“ 5 ׳”׳׳—׳–׳•׳¨׳™׳ ׳”׳‘׳׳™׳ ׳›׳“׳™ ׳׳”׳™׳׳ ׳¢ ׳׳—׳™׳׳•׳₪׳™ '׳›׳™׳‘׳•׳™ ׳©׳¨׳™׳₪׳•׳×' ׳©׳‘׳•׳¢ ׳׳׳—׳¨ ׳׳›׳.",
+      "desc_he": "לעולם אל תקנה שחקן בשביל משחק אחד בלבד. בחן תמיד את לוח המשחקים (FDR) של 3 עד 5 המחזורים הבאים כדי להימנע מחילופי 'כיבוי שריפות' שבוע לאחר מכן.",
 
       "desc_en": "Never buy a player for a single fixture. Always evaluate the upcoming 3 to 5 gameweek run (FDR) to avoid burning future transfers fixing short-term punts.",
 
-      "rule_he": "׳—׳©׳•׳‘ ׳×׳׳™׳“ ׳©׳‘׳•׳¢׳™׳™׳-׳©׳׳•׳©׳” ׳§׳“׳™׳׳” ׳׳₪׳ ׳™ ׳›׳ ׳׳—׳™׳¦׳” ׳¢׳ ׳›׳₪׳×׳•׳¨ ׳”׳¨׳›׳©.",
+      "rule_he": "חשוב תמיד שבועיים-שלושה קדימה לפני כל לחיצה על כפתור הרכש.",
 
       "rule_en": "Always review the next 3-5 fixtures before confirming any market transfer.",
 
-      "tag_he": "׳×׳›׳ ׳•׳",
+      "tag_he": "תכנון",
 
       "tag_en": "Planning",
 
@@ -108,21 +108,21 @@ const FPL_SUCCESS_TIPS = [
 
       "num": 5,
 
-      "icon": "ג±ן¸",
+      "icon": "⏱️",
 
-      "title_he": "׳”׳—׳׳˜׳•׳× ׳¡׳׳•׳ ׳׳“׳“׳׳™׳™׳ (Wait for Press Conferences)",
+      "title_he": "החלטות סמוך לדדליין (Wait for Press Conferences)",
 
       "title_en": "Wait for Press Conferences & News",
 
-      "desc_he": "׳”׳׳×׳ ׳׳׳¡׳™׳‘׳•׳× ׳”׳¢׳™׳×׳•׳ ׳׳™׳ ׳©׳ ׳™׳׳™ ׳©׳™׳©׳™ ׳•׳׳¢׳“׳›׳•׳ ׳™ ׳₪׳¦׳™׳¢׳•׳× ׳׳—׳¨׳•׳ ׳™׳ ׳׳₪׳ ׳™ ׳‘׳™׳¦׳•׳¢ ׳—׳™׳׳•׳£. ׳”׳¢׳‘׳¨׳•׳× ׳׳•׳§׳“׳׳•׳× ׳‘׳׳׳¦׳¢ ׳”׳©׳‘׳•׳¢ ׳׳¡׳×׳›׳ ׳•׳× ׳‘׳₪׳¦׳™׳¢׳•׳× ׳‘׳׳™׳׳•׳ ׳™׳ ׳׳• ׳‘׳’׳‘׳™׳¢׳™׳ ׳׳™׳¨׳•׳₪׳™׳™׳.",
+      "desc_he": "המתן למסיבות העיתונאים של ימי שישי ולעדכוני פציעות אחרונים לפני ביצוע חילוף. העברות מוקדמות באמצע השבוע מסתכנות בפציעות באימונים או בגביעים אירופיים.",
 
       "desc_en": "Delay transfers until Friday press conferences and verified deadline team news. Mid-week transfers risk training knocks and European rotation surprises.",
 
-      "rule_he": "׳¡׳‘׳׳ ׳•׳× ׳׳•׳ ׳¢׳× ׳׳¡׳•׳ ׳•׳×: ׳”׳׳×׳ ׳׳¢׳“׳›׳•׳ ׳™ ׳”׳׳׳׳ ׳™׳ ׳”׳¨׳©׳׳™׳™׳ ׳׳₪׳ ׳™ ׳—׳™׳׳•׳₪׳™׳.",
+      "rule_he": "סבלנות מונעת אסונות: המתן לעדכוני המאמנים הרשמיים לפני חילופים.",
 
       "rule_en": "Patience prevents blunders: hold transfers until verified press conferences.",
 
-      "tag_he": "׳×׳–׳׳•׳",
+      "tag_he": "תזמון",
 
       "tag_en": "Timing",
 
@@ -132,21 +132,21 @@ const FPL_SUCCESS_TIPS = [
 
       "num": 6,
 
-      "icon": "נ×‘",
+      "icon": "🪑",
 
-      "title_he": "׳¡׳₪׳¡׳ ׳—׳¡׳›׳•׳ ׳™ ׳•׳‘׳˜׳•׳— ׳“׳§׳•׳× (Smart Bench Enablers)",
+      "title_he": "ספסל חסכוני ובטוח דקות (Smart Bench Enablers)",
 
       "title_en": "Smart Bench & Budget Enablers",
 
-      "desc_he": "׳׳ ׳×׳§׳‘׳•׳¨ ׳׳™׳׳™׳•׳ ׳™׳ ׳™׳§׳¨׳™׳ ׳‘׳¡׳₪׳¡׳. ׳“׳׳’ ׳׳©׳—׳§׳ ׳¡׳₪׳¡׳ ׳׳—׳“ ׳׳• ׳©׳ ׳™׳™׳ ׳‘׳˜׳•׳—׳™׳ ׳׳₪׳×׳•׳— ׳‘׳׳—׳™׳¨ ׳¨׳¦׳₪׳” (ֲ£4.0m-ֲ£4.5m) ׳©׳™׳™׳›׳ ׳¡׳• ׳׳•׳˜׳•׳׳˜׳™׳× ׳‘׳¢׳× ׳”׳¦׳•׳¨׳, ׳•׳”׳©׳§׳¢ ׳׳× ׳”׳›׳¡׳£ ׳‘-11 ׳”׳₪׳•׳×׳—׳™׳.",
+      "desc_he": "אל תקבור מיליונים יקרים בספסל. דאג לשחקן ספסל אחד או שניים בטוחים לפתוח במחיר רצפה (£4.0m-£4.5m) שייכנסו אוטומטית בעת הצורך, והשקע את הכסף ב-11 הפותחים.",
 
-      "desc_en": "Do not trap valuable team value on your bench. Keep 1-2 cheap, guaranteed starters (ֲ£4.0m-ֲ£4.5m) as auto-sub safety nets while maximizing funds on your Starting XI.",
+      "desc_en": "Do not trap valuable team value on your bench. Keep 1-2 cheap, guaranteed starters (£4.0m-£4.5m) as auto-sub safety nets while maximizing funds on your Starting XI.",
 
-      "rule_he": "׳¡׳₪׳¡׳ ׳–׳•׳ ׳¢׳ ׳“׳§׳•׳× ׳§׳‘׳•׳¢׳•׳× ׳׳׳₪׳©׳¨ ׳”׳¨׳›׳‘ ׳₪׳•׳×׳— ׳¢׳×׳™׳¨ ׳›׳•׳›׳‘׳™׳.",
+      "rule_he": "ספסל זול עם דקות קבועות מאפשר הרכב פותח עתיר כוכבים.",
 
       "rule_en": "A cheap bench with secure minutes funds premium heavy hitters in your starting XI.",
 
-      "tag_he": "׳×׳§׳¦׳™׳‘",
+      "tag_he": "תקציב",
 
       "tag_en": "Budget",
 
@@ -156,21 +156,21 @@ const FPL_SUCCESS_TIPS = [
 
       "num": 7,
 
-      "icon": "נ“",
+      "icon": "📊",
 
-      "title_he": "׳׳׳ ׳₪׳׳ ׳™׳§׳” - ׳׳׳•׳ ׳‘׳ ׳×׳•׳ ׳™׳ (Trust Underlying Data)",
+      "title_he": "ללא פאניקה - אמון בנתונים (Trust Underlying Data)",
 
       "title_en": "Avoid Knee-Jerking & Trust Analytics",
 
-      "desc_he": "׳׳ ׳×׳׳›׳•׳¨ ׳©׳—׳§׳ ׳׳™׳›׳•׳×׳™ ׳¨׳§ ׳›׳™ ׳¡׳™׳™׳ ׳¢׳ 2 ׳ ׳§׳•׳“׳•׳× ׳‘׳׳—׳–׳•׳¨ ׳‘׳•׳“׳“, ׳•׳׳ ׳×׳¨׳•׳¥ ׳׳§׳ ׳•׳× ׳©׳—׳§׳ ׳©׳”׳‘׳§׳™׳¢ ׳©׳¢׳¨ ׳׳§׳¨׳™. ׳¡׳׳•׳ ׳¢׳ ׳׳“׳“׳™ ׳”-xG/xA ׳•׳”׳ ׳×׳•׳ ׳™׳ ׳”׳¡׳˜׳˜׳™׳¡׳˜׳™׳™׳ ׳׳׳•׳¨׳ ׳–׳׳.",
+      "desc_he": "אל תמכור שחקן איכותי רק כי סיים עם 2 נקודות במחזור בודד, ואל תרוץ לקנות שחקן שהבקיע שער מקרי. סמוך על מדדי ה-xG/xA והנתונים הסטטיסטיים לאורך זמן.",
 
       "desc_en": "Do not rage-sell premium assets after a single blank, nor chase random defensive flukes. Trust underlying expected metrics (xG, xA, xP) over past variance.",
 
-      "rule_he": "׳׳–׳ ׳—׳•׳׳£, ׳×׳•׳—׳׳× ׳׳ ׳¦׳—׳×: ׳©׳—׳§׳ ׳©׳׳™׳™׳¦׳¨ ׳׳¦׳‘׳™׳ ׳˜׳•׳‘׳™׳ ׳™׳—׳–׳™׳¨ ׳ ׳§׳•׳“׳•׳× ׳׳׳•׳¨׳ ׳–׳׳.",
+      "rule_he": "מזל חולף, תוחלת מנצחת: שחקן שמייצר מצבים טובים יחזיר נקודות לאורך זמן.",
 
       "rule_en": "Variance is temporary, underlying process is permanent: trust high-xG/xA stars.",
 
-      "tag_he": "׳׳ ׳׳™׳˜׳™׳§׳”",
+      "tag_he": "אנליטיקה",
 
       "tag_en": "Analytics",
 
@@ -180,21 +180,21 @@ const FPL_SUCCESS_TIPS = [
 
       "num": 8,
 
-      "icon": "נ¦",
+      "icon": "🏦",
 
-      "title_he": "׳©׳׳™׳¨׳” ׳¢׳ ׳¨׳–׳¨׳‘׳” ׳‘׳‘׳ ׳§ (ֲ£0.5m-ֲ£1.0m ITB)",
+      "title_he": "שמירה על רזרבה בבנק (£0.5m-£1.0m ITB)",
 
-      "title_en": "Keep Liquidity In The Bank (ֲ£0.5m-ֲ£1.0m ITB)",
+      "title_en": "Keep Liquidity In The Bank (£0.5m-£1.0m ITB)",
 
-      "desc_he": "׳”׳©׳׳¨׳× ׳¡׳›׳•׳ ׳¦׳ ׳•׳¢ ׳©׳ 0.5-1.0 ׳׳™׳׳™׳•׳ ׳׳™׳©\"׳˜ ׳‘׳‘׳ ׳§ ׳׳¢׳ ׳™׳§׳” ׳’׳׳™׳©׳•׳× ׳׳“׳™׳¨׳” ׳׳¢׳‘׳•׳¨ ׳׳™׳“ ׳׳©׳—׳§׳ ׳₪׳•׳¨׳¥ ׳׳• ׳›׳•׳›׳‘ ׳‘׳›׳•׳©׳¨ ׳‘׳׳™ ׳¦׳•׳¨׳ ׳׳₪׳¨׳§ ׳—׳¦׳™ ׳¡׳’׳ ׳׳• ׳׳§׳—׳× ׳׳™׳ ׳•׳¡׳™׳.",
+      "desc_he": "השארת סכום צנוע של 0.5-1.0 מיליון ליש\"ט בבנק מעניקה גמישות אדירה לעבור מיד לשחקן פורץ או כוכב בכושר בלי צורך לפרק חצי סגל או לקחת מינוסים.",
 
-      "desc_en": "Maintaining ֲ£0.5m-ֲ£1.0m in the bank allows you to instantly jump onto emerging breakout stars without requiring multi-transfer squad surgery.",
+      "desc_en": "Maintaining £0.5m-£1.0m in the bank allows you to instantly jump onto emerging breakout stars without requiring multi-transfer squad surgery.",
 
-      "rule_he": "׳›׳¡׳£ ׳‘׳‘׳ ׳§ ׳”׳•׳ ׳—׳•׳₪׳© ׳×׳׳¨׳•׳ ׳©׳׳’׳ ׳¢׳׳™׳ ׳׳©׳™׳ ׳•׳™׳™ ׳׳—׳™׳¨׳™׳ ׳׳”׳™׳¨׳™׳.",
+      "rule_he": "כסף בבנק הוא חופש תמרון שמגן עליך משינויי מחירים מהירים.",
 
       "rule_en": "Cash in the bank equals agility: it shields you from rapid market price rises.",
 
-      "tag_he": "׳’׳׳™׳©׳•׳×",
+      "tag_he": "גמישות",
 
       "tag_en": "Flexibility",
 
@@ -204,21 +204,21 @@ const FPL_SUCCESS_TIPS = [
 
       "num": 9,
 
-      "icon": "ג¡",
+      "icon": "⚡",
 
-      "title_he": "׳×׳–׳׳•׳ ׳¦'׳™׳₪׳™׳ ׳‘׳׳—׳–׳•׳¨׳™׳ ׳׳™׳•׳—׳“׳™׳ (DGW & BGW)",
+      "title_he": "תזמון צ'יפים במחזורים מיוחדים (DGW & BGW)",
 
       "title_en": "Strategic Chip Timing (DGW & BGW)",
 
-      "desc_he": "׳©׳׳•׳¨ ׳׳× ׳”׳¦'׳™׳₪׳™׳ ׳”׳—׳–׳§׳™׳ (Wildcard, Free Hit, Bench Boost, Triple Captain) ׳׳׳—׳–׳•׳¨׳™׳ ׳”׳›׳₪׳•׳׳™׳ (DGW) ׳•׳”׳¨׳™׳§׳™׳ (BGW) ׳‘׳—׳¦׳™ ׳”׳©׳ ׳™ ׳©׳ ׳”׳¢׳•׳ ׳” ׳׳§׳¦׳™׳¨׳× ׳¢׳©׳¨׳•׳× ׳ ׳§׳•׳“׳•׳× ׳™׳×׳¨׳•׳.",
+      "desc_he": "שמור את הצ'יפים החזקים (Wildcard, Free Hit, Bench Boost, Triple Captain) למחזורים הכפולים (DGW) והריקים (BGW) בחצי השני של העונה לקצירת עשרות נקודות יתרון.",
 
       "desc_en": "Preserve high-impact chips (Wildcard, Free Hit, Bench Boost, Triple Captain) for late-season Double (DGW) and Blank (BGW) weeks to exploit massive point swings.",
 
-      "rule_he": "׳¦'׳™׳₪ ׳‘׳׳—׳–׳•׳¨ ׳›׳₪׳•׳ ׳©׳•׳•׳” ׳₪׳™ ׳©׳ ׳™׳™׳ ׳׳• ׳©׳׳•׳©׳” ׳׳¢׳•׳׳× ׳׳—׳–׳•׳¨ ׳¨׳’׳™׳.",
+      "rule_he": "צ'יפ במחזור כפול שווה פי שניים או שלושה לעומת מחזור רגיל.",
 
       "rule_en": "A chip played in a Double Gameweek yields massively higher returns.",
 
-      "tag_he": "׳¦'׳™׳₪׳™׳",
+      "tag_he": "צ'יפים",
 
       "tag_en": "Chips",
 
@@ -228,21 +228,21 @@ const FPL_SUCCESS_TIPS = [
 
       "num": 10,
 
-      "icon": "נ¯",
+      "icon": "🎯",
 
-      "title_he": "׳“׳™׳₪׳¨׳ ׳¦׳™׳׳׳™׳ ׳׳—׳•׳©׳‘׳™׳ ׳׳˜׳™׳₪׳•׳¡ ׳‘׳׳™׳’׳” (Target Differentials)",
+      "title_he": "דיפרנציאלים מחושבים לטיפוס בליגה (Target Differentials)",
 
       "title_en": "Target High-Upside Differentials",
 
-      "desc_he": "׳©׳—׳§׳ ׳™׳ ׳‘׳‘׳¢׳׳•׳× ׳©׳ ׳׳¢׳ 60% ׳׳’׳ ׳™׳ ׳¢׳ ׳”׳“׳™׳¨׳•׳’ ׳©׳׳; ׳׳‘׳ ׳›׳“׳™ ׳׳¡׳’׳•׳¨ ׳₪׳¢׳¨׳™׳ ׳‘׳׳™׳’׳” ׳”׳₪׳¨׳˜׳™׳× ׳©׳׳ ׳›׳©׳׳×׳” ׳¨׳•׳“׳£ ׳׳׳—׳•׳¨, ׳©׳—׳§׳ ׳™ ׳׳₪׳×׳— ׳׳™׳›׳•׳×׳™׳™׳ ׳‘׳‘׳¢׳׳•׳× ׳׳×׳—׳× ׳-10% ׳”׳ ׳”׳׳ ׳•׳¢ ׳׳ ׳™׳¦׳—׳•׳.",
+      "desc_he": "שחקנים בבעלות של מעל 60% מגנים על הדירוג שלך; אבל כדי לסגור פערים בליגה הפרטית שלך כשאתה רודף מאחור, שחקני מפתח איכותיים בבעלות מתחת ל-10% הם המנוע לניצחון.",
 
       "desc_en": "High-ownership players protect rank; but to bridge deficits in private mini-leagues, high-upside low-ownership differentials (<10%) are the true accelerators.",
 
-      "rule_he": "׳©׳׳•׳¨ ׳¢׳ ׳©׳׳“ ׳‘׳˜׳•׳— ׳׳”׳’׳ ׳” ׳¢׳ ׳”׳“׳™׳¨׳•׳’, ׳•׳”׳•׳¡׳£ 1-2 ׳“׳™׳₪׳¨׳ ׳¦׳™׳׳׳™׳ ׳׳¢׳§׳™׳₪׳”.",
+      "rule_he": "שמור על שלד בטוח להגנה על הדירוג, והוסף 1-2 דיפרנציאלים לעקיפה.",
 
       "rule_en": "Anchor with essential template players, and hunt differentials to bridge gaps.",
 
-      "tag_he": "׳׳™׳ ׳™-׳׳™׳’׳•׳×",
+      "tag_he": "מיני-ליגות",
 
       "tag_en": "Mini-Leagues",
 
@@ -256,7 +256,7 @@ const FPL_SUCCESS_TIPS = [
 
 
 
-const API_BASE_URL = "https://fpl-elite-scout-api.onrender.com";
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/+$/, "");
 
 
 
@@ -289,7 +289,7 @@ export default function Home() {
   const [swapSourceId, setSwapSourceId] = useState<number | null>(null);
   const [actionPlayer, setActionPlayer] = useState<any>(null);
 
-  const [activeTab, setActiveTab] = useState<'pitch' | 'transfer' | 'planner' | 'analysis' | 'radar' | 'budget' | 'leagues' | 'tips' | 'prices'>('planner');
+  const [activeTab, setActiveTab] = useState<'pitch' | 'transfer' | 'planner' | 'analysis' | 'radar' | 'budget' | 'leagues' | 'tips'>('planner');
 
   const [appAlert, setAppAlert] = useState<string | null>(null);
 
@@ -305,7 +305,7 @@ export default function Home() {
 
 
 
-  // ׳—׳“׳©: ׳׳¦׳‘ ׳›׳”׳” ׳•׳©׳₪׳•׳×
+  // חדש: מצב כהה ושפות
 
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -313,59 +313,59 @@ export default function Home() {
 
 
 
-  // ׳׳™׳׳•׳ ׳×׳¨׳’׳•׳׳™׳
+  // מילון תרגומים
 
   const dict = {
 
     he: {
 
-      changeTeam: "׳”׳—׳׳£ ׳§׳‘׳•׳¦׳”",
+      changeTeam: "החלף קבוצה",
 
-      darkMode: "׳׳¦׳‘ ׳›׳”׳”",
+      darkMode: "מצב כהה",
 
-      lightMode: "׳׳¦׳‘ ׳‘׳”׳™׳¨",
+      lightMode: "מצב בהיר",
 
-      overallRank: "׳“׳™׳¨׳•׳’ ׳›׳׳׳™",
+      overallRank: "דירוג כללי",
 
-      bank: "׳™׳×׳¨׳” ׳‘׳‘׳ ׳§",
+      bank: "יתרה בבנק",
 
-      xp: "׳×׳•׳—׳׳× ׳ ׳§׳•׳“׳•׳× (xP)",
+      xp: "תוחלת נקודות (xP)",
 
-      squadScore: "׳¦׳™׳•׳ ׳¡׳’׳ ׳ ׳•׳›׳—׳™",
+      squadScore: "ציון סגל נוכחי",
 
-      timeUntil: "׳–׳׳ ׳ ׳•׳×׳¨ ׳¢׳“ ׳ ׳¢׳™׳׳× ׳—׳™׳׳•׳₪׳™׳",
+      timeUntil: "זמן נותר עד נעילת חילופים",
 
-      pitchTab: "׳”׳¡׳’׳ ׳¢׳ ׳”׳׳’׳¨׳©",
+      pitchTab: "הסגל על המגרש",
 
-      transferTab: "׳׳¢׳‘׳“׳× ׳—׳™׳׳•׳₪׳™׳",
+      transferTab: "מעבדת חילופים",
 
-      analysisTab: "׳ ׳™׳×׳•׳— ׳¡׳’׳ ׳•׳—׳¡׳¨׳•׳ ׳•׳×",
+      analysisTab: "ניתוח סגל וחסרונות",
 
-      radarTab: "׳¨׳“׳׳¨ ׳¨׳›׳© ׳¢׳™׳׳™׳×",
+      radarTab: "רדאר רכש עילית",
 
-      budgetTab: "׳×׳¨׳—׳™׳©׳™ ׳×׳§׳¦׳™׳‘",
+      budgetTab: "תרחישי תקציב",
 
-      plannerTab: "׳׳×׳›׳ ׳ ׳׳—׳–׳•׳¨׳™׳",
+      plannerTab: "מתכנן מחזורים",
 
-      leaguesTab: "׳׳™׳ ׳™-׳׳™׳’׳•׳× ׳•׳¨׳׳© ׳‘׳¨׳׳©",
+      leaguesTab: "מיני-ליגות וראש בראש",
 
-      tipsTab: "׳˜׳™׳₪׳™׳ ׳׳”׳¦׳׳—׳” נ’¡",
+      tipsTab: "טיפים להצלחה 💡",
 
-      cap: "׳§׳₪׳˜׳ (C):",
+      cap: "קפטן (C):",
 
-      vcap: "׳¡׳’׳ ׳§׳₪׳˜׳ (VC):",
+      vcap: "סגן קפטן (VC):",
 
-      enterId: "׳”׳–׳ ׳׳× ׳׳¡׳₪׳¨ ׳”׳§׳‘׳•׳¦׳” ׳©׳׳",
+      enterId: "הזן את מספר הקבוצה שלך",
 
-      placeholder: "׳׳“׳•׳’׳׳”: 139103",
+      placeholder: "לדוגמה: 139103",
 
-      connect: "׳”׳×׳—׳‘׳¨",
+      connect: "התחבר",
 
-      loading: "׳˜׳•׳¢׳...",
+      loading: "טוען...",
 
-      engineFor: "׳׳ ׳•׳¢ ׳”׳׳׳¦׳•׳× ׳׳׳—׳–׳•׳¨",
+      engineFor: "מנוע המלצות למחזור",
 
-      teamWord: "׳§׳‘׳•׳¦׳”:"
+      teamWord: "קבוצה:"
 
     },
 
@@ -401,7 +401,7 @@ export default function Home() {
 
       leaguesTab: "Mini-Leagues & H2H",
 
-      tipsTab: "Tips & Tricks נ’¡",
+      tipsTab: "Tips & Tricks 💡",
 
       cap: "Captain (C):",
 
@@ -429,7 +429,7 @@ export default function Home() {
 
   
 
-  // ׳¦׳‘׳¢׳™ ׳”׳׳¢׳¨׳›׳× ׳‘׳”׳×׳׳ ׳׳׳¦׳‘ (Dark/Light)
+  // צבעי המערכת בהתאם למצב (Dark/Light)
 
   const bgMain = isDarkMode ? "bg-gray-900 text-gray-100" : "bg-[#f8f9fa] text-gray-900";
 
@@ -615,11 +615,11 @@ export default function Home() {
 
     
 
-    // ׳‘׳“׳™׳§׳× ׳—׳¨׳™׳’׳” ׳׳”׳×׳§׳¦׳™׳‘ - ׳”׳•׳¡׳¨׳” ׳׳‘׳§׳©׳× ׳”׳׳©׳×׳׳© ׳›׳“׳™ ׳׳׳₪׳©׳¨ ׳×׳›׳ ׳•׳
+    // בדיקת חריגה מהתקציב - הוסרה לבקשת המשתמש כדי לאפשר תכנון
 
     // if (newBank < 0) {
 
-    //   setTransferError(isEnglish ? `Cannot afford ${newPlayer.name}. You are short ֲ£${Math.abs(newBank).toFixed(1)}M.` : `׳׳™׳ ׳׳ ׳׳¡׳₪׳™׳§ ׳×׳§׳¦׳™׳‘ ׳¢׳‘׳•׳¨ ${newPlayer.name}. ׳—׳¡׳¨ ׳׳ ֲ£${Math.abs(newBank).toFixed(1)}M.`);
+    //   setTransferError(isEnglish ? `Cannot afford ${newPlayer.name}. You are short £${Math.abs(newBank).toFixed(1)}M.` : `אין לך מספיק תקציב עבור ${newPlayer.name}. חסר לך £${Math.abs(newBank).toFixed(1)}M.`);
 
     //   return;
 
@@ -823,16 +823,9 @@ export default function Home() {
 
           });
 
-          const recsData = await res.json();
-          let finalRecs = recsData.candidates || recsData;
-          if (!Array.isArray(finalRecs)) finalRecs = [];
-          if (recsData.candidates && recsData.candidates.length > 0) {
-            recsData.candidates[0].is_hold = (recsData.recommendation === "HOLD");
-            recsData.candidates[0].reason = recsData.best_transfer?.reason || "";
-            recsData.candidates[0].confidence = recsData.best_transfer?.confidence || "";
-            recsData.candidates[0].delta = recsData.delta || 0;
-          }
-          setTransferRecs(finalRecs);
+          const recs = await res.json();
+
+          setTransferRecs(recs);
 
         } catch (err) {
 
@@ -964,13 +957,13 @@ export default function Home() {
 
       if (p1 && p2) {
 
-        // --- ׳‘׳“׳™׳§׳× ׳—׳•׳§׳™׳•׳× ׳׳¢׳¨׳ ---
+        // --- בדיקת חוקיות מערך ---
 
         let isValid = true;
 
         if (p1.pos_code !== p2.pos_code) {
 
-          // ׳׳™ ׳׳₪׳©׳¨ ׳׳”׳—׳׳™׳£ ׳©׳•׳¢׳¨ ׳¢׳ ׳©׳—׳§׳ ׳©׳“׳”
+          // אי אפשר להחליף שוער עם שחקן שדה
 
           if (p1.pos_code === 1 || p2.pos_code === 1) {
 
@@ -984,7 +977,7 @@ export default function Home() {
 
             
 
-            // ׳׳ ׳׳—׳“ ׳ ׳›׳ ׳¡ ׳•׳׳—׳“ ׳™׳•׳¦׳, ׳¦׳¨׳™׳ ׳׳‘׳“׳•׳§ ׳©׳׳™׳¨׳” ׳¢׳ ׳׳™׳ ׳™׳׳•׳ ׳©׳—׳§׳ ׳™׳ ׳׳¢׳׳“׳”
+            // אם אחד נכנס ואחד יוצא, צריך לבדוק שמירה על מינימום שחקנים לעמדה
 
             if (p1Pitch !== p2Pitch) {
 
@@ -1006,7 +999,7 @@ export default function Home() {
 
               
 
-              // ׳—׳•׳§׳™ FPL: ׳׳™׳ ׳™׳׳•׳ 3 ׳©׳—׳§׳ ׳™ ׳”׳’׳ ׳” ׳•׳׳™׳ ׳™׳׳•׳ 1 ׳—׳׳•׳¥ ׳‘׳”׳¨׳›׳‘ ׳”׳₪׳•׳×׳—
+              // חוקי FPL: מינימום 3 שחקני הגנה ומינימום 1 חלוץ בהרכב הפותח
 
               if (defs < 3 || fwds < 1) {
 
@@ -1024,7 +1017,7 @@ export default function Home() {
 
         if (!isValid) {
 
-          setAppAlert(isEnglish ? "Invalid formation! FPL rules require 1 GK, at least 3 Defenders, and at least 1 Forward." : "׳—׳™׳׳•׳£ ׳׳ ׳—׳•׳§׳™! ׳׳₪׳™ ׳—׳•׳§׳™ ׳”׳₪׳ ׳˜׳–׳™ ׳—׳•׳‘׳” ׳׳”׳¦׳™׳‘ ׳©׳•׳¢׳¨ 1, ׳׳₪׳—׳•׳× 3 ׳©׳—׳§׳ ׳™ ׳”׳’׳ ׳”, ׳•׳׳₪׳—׳•׳× ׳—׳׳•׳¥ 1.");
+          setAppAlert(isEnglish ? "Invalid formation! FPL rules require 1 GK, at least 3 Defenders, and at least 1 Forward." : "חילוף לא חוקי! לפי חוקי הפנטזי חובה להציב שוער 1, לפחות 3 שחקני הגנה, ולפחות חלוץ 1.");
 
           setSwapSourceId(null);
 
@@ -1167,7 +1160,7 @@ export default function Home() {
 
           >
 
-            {isEnglish ? '׳¢׳‘׳¨׳™׳×' : 'English'}
+            {isEnglish ? 'עברית' : 'English'}
 
           </button>
 
@@ -1182,7 +1175,7 @@ export default function Home() {
               </div>
               <h1 className="text-5xl md:text-6xl font-black mb-2 text-[#01fc7a] tracking-tight">FPL Elite Scout</h1>
 
-              <p className="text-purple-200 font-medium text-lg">{isEnglish ? 'Next-Gen AI Squad Planner' : '׳׳¢׳¨׳›׳× ׳×׳›׳ ׳•׳ ׳¡׳’׳ ׳׳‘׳•׳¡׳¡׳× AI'}</p>
+              <p className="text-purple-200 font-medium text-lg">{isEnglish ? 'Next-Gen AI Squad Planner' : 'מערכת תכנון סגל מבוססת AI'}</p>
 
             </div>
 
@@ -1220,7 +1213,7 @@ export default function Home() {
 
                 >
 
-                  {loading ? t.loading : (isEnglish ? 'Start Managing' : '׳”׳×׳—׳‘׳¨ ׳׳§׳‘׳•׳¦׳”')}
+                  {loading ? t.loading : (isEnglish ? 'Start Managing' : 'התחבר לקבוצה')}
 
                 </button>
 
@@ -1264,7 +1257,7 @@ export default function Home() {
 
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-green-900">
 
-           <div className="animate-pulse text-white font-bold text-xl">{isEnglish ? 'Loading your squad...' : '׳˜׳•׳¢׳ ׳׳× ׳”׳§׳‘׳•׳¦׳” ׳©׳׳...'}</div>
+           <div className="animate-pulse text-white font-bold text-xl">{isEnglish ? 'Loading your squad...' : 'טוען את הקבוצה שלך...'}</div>
 
         </div>
 
@@ -1286,7 +1279,7 @@ export default function Home() {
 
               <button onClick={() => { setData(null); localStorage.removeItem('fpl_team_id'); }} className={`flex-1 md:flex-none px-6 py-2 border rounded-md text-sm font-medium hover:opacity-80 transition-opacity ${bgCard}`}>{t.changeTeam}</button>
 
-              <button onClick={() => setIsEnglish(!isEnglish)} className={`flex-1 md:flex-none px-6 py-2 border rounded-md text-sm font-medium hover:opacity-80 transition-opacity ${bgCard}`}>{isEnglish ? '׳¢׳‘׳¨׳™׳×' : 'English'}</button>
+              <button onClick={() => setIsEnglish(!isEnglish)} className={`flex-1 md:flex-none px-6 py-2 border rounded-md text-sm font-medium hover:opacity-80 transition-opacity ${bgCard}`}>{isEnglish ? 'עברית' : 'English'}</button>
 
               <button onClick={() => setIsDarkMode(!isDarkMode)} className={`flex-1 md:flex-none px-6 py-2 border rounded-md text-sm font-medium hover:opacity-80 transition-opacity ${bgCard}`}>{isDarkMode ? t.lightMode : t.darkMode}</button>
 
@@ -1320,7 +1313,7 @@ export default function Home() {
 
               <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.bank}</p>
 
-              <p className="text-lg sm:text-2xl font-black">ֲ£{data.bank.toFixed(1)}m</p>
+              <p className="text-lg sm:text-2xl font-black">£{data.bank.toFixed(1)}m</p>
 
             </div>
 
@@ -1375,7 +1368,6 @@ export default function Home() {
             <button onClick={() => setActiveTab('leagues')} className={`${activeTab === 'leagues' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.leaguesTab}</button>
 
             <button onClick={() => setActiveTab('tips')} className={`${activeTab === 'tips' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.tipsTab}</button>
-            <button onClick={() => setActiveTab('prices')} className={`${activeTab === 'prices' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{isEnglish ? 'Price Target' : '׳©׳™׳ ׳•׳™׳™ ׳׳—׳™׳¨'}</button>
 
           </div>
 
@@ -1389,7 +1381,7 @@ export default function Home() {
 
               <button onClick={handleReset} className={`px-4 py-1.5 border rounded text-xs font-bold hover:opacity-80 transition-opacity text-white bg-red-600 border-red-700 shadow-sm`}>
 
-                {isEnglish ? 'Reset Virtual Changes' : '׳׳™׳₪׳•׳¡ ׳©׳™׳ ׳•׳™׳™׳ ׳•׳™׳¨׳˜׳•׳׳׳™׳™׳'}
+                {isEnglish ? 'Reset Virtual Changes' : 'איפוס שינויים וירטואליים'}
 
               </button>
 
@@ -1515,7 +1507,7 @@ export default function Home() {
 
                     <h4 className={`text-lg font-black ${textHighlight}`}>
 
-                      {transferOutId ? (isEnglish ? 'Select replacement below' : '׳‘׳—׳¨ ׳׳—׳׳™׳£ ׳׳׳˜׳”') : (isEnglish ? 'Select player to sell' : '׳‘׳—׳¨ ׳©׳—׳§׳ ׳׳׳›׳™׳¨׳”')}
+                      {transferOutId ? (isEnglish ? 'Select replacement below' : 'בחר מחליף למטה') : (isEnglish ? 'Select player to sell' : 'בחר שחקן למכירה')}
 
                     </h4>
 
@@ -1529,7 +1521,7 @@ export default function Home() {
 
                       >
 
-                        {isEnglish ? 'Cancel' : '׳‘׳™׳˜׳•׳'}
+                        {isEnglish ? 'Cancel' : 'ביטול'}
 
                       </button>
 
@@ -1617,7 +1609,7 @@ export default function Home() {
 
                     <h3 className={`text-xl font-black mb-4 flex items-center gap-2 ${textHighlight}`}>
 
-                      <span>נ§×</span> {isEnglish ? 'Transfer Lab' : '׳׳¢׳‘׳“׳× ׳”׳¢׳‘׳¨׳•׳×'}
+                      <span>🧪</span> {isEnglish ? 'Transfer Lab' : 'מעבדת העברות'}
 
                     </h3>
 
@@ -1627,7 +1619,7 @@ export default function Home() {
 
                       <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-4 rounded shadow-sm font-bold text-sm">
 
-                        ג ן¸ {transferError}
+                        ⚠️ {transferError}
 
                       </div>
 
@@ -1637,7 +1629,7 @@ export default function Home() {
 
                     {loadingRecs ? (
 
-                      <p className={`font-bold animate-pulse ${textMuted}`}>{isEnglish ? 'Calculating smart alternatives...' : '׳׳—׳©׳‘ ׳׳׳˜׳¨׳ ׳˜׳™׳‘׳•׳× ׳—׳›׳׳•׳×...'}</p>
+                      <p className={`font-bold animate-pulse ${textMuted}`}>{isEnglish ? 'Calculating smart alternatives...' : 'מחשב אלטרנטיבות חכמות...'}</p>
 
                     ) : (
 
@@ -1653,7 +1645,7 @@ export default function Home() {
 
                             <h4 className={`text-sm font-black mb-3 ${textMuted}`}>
 
-                              {isEnglish ? 'Top 3 Smart Recommendations:' : '3 ׳”׳”׳׳׳¦׳•׳× ׳”׳׳•׳‘׳™׳׳•׳× ׳©׳ ׳”׳׳¢׳¨׳›׳× (׳׳₪׳™ xP):'}
+                              {isEnglish ? 'Top 3 Smart Recommendations:' : '3 ההמלצות המובילות של המערכת (לפי xP):'}
 
                             </h4>
 
@@ -1689,7 +1681,7 @@ export default function Home() {
 
                                   <div className={`w-full text-[8px] sm:text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded flex justify-between ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
 
-                                    <span className={textHighlight}>ֲ£{rec.cost.toFixed(1)}</span>
+                                    <span className={textHighlight}>£{rec.cost.toFixed(1)}</span>
 
                                     <span className="text-emerald-500">{rec.xp.toFixed(1)} XP</span>
 
@@ -1715,7 +1707,7 @@ export default function Home() {
 
                             type="text" 
 
-                            placeholder={isEnglish ? "Search by name or team..." : "׳—׳₪׳© ׳©׳—׳§׳ ׳׳₪׳™ ׳©׳ ׳׳• ׳§׳‘׳•׳¦׳”..."} 
+                            placeholder={isEnglish ? "Search by name or team..." : "חפש שחקן לפי שם או קבוצה..."} 
 
                             value={searchQuery}
 
@@ -1739,16 +1731,16 @@ export default function Home() {
 
                               <tr>
 
-                                <th className="px-3 py-2">{isEnglish ? 'Player' : '׳©׳—׳§׳'}</th>
+                                <th className="px-3 py-2">{isEnglish ? 'Player' : 'שחקן'}</th>
 
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Team' : '׳§׳‘׳•׳¦׳”'}</th>
+                                <th className="px-3 py-2 text-center">{isEnglish ? 'Team' : 'קבוצה'}</th>
 
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Price' : '׳׳—׳™׳¨'}</th>
+                                <th className="px-3 py-2 text-center">{isEnglish ? 'Price' : 'מחיר'}</th>
 
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Points' : '׳ ׳§׳•׳“׳•׳×'}</th>
+                                <th className="px-3 py-2 text-center">{isEnglish ? 'Points' : 'נקודות'}</th>
 
                                 <th className="px-3 py-2 text-center">xP</th>
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : '׳׳©׳—׳§'}</th>
+                                <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : 'משחק'}</th>
 
                                 <th className="px-3 py-2 text-center"></th>
 
@@ -1772,7 +1764,7 @@ export default function Home() {
 
                                   <td className={`px-3 py-2 text-center text-xs font-bold ${textMuted}`}>{rec.team}</td>
 
-                                  <td className={`px-3 py-2 text-center font-bold ${textHighlight}`}>ֲ£{rec.cost.toFixed(1)}</td>
+                                  <td className={`px-3 py-2 text-center font-bold ${textHighlight}`}>£{rec.cost.toFixed(1)}</td>
 
                                   <td className={`px-3 py-2 text-center font-bold text-blue-500`}>{rec.total_points}</td>
 
@@ -1793,7 +1785,7 @@ export default function Home() {
 
                                     >
 
-                                      {isEnglish ? 'Select' : '׳‘׳—׳¨'}
+                                      {isEnglish ? 'Select' : 'בחר'}
 
                                     </button>
 
@@ -1811,7 +1803,7 @@ export default function Home() {
 
                             <p className="text-red-500 font-bold p-4 text-center">
 
-                              {isEnglish ? 'No matching players found in your budget.' : '׳׳ ׳ ׳׳¦׳׳• ׳©׳—׳§׳ ׳™׳ ׳׳×׳׳™׳׳™׳ ׳‘׳×׳§׳¦׳™׳‘ ׳©׳׳.'}
+                              {isEnglish ? 'No matching players found in your budget.' : 'לא נמצאו שחקנים מתאימים בתקציב שלך.'}
 
                             </p>
 
@@ -1831,17 +1823,17 @@ export default function Home() {
 
                   <div className={`flex-1 p-8 rounded-xl border flex flex-col items-center justify-center text-center ${bgBox}`}>
 
-                    <div className="text-6xl mb-4 opacity-50">נ’¸</div>
+                    <div className="text-6xl mb-4 opacity-50">💸</div>
 
                     <h3 className={`text-xl font-black mb-2 ${textHighlight}`}>
 
-                      {isEnglish ? 'Ready to make a transfer?' : '׳׳•׳›׳ ׳׳‘׳¦׳¢ ׳”׳¢׳‘׳¨׳”?'}
+                      {isEnglish ? 'Ready to make a transfer?' : 'מוכן לבצע העברה?'}
 
                     </h3>
 
                     <p className={textMuted}>
 
-                      {isEnglish ? 'Select a player from the pitch to see recommendations and search for replacements.' : '׳‘׳—׳¨ ׳©׳—׳§׳ ׳׳”׳׳’׳¨׳© ׳›׳“׳™ ׳׳¨׳׳•׳× ׳”׳׳׳¦׳•׳× ׳—׳›׳׳•׳× ׳•׳׳—׳₪׳© ׳׳• ׳׳—׳׳™׳₪׳™׳.'}
+                      {isEnglish ? 'Select a player from the pitch to see recommendations and search for replacements.' : 'בחר שחקן מהמגרש כדי לראות המלצות חכמות ולחפש לו מחליפים.'}
 
                     </p>
 
@@ -1865,7 +1857,7 @@ export default function Home() {
 
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
 
-                <span>נ“</span> {isEnglish ? 'Squad Analysis & AI Insights' : '׳ ׳™׳×׳•׳— ׳¡׳’׳ ׳•׳×׳•׳‘׳ ׳•׳× AI'}
+                <span>📊</span> {isEnglish ? 'Squad Analysis & AI Insights' : 'ניתוח סגל ותובנות AI'}
 
               </h3>
 
@@ -1885,7 +1877,7 @@ export default function Home() {
 
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
 
-                <span>נ“¡</span> {isEnglish ? 'Elite Transfer Radar' : '׳¨׳“׳׳¨ ׳¨׳›׳© ׳¢׳™׳׳™׳×'}
+                <span>📡</span> {isEnglish ? 'Elite Transfer Radar' : 'רדאר רכש עילית'}
 
               </h3>
 
@@ -1901,7 +1893,7 @@ export default function Home() {
 
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
 
-                <span>נ’°</span> {isEnglish ? 'Budget Scenarios' : '׳×׳¨׳—׳™׳©׳™ ׳×׳§׳¦׳™׳‘ (׳”׳׳׳¦׳•׳× ׳׳‘׳•׳¡׳¡׳•׳× AI)'}
+                <span>💰</span> {isEnglish ? 'Budget Scenarios' : 'תרחישי תקציב (המלצות מבוססות AI)'}
 
               </h3>
 
@@ -1919,7 +1911,7 @@ export default function Home() {
 
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
 
-                <span>נ—“ן¸</span> {isEnglish ? 'Gameweek Planner' : '׳׳×׳›׳ ׳ ׳׳—׳–׳•׳¨׳™׳'}
+                <span>🗓️</span> {isEnglish ? 'Gameweek Planner' : 'מתכנן מחזורים'}
 
               </h3>
 
@@ -1973,16 +1965,9 @@ export default function Home() {
 
                       body: JSON.stringify({ pos_code: playerToSell.pos_code, max_budget: budget, current_squad_ids: currentSquadIds })
 
-                    }).then(res => res.json()).then(recsData => {
-                      let finalRecs = recsData.candidates || recsData;
-                      if (!Array.isArray(finalRecs)) finalRecs = [];
-                      if (recsData.candidates && recsData.candidates.length > 0) {
-                        recsData.candidates[0].is_hold = (recsData.recommendation === "HOLD");
-                        recsData.candidates[0].reason = recsData.best_transfer?.reason || "";
-                        recsData.candidates[0].confidence = recsData.best_transfer?.confidence || "";
-                        recsData.candidates[0].delta = recsData.delta || 0;
-                      }
-                      setTransferRecs(finalRecs);
+                    }).then(res => res.json()).then(recs => {
+
+                      setTransferRecs(recs);
 
                     }).catch(err => {
 
@@ -2014,7 +1999,7 @@ export default function Home() {
 
                       <h3 className={`text-2xl font-black flex items-center gap-2 ${textHighlight}`}>
 
-                        <span>נ§×</span> {isEnglish ? 'Transfer Lab (Planner Mode)' : '׳׳¢׳‘׳“׳× ׳”׳¢׳‘׳¨׳•׳× (׳׳¦׳‘ ׳׳×׳›׳ ׳)'}
+                        <span>🧪</span> {isEnglish ? 'Transfer Lab (Planner Mode)' : 'מעבדת העברות (מצב מתכנן)'}
 
                       </h3>
 
@@ -2026,7 +2011,7 @@ export default function Home() {
 
                       >
 
-                        ג•
+                        ✕
 
                       </button>
 
@@ -2038,7 +2023,7 @@ export default function Home() {
 
                       <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-4 rounded shadow-sm font-bold text-sm">
 
-                        ג ן¸ {transferError}
+                        ⚠️ {transferError}
 
                       </div>
 
@@ -2048,7 +2033,7 @@ export default function Home() {
 
                     {loadingRecs ? (
 
-                      <p className={`font-bold animate-pulse ${textMuted}`}>{isEnglish ? 'Calculating smart alternatives...' : '׳׳—׳©׳‘ ׳׳׳˜׳¨׳ ׳˜׳™׳‘׳•׳× ׳—׳›׳׳•׳×...'}</p>
+                      <p className={`font-bold animate-pulse ${textMuted}`}>{isEnglish ? 'Calculating smart alternatives...' : 'מחשב אלטרנטיבות חכמות...'}</p>
 
                     ) : (
 
@@ -2064,7 +2049,7 @@ export default function Home() {
 
                             <h4 className={`text-sm font-black mb-3 ${textMuted}`}>
 
-                              {isEnglish ? 'Top 3 Smart Recommendations:' : '3 ׳”׳”׳׳׳¦׳•׳× ׳”׳׳•׳‘׳™׳׳•׳× ׳©׳ ׳”׳׳¢׳¨׳›׳× (׳׳₪׳™ xP):'}
+                              {isEnglish ? 'Top 3 Smart Recommendations:' : '3 ההמלצות המובילות של המערכת (לפי xP):'}
 
                             </h4>
 
@@ -2100,7 +2085,7 @@ export default function Home() {
 
                                   <div className={`w-full text-[8px] sm:text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded flex justify-between ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
 
-                                    <span className={textHighlight}>ֲ£{rec.cost.toFixed(1)}</span>
+                                    <span className={textHighlight}>£{rec.cost.toFixed(1)}</span>
 
                                     <span className="text-emerald-500">{rec.xp.toFixed(1)} XP</span>
 
@@ -2126,7 +2111,7 @@ export default function Home() {
 
                             type="text" 
 
-                            placeholder={isEnglish ? "Search by name or team..." : "׳—׳₪׳© ׳©׳—׳§׳ ׳׳₪׳™ ׳©׳ ׳׳• ׳§׳‘׳•׳¦׳”..."} 
+                            placeholder={isEnglish ? "Search by name or team..." : "חפש שחקן לפי שם או קבוצה..."} 
 
                             value={searchQuery}
 
@@ -2150,16 +2135,16 @@ export default function Home() {
 
                               <tr>
 
-                                <th className="px-3 py-2">{isEnglish ? 'Player' : '׳©׳—׳§׳'}</th>
+                                <th className="px-3 py-2">{isEnglish ? 'Player' : 'שחקן'}</th>
 
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Team' : '׳§׳‘׳•׳¦׳”'}</th>
+                                <th className="px-3 py-2 text-center">{isEnglish ? 'Team' : 'קבוצה'}</th>
 
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Price' : '׳׳—׳™׳¨'}</th>
+                                <th className="px-3 py-2 text-center">{isEnglish ? 'Price' : 'מחיר'}</th>
 
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Points' : '׳ ׳§׳•׳“׳•׳×'}</th>
+                                <th className="px-3 py-2 text-center">{isEnglish ? 'Points' : 'נקודות'}</th>
 
                                 <th className="px-3 py-2 text-center">xP</th>
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : '׳׳©׳—׳§'}</th>
+                                <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : 'משחק'}</th>
 
                                 <th className="px-3 py-2 text-center"></th>
 
@@ -2183,7 +2168,7 @@ export default function Home() {
 
                                   <td className={`px-3 py-2 text-center text-xs font-bold ${textMuted}`}>{rec.team}</td>
 
-                                  <td className={`px-3 py-2 text-center font-bold ${textHighlight}`}>ֲ£{rec.cost.toFixed(1)}</td>
+                                  <td className={`px-3 py-2 text-center font-bold ${textHighlight}`}>£{rec.cost.toFixed(1)}</td>
 
                                   <td className={`px-3 py-2 text-center font-bold text-blue-500`}>{rec.total_points}</td>
 
@@ -2204,7 +2189,7 @@ export default function Home() {
 
                                     >
 
-                                      {isEnglish ? 'Select' : '׳‘׳—׳¨'}
+                                      {isEnglish ? 'Select' : 'בחר'}
 
                                     </button>
 
@@ -2222,7 +2207,7 @@ export default function Home() {
 
                             <p className="text-red-500 font-bold p-4 text-center">
 
-                              {isEnglish ? 'No matching players found in your budget.' : '׳׳ ׳ ׳׳¦׳׳• ׳©׳—׳§׳ ׳™׳ ׳׳×׳׳™׳׳™׳ ׳‘׳×׳§׳¦׳™׳‘ ׳©׳׳.'}
+                              {isEnglish ? 'No matching players found in your budget.' : 'לא נמצאו שחקנים מתאימים בתקציב שלך.'}
 
                             </p>
 
@@ -2260,7 +2245,7 @@ export default function Home() {
 
           <div className={`w-full max-w-sm overflow-hidden p-6 rounded-2xl shadow-2xl flex flex-col items-center text-center ${isDarkMode ? 'bg-gray-800 border border-gray-700 text-white' : 'bg-white text-gray-900'}`}>
 
-            <div className="text-4xl mb-4">ג ן¸</div>
+            <div className="text-4xl mb-4">⚠️</div>
 
             <p className="font-bold mb-6">{appAlert}</p>
 
@@ -2272,7 +2257,7 @@ export default function Home() {
 
             >
 
-              {isEnglish ? 'OK' : '׳”׳‘׳ ׳×׳™'}
+              {isEnglish ? 'OK' : 'הבנתי'}
 
             </button>
 
@@ -2290,7 +2275,7 @@ export default function Home() {
 
           <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
 
-            <span>נ†</span> {isEnglish ? 'Mini-Leagues & H2H' : '׳׳™׳ ׳™-׳׳™׳’׳•׳× ׳•׳”׳©׳•׳•׳׳× ׳¨׳׳© ׳‘׳¨׳׳©'}
+            <span>🏆</span> {isEnglish ? 'Mini-Leagues & H2H' : 'מיני-ליגות והשוואת ראש בראש'}
 
           </h3>
 
@@ -2316,10 +2301,7 @@ export default function Home() {
 
 
 
-      {activeTab === 'prices' && (
-          <PriceChangesTab isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} />
-        )}
-        {activeTab === 'tips' && (
+      {activeTab === 'tips' && (
 
         <div className={`mt-4 relative`}>
 
@@ -2351,21 +2333,21 @@ export default function Home() {
 
           {[
 
-            { id: 'pitch', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="12" x2="22" y2="12"></line><circle cx="12" cy="12" r="3"></circle></svg>, nameEn: 'Pitch', nameHe: '׳׳’׳¨׳©' },
+            { id: 'pitch', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="12" x2="22" y2="12"></line><circle cx="12" cy="12" r="3"></circle></svg>, nameEn: 'Pitch', nameHe: 'מגרש' },
 
-            { id: 'transfer', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>, nameEn: 'Transfers', nameHe: '׳”׳¢׳‘׳¨׳•׳×' },
+            { id: 'transfer', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>, nameEn: 'Transfers', nameHe: 'העברות' },
 
-            { id: 'planner', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>, nameEn: 'Planner', nameHe: '׳×׳›׳ ׳•׳' },
+            { id: 'planner', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>, nameEn: 'Planner', nameHe: 'תכנון' },
 
-            { id: 'analysis', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>, nameEn: 'Analysis', nameHe: '׳ ׳™׳×׳•׳—' },
+            { id: 'analysis', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>, nameEn: 'Analysis', nameHe: 'ניתוח' },
 
-            { id: 'radar', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>, nameEn: 'Radar', nameHe: '׳¨׳׳“׳׳¨' },
+            { id: 'radar', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>, nameEn: 'Radar', nameHe: 'ראדאר' },
 
-            { id: 'budget', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>, nameEn: 'Budget', nameHe: '׳×׳§׳¦׳™׳‘' },
+            { id: 'budget', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>, nameEn: 'Budget', nameHe: 'תקציב' },
 
-            { id: 'leagues', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>, nameEn: 'Leagues', nameHe: '׳׳™׳’׳•׳×' },
+            { id: 'leagues', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>, nameEn: 'Leagues', nameHe: 'ליגות' },
 
-            { id: 'tips', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></svg>, nameEn: 'Tips', nameHe: '׳˜׳™׳₪׳™׳' }
+            { id: 'tips', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></svg>, nameEn: 'Tips', nameHe: 'טיפים' }
 
           ].map(tab => (
 
@@ -2439,7 +2421,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
         <h4 className="text-lg font-black mb-4 flex items-center gap-2 text-red-500">
 
-          <span>ג ן¸</span> {isEnglish ? 'Urgent Weaknesses' : '׳ ׳§׳•׳“׳•׳× ׳×׳•׳¨׳₪׳” ׳“׳—׳•׳₪׳•׳× (׳‘׳”׳¨׳›׳‘)'}
+          <span>⚠️</span> {isEnglish ? 'Urgent Weaknesses' : 'נקודות תורפה דחופות (בהרכב)'}
 
         </h4>
 
@@ -2449,7 +2431,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
             <li className={`flex flex-col p-3 rounded-lg border ${isDarkMode ? 'bg-red-900/30 border-red-900/50' : 'bg-red-50 border-red-100'}`}>
 
-              <span className={`font-bold text-sm ${isDarkMode ? 'text-red-400' : 'text-red-700'}`}>{isEnglish ? 'Hard Fixtures (FDR 4+)' : '׳׳©׳—׳§׳™׳ ׳§׳©׳™׳ ׳§׳¨׳•׳‘׳™׳ (FDR 4+)'}</span>
+              <span className={`font-bold text-sm ${isDarkMode ? 'text-red-400' : 'text-red-700'}`}>{isEnglish ? 'Hard Fixtures (FDR 4+)' : 'משחקים קשים קרובים (FDR 4+)'}</span>
 
               <span className={`text-xs mt-1 ${textMuted}`}>{hardFixtures.map((p:any) => p.name).join(', ')}</span>
 
@@ -2461,7 +2443,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
             <li className={`flex flex-col p-3 rounded-lg border ${isDarkMode ? 'bg-orange-900/30 border-orange-900/50' : 'bg-orange-50 border-orange-100'}`}>
 
-              <span className={`font-bold text-sm ${isDarkMode ? 'text-orange-400' : 'text-orange-700'}`}>{isEnglish ? 'Low Expected Points (< 2.5 xP)' : '׳×׳•׳—׳׳× ׳ ׳§׳•׳“׳•׳× ׳ ׳׳•׳›׳” ׳׳׳—׳–׳•׳¨ ׳”׳§׳¨׳•׳‘ (< 2.5 xP)'}</span>
+              <span className={`font-bold text-sm ${isDarkMode ? 'text-orange-400' : 'text-orange-700'}`}>{isEnglish ? 'Low Expected Points (< 2.5 xP)' : 'תוחלת נקודות נמוכה למחזור הקרוב (< 2.5 xP)'}</span>
 
               <span className={`text-xs mt-1 ${textMuted}`}>{lowXp.map((p:any) => p.name).join(', ')}</span>
 
@@ -2473,7 +2455,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
             <li className={`flex flex-col p-3 rounded-lg border ${isDarkMode ? 'bg-yellow-900/30 border-yellow-900/50' : 'bg-yellow-50 border-yellow-100'}`}>
 
-              <span className={`font-bold text-sm ${isDarkMode ? 'text-yellow-500' : 'text-yellow-700'}`}>{isEnglish ? 'Suboptimal Captain?' : '׳§׳₪׳˜׳ ׳׳ ׳׳•׳₪׳˜׳™׳׳׳™?'}</span>
+              <span className={`font-bold text-sm ${isDarkMode ? 'text-yellow-500' : 'text-yellow-700'}`}>{isEnglish ? 'Suboptimal Captain?' : 'קפטן לא אופטימלי?'}</span>
 
               <span className={`text-xs mt-1 ${textMuted}`}>
 
@@ -2481,7 +2463,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
                   ? `${_currentCap?.name} has ${_currentCap?.xp} xP, but ${highestXpPlayer?.name} is projected for ${highestXpPlayer?.xp} xP.` 
 
-                  : `${_currentCap?.name} ׳¢׳ ${_currentCap?.xp} ׳ ׳§', ׳׳‘׳ ׳-${highestXpPlayer?.name} ׳™׳© ׳×׳•׳—׳׳× ׳©׳ ${highestXpPlayer?.xp} ׳ ׳§'.`}
+                  : `${_currentCap?.name} עם ${_currentCap?.xp} נק', אבל ל-${highestXpPlayer?.name} יש תוחלת של ${highestXpPlayer?.xp} נק'.`}
 
               </span>
 
@@ -2493,9 +2475,9 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
             <div className="flex flex-col items-center justify-center p-6 text-center">
 
-              <span className="text-4xl mb-2">נ›¡ן¸</span>
+              <span className="text-4xl mb-2">🛡️</span>
 
-              <span className="text-emerald-500 font-bold">{isEnglish ? 'Your squad looks rock solid! נ’×' : '׳”׳¡׳’׳ ׳©׳׳ ׳ ׳¨׳׳” ׳—׳–׳§, ׳™׳¦׳™׳‘ ׳•׳׳•׳›׳ ׳׳׳—׳–׳•׳¨! נ’×'}</span>
+              <span className="text-emerald-500 font-bold">{isEnglish ? 'Your squad looks rock solid! 💪' : 'הסגל שלך נראה חזק, יציב ומוכן למחזור! 💪'}</span>
 
             </div>
 
@@ -2511,7 +2493,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
         <h4 className={`text-lg font-black mb-4 flex items-center gap-2 ${textHighlight}`}>
 
-          <span>נ—ן¸</span> {isEnglish ? 'Squad Structure & Budget' : '׳׳‘׳ ׳” ׳”׳¡׳’׳ ׳•׳ ׳™׳”׳•׳ ׳×׳§׳¦׳™׳‘'}
+          <span>🏗️</span> {isEnglish ? 'Squad Structure & Budget' : 'מבנה הסגל וניהול תקציב'}
 
         </h4>
 
@@ -2521,17 +2503,17 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
             <div className={`flex-1 p-3 rounded-lg border ${innerBoxBg}`}>
 
-              <span className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Squad Value' : '׳©׳•׳•׳™ ׳”׳¡׳’׳ (׳׳׳ ׳‘׳ ׳§)'}</span>
+              <span className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Squad Value' : 'שווי הסגל (ללא בנק)'}</span>
 
-              <span className={`text-lg font-black ${textHighlight}`}>ֲ£{data.squad.reduce((s:any,p:any)=>s+p.cost,0).toFixed(1)}M</span>
+              <span className={`text-lg font-black ${textHighlight}`}>£{data.squad.reduce((s:any,p:any)=>s+p.cost,0).toFixed(1)}M</span>
 
             </div>
 
             <div className={`flex-1 p-3 rounded-lg border ${innerBoxBg}`}>
 
-              <span className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Bench Value' : '׳©׳•׳•׳™ ׳”׳¡׳₪׳¡׳'}</span>
+              <span className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Bench Value' : 'שווי הספסל'}</span>
 
-              <span className={`text-lg font-black ${textHighlight}`}>ֲ£{_bench.reduce((sum:number, p:any) => sum + p.cost, 0).toFixed(1)}M</span>
+              <span className={`text-lg font-black ${textHighlight}`}>£{_bench.reduce((sum:number, p:any) => sum + p.cost, 0).toFixed(1)}M</span>
 
             </div>
 
@@ -2539,7 +2521,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
           <div>
 
-            <span className="font-bold text-sm block mb-0 sm:mb-1">{isEnglish ? 'Bench Budget Efficiency' : '׳ ׳™׳¦׳•׳׳× ׳×׳§׳¦׳™׳‘ ׳”׳¡׳₪׳¡׳:'}</span>
+            <span className="font-bold text-sm block mb-0 sm:mb-1">{isEnglish ? 'Bench Budget Efficiency' : 'ניצולת תקציב הספסל:'}</span>
 
             <div className={`w-full rounded-full h-2.5 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} mb-0 sm:mb-1`}>
 
@@ -2551,9 +2533,9 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
               {isEnglish 
 
-                 ? 'An optimal (cheapest) bench costs ֲ£17.0M. The colored bar shows how much you spent up to a ֲ£20M benchmark. Over ֲ£19.0M is inefficient (turns red).' 
+                 ? 'An optimal (cheapest) bench costs £17.0M. The colored bar shows how much you spent up to a £20M benchmark. Over £19.0M is inefficient (turns red).' 
 
-                 : '׳¡׳₪׳¡׳ ׳׳•׳₪׳˜׳™׳׳׳™ (׳”׳›׳™ ׳–׳•׳ ׳©׳׳₪׳©׳¨) ׳¢׳•׳׳” ֲ£17.0M. ׳”׳₪׳¡ ׳”׳׳׳ ׳׳¦׳™׳’ ׳—׳¨׳™׳’׳” ׳©׳ ׳¢׳“ ֲ£20.0M. ׳׳ ׳¢׳‘׳¨׳× ׳׳× ׳”-ֲ£19.0M ׳”׳₪׳¡ ׳™׳¦׳‘׳¢ ׳‘׳׳“׳•׳ (׳‘׳–׳‘׳•׳– ׳×׳§׳¦׳™׳‘ ׳¢׳ ׳©׳—׳§׳ ׳™׳ ׳©׳׳ ׳₪׳•׳×׳—׳™׳).'}
+                 : 'ספסל אופטימלי (הכי זול שאפשר) עולה £17.0M. הפס המלא מציג חריגה של עד £20.0M. אם עברת את ה-£19.0M הפס יצבע באדום (בזבוז תקציב על שחקנים שלא פותחים).'}
 
             </p>
 
@@ -2563,7 +2545,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
           <div className={`pt-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
 
-            <span className="font-bold text-sm block mb-3">{isEnglish ? 'Positional Spending:' : '׳₪׳™׳–׳•׳¨ ׳”׳×׳§׳¦׳™׳‘ ׳©׳׳ ׳׳₪׳™ ׳¢׳׳“׳•׳×:'}</span>
+            <span className="font-bold text-sm block mb-3">{isEnglish ? 'Positional Spending:' : 'פיזור התקציב שלך לפי עמדות:'}</span>
 
             <div className="flex gap-1 h-6 rounded-lg overflow-hidden text-xs text-white font-bold text-center">
 
@@ -2585,7 +2567,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
             <div className={`pt-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
 
-              <span className="font-bold text-sm block mb-2">{isEnglish ? 'Maxed Teams (3 players):' : '׳§׳‘׳•׳¦׳•׳× ׳‘׳׳§׳¡׳™׳׳•׳ (׳—׳•׳¡׳׳•׳× ׳”׳¢׳‘׳¨׳•׳×):'}</span>
+              <span className="font-bold text-sm block mb-2">{isEnglish ? 'Maxed Teams (3 players):' : 'קבוצות במקסימום (חוסמות העברות):'}</span>
 
               <div className="flex gap-2 flex-wrap">
 
@@ -2611,7 +2593,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
         <h4 className={`text-lg font-black mb-4 flex items-center gap-2 ${textHighlight}`}>
 
-          <span>נ“ˆ</span> {isEnglish ? 'Underlying Stats (Season)' : '׳ ׳×׳•׳ ׳™ ׳¢׳•׳׳§ ׳©׳ ׳”׳©׳—׳§׳ ׳™׳ ׳©׳׳ (׳”׳¢׳•׳ ׳”)'}
+          <span>📈</span> {isEnglish ? 'Underlying Stats (Season)' : 'נתוני עומק של השחקנים שלך (העונה)'}
 
         </h4>
 
@@ -2621,7 +2603,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
             <tr>
 
-              <th className="px-4 py-3">{isEnglish ? 'Player' : '׳©׳—׳§׳'}</th>
+              <th className="px-4 py-3">{isEnglish ? 'Player' : 'שחקן'}</th>
 
               <th className="px-4 py-3 text-center">Form</th>
 
@@ -2701,28 +2683,28 @@ function ActionModal({ player, onClose, onSwap, onCaptain, onVice, onSell, isEng
             <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${player.team_code}-66.webp`} className="w-14" />
             <div>
               <h3 className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{player.name}</h3>
-              <p className={`text-sm font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{player.team} ג€¢ {player.pos_name || (player.pos_code === 1 ? 'GKP' : player.pos_code === 2 ? 'DEF' : player.pos_code === 3 ? 'MID' : 'FWD')}</p>
+              <p className={`text-sm font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{player.team} • {player.pos_name || (player.pos_code === 1 ? 'GKP' : player.pos_code === 2 ? 'DEF' : player.pos_code === 3 ? 'MID' : 'FWD')}</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-2">ג•</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-2">✕</button>
         </div>
         
         <div className="flex flex-col gap-2 mt-2">
           <button onClick={() => { onSwap(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
-            <span>נ”„</span> {isEnglish ? 'Substitute / Swap' : '׳—׳™׳׳•׳£ ׳©׳—׳§׳'}
+            <span>🔄</span> {isEnglish ? 'Substitute / Swap' : 'חילוף שחקן'}
           </button>
           
           <button onClick={() => { onCaptain(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
-            <span>ֲ©ן¸</span> {isEnglish ? 'Make Captain' : '׳”׳₪׳•׳ ׳׳§׳₪׳˜׳'}
+            <span>©️</span> {isEnglish ? 'Make Captain' : 'הפוך לקפטן'}
           </button>
           
           <button onClick={() => { onVice(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
-            <span>נ‡»</span> {isEnglish ? 'Make Vice Captain' : '׳”׳₪׳•׳ ׳׳¡׳’׳ ׳§׳₪׳˜׳'}
+            <span>🇻</span> {isEnglish ? 'Make Vice Captain' : 'הפוך לסגן קפטן'}
           </button>
           
           {onSell && (
             <button onClick={() => { onSell(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-red-900/50 hover:bg-red-900/70 text-red-200' : 'bg-red-100 hover:bg-red-200 text-red-700'}`}>
-              <span>ג</span> {isEnglish ? 'Transfer Out (Sell)' : '׳”׳¢׳‘׳¨ ׳©׳—׳§׳ (׳׳›׳•׳¨)'}
+              <span>❌</span> {isEnglish ? 'Transfer Out (Sell)' : 'העבר שחקן (מכור)'}
             </button>
           )}
         </div>
@@ -2731,7 +2713,7 @@ function ActionModal({ player, onClose, onSwap, onCaptain, onVice, onSell, isEng
   );
 }
 
-// ׳§׳•׳׳₪׳•׳ ׳ ׳˜׳× ׳›׳¨׳˜׳™׳¡ ׳©׳—׳§׳ ׳׳•׳×׳׳׳× ׳׳¢׳™׳¦׳•׳‘ ׳”׳—׳“׳©
+// קומפוננטת כרטיס שחקן מותאמת לעיצוב החדש
 
 function PlayerCard({ 
   player, 
@@ -2793,7 +2775,7 @@ function PlayerCard({
 
       {/* Data Row */}
       <div className="bg-white text-gray-900 text-[7px] min-[400px]:text-[9px] sm:text-xs font-bold px-0.5 w-full text-center rounded-b shadow-sm flex justify-center items-center border-b border-x border-gray-200">
-        <span>ֲ£{player.cost.toFixed(1)}</span>
+        <span>£{player.cost.toFixed(1)}</span>
       </div>
 
       {/* C/V Badges */}
@@ -2843,9 +2825,9 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
 
 
 
-  if (loading) return <div className="text-center p-10 font-bold">{isEnglish ? 'Loading Elite Radar...' : '׳˜׳•׳¢׳ ׳¨׳“׳׳¨ ׳¢׳™׳׳™׳×...'} נ“¡</div>;
+  if (loading) return <div className="text-center p-10 font-bold">{isEnglish ? 'Loading Elite Radar...' : 'טוען רדאר עילית...'} 📡</div>;
 
-  if (error) return <div className="text-center p-10 font-bold text-red-500">{isEnglish ? error : '׳©׳’׳™׳׳” ׳‘׳˜׳¢׳™׳ ׳× ׳”׳ ׳×׳•׳ ׳™׳'}</div>;
+  if (error) return <div className="text-center p-10 font-bold text-red-500">{isEnglish ? error : 'שגיאה בטעינת הנתונים'}</div>;
 
 
 
@@ -2869,18 +2851,18 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
 
             <tr>
 
-              <th className="px-3 py-2">{isEnglish ? 'Player' : '׳©׳—׳§׳'}</th>
+              <th className="px-3 py-2">{isEnglish ? 'Player' : 'שחקן'}</th>
 
-              <th className="px-3 py-2 text-center">{isEnglish ? 'Team' : '׳§׳‘׳•׳¦׳”'}</th>
+              <th className="px-3 py-2 text-center">{isEnglish ? 'Team' : 'קבוצה'}</th>
 
-              <th className="px-3 py-2 text-center">{isEnglish ? 'Cost' : '׳׳—׳™׳¨'}</th>
+              <th className="px-3 py-2 text-center">{isEnglish ? 'Cost' : 'מחיר'}</th>
 
               <th className="px-3 py-2 text-center">xP</th>
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : '׳׳©׳—׳§'}</th>
+                                <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : 'משחק'}</th>
 
-              <th className="px-3 py-2 text-center">{isEnglish ? 'Form' : '׳›׳•׳©׳¨'}</th>
+              <th className="px-3 py-2 text-center">{isEnglish ? 'Form' : 'כושר'}</th>
 
-              <th className="px-3 py-2 text-center" title="Teams Selected By (׳׳—׳•׳–׳™ ׳‘׳¢׳׳•׳×)">{isEnglish ? 'Ownership' : '׳׳—׳•׳–׳™ ׳‘׳¢׳׳•׳×'}</th>
+              <th className="px-3 py-2 text-center" title="Teams Selected By (אחוזי בעלות)">{isEnglish ? 'Ownership' : 'אחוזי בעלות'}</th>
 
             </tr>
 
@@ -2896,7 +2878,7 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
 
                 <td className="px-3 py-2 text-center font-bold">{p.team}</td>
 
-                <td className="px-3 py-2 text-center text-emerald-600">ֲ£{p.cost.toFixed(1)}M</td>
+                <td className="px-3 py-2 text-center text-emerald-600">£{p.cost.toFixed(1)}M</td>
 
                 <td className="px-3 py-2 text-center font-bold text-blue-500">{p.xp.toFixed(1)}</td>
 
@@ -2930,7 +2912,7 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
 
           ? 'General market recommendations based on global data (MUST HAVE, BUY, DIFFERENTIALS). Not specific to your current squad.' 
 
-          : '׳”׳׳׳¦׳•׳× ׳©׳•׳§ ׳›׳׳׳™׳•׳× ׳¢׳ ׳‘׳¡׳™׳¡ ׳ ׳×׳•׳ ׳™׳ ׳’׳׳•׳‘׳׳™׳™׳ (׳©׳—׳§׳ ׳™ ׳—׳•׳‘׳”, ׳©׳—׳§׳ ׳™׳ ׳‘׳›׳•׳©׳¨ ׳©׳™׳, ׳•׳©׳—׳§׳ ׳™׳ ׳“׳™׳₪׳¨׳ ׳¦׳™׳׳׳™׳). ׳׳×׳¢׳“׳›׳ ׳©׳‘׳•׳¢׳™׳× ׳•׳׳ ׳§׳©׳•׳¨ ׳¡׳₪׳¦׳™׳₪׳™׳× ׳׳¡׳’׳ ׳©׳׳.'}
+          : 'המלצות שוק כלליות על בסיס נתונים גלובליים (שחקני חובה, שחקנים בכושר שיא, ושחקנים דיפרנציאלים). מתעדכן שבועית ולא קשור ספציפית לסגל שלך.'}
 
       </p>
 
@@ -2942,11 +2924,11 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
 
         'text-orange-500', 
 
-        'נ”¥', 
+        '🔥', 
 
-        isEnglish ? 'MUST HAVE / BUY (Hot Form)' : '׳©׳—׳§׳ ׳™ ׳—׳•׳‘׳” / ׳§׳ ׳™׳™׳” (׳‘׳›׳•׳©׳¨ ׳©׳™׳)', 
+        isEnglish ? 'MUST HAVE / BUY (Hot Form)' : 'שחקני חובה / קנייה (בכושר שיא)', 
 
-        isEnglish ? 'Players with the highest Form right now. Proven point scorers over the last 30 days.' : '׳”׳©׳—׳§׳ ׳™׳ ׳‘׳›׳•׳©׳¨ ׳”׳›׳™ ׳˜׳•׳‘ ׳‘׳׳™׳’׳” ׳›׳¨׳’׳¢. ׳׳•׳›׳™׳—׳™׳ ׳׳× ׳¢׳¦׳׳ ׳‘׳¢׳§׳‘׳™׳•׳× ׳‘-30 ׳”׳™׳׳™׳ ׳”׳׳—׳¨׳•׳ ׳™׳.'
+        isEnglish ? 'Players with the highest Form right now. Proven point scorers over the last 30 days.' : 'השחקנים בכושר הכי טוב בליגה כרגע. מוכיחים את עצמם בעקביות ב-30 הימים האחרונים.'
 
       )}
 
@@ -2958,11 +2940,11 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
 
         'text-blue-500', 
 
-        'נ¯', 
+        '🎯', 
 
-        isEnglish ? 'SCOUT PICKS (Top xP)' : '׳‘׳—׳™׳¨׳•׳× ׳”׳¡׳§׳׳•׳˜ (׳×׳•׳—׳׳× ׳”׳ ׳§׳•׳“׳•׳× ׳”׳’׳‘׳•׳”׳” ׳‘׳™׳•׳×׳¨)', 
+        isEnglish ? 'SCOUT PICKS (Top xP)' : 'בחירות הסקאוט (תוחלת הנקודות הגבוהה ביותר)', 
 
-        isEnglish ? 'Players with the highest expected points (xP) for the upcoming gameweek based on statistical models and fixture difficulty.' : '׳©׳—׳§׳ ׳™׳ ׳¢׳ ׳×׳•׳—׳׳× ׳”׳ ׳§׳•׳“׳•׳× (xP) ׳”׳’׳‘׳•׳”׳” ׳‘׳™׳•׳×׳¨ ׳׳׳—׳–׳•׳¨ ׳”׳§׳¨׳•׳‘, ׳¢׳ ׳‘׳¡׳™׳¡ ׳׳•׳“׳׳™ AI ׳•׳§׳•׳©׳™ ׳׳©׳—׳§׳™׳.'
+        isEnglish ? 'Players with the highest expected points (xP) for the upcoming gameweek based on statistical models and fixture difficulty.' : 'שחקנים עם תוחלת הנקודות (xP) הגבוהה ביותר למחזור הקרוב, על בסיס מודלי AI וקושי משחקים.'
 
       )}
 
@@ -2974,11 +2956,11 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
 
         'text-purple-500', 
 
-        'נ’', 
+        '💎', 
 
-        isEnglish ? 'DIFFERENTIALS (Hidden Gems)' : '׳©׳—׳§׳ ׳™׳ ׳“׳™׳₪׳¨׳ ׳¦׳™׳׳׳™׳™׳ (׳₪׳ ׳™׳ ׳™׳ ׳ ׳¡׳×׳¨׳•׳×)', 
+        isEnglish ? 'DIFFERENTIALS (Hidden Gems)' : 'שחקנים דיפרנציאליים (פנינים נסתרות)', 
 
-        isEnglish ? 'High potential players owned by less than 10% of managers. Great for jumping up the ranks.' : '׳©׳—׳§׳ ׳™׳ ׳¢׳ ׳₪׳•׳˜׳ ׳¦׳™׳׳ ׳’׳‘׳•׳” ׳©׳׳—׳•׳–׳™ ׳”׳‘׳¢׳׳•׳× ׳¢׳׳™׳”׳ ׳ ׳׳•׳›׳™׳ ׳-10%. ׳׳¦׳•׳™׳ ׳™׳ ׳›׳“׳™ ׳׳¢׳§׳•׳£ ׳׳×׳—׳¨׳™׳ ׳‘׳׳™׳’׳•׳×.'
+        isEnglish ? 'High potential players owned by less than 10% of managers. Great for jumping up the ranks.' : 'שחקנים עם פוטנציאל גבוה שאחוזי הבעלות עליהם נמוכים מ-10%. מצוינים כדי לעקוף מתחרים בליגות.'
 
       )}
 
@@ -3016,7 +2998,7 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
 
       .catch(err => {
 
-        setError(isEnglish ? "Failed to load budget scenarios." : "׳©׳’׳™׳׳” ׳‘׳˜׳¢׳™׳ ׳× ׳×׳¨׳—׳™׳©׳™ ׳”׳×׳§׳¦׳™׳‘.");
+        setError(isEnglish ? "Failed to load budget scenarios." : "שגיאה בטעינת תרחישי התקציב.");
 
         setLoading(false);
 
@@ -3026,7 +3008,7 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
 
 
 
-  if (loading) return <div className="text-center p-10 font-bold">{isEnglish ? 'Analyzing weak links and calculating replacements...' : '׳׳ ׳×׳— ׳—׳•׳׳™׳•׳× ׳—׳׳©׳•׳× ׳•׳׳—׳©׳‘ ׳—׳׳•׳₪׳•׳× ׳׳™׳“׳™׳׳׳™׳•׳×...'}</div>;
+  if (loading) return <div className="text-center p-10 font-bold">{isEnglish ? 'Analyzing weak links and calculating replacements...' : 'מנתח חוליות חלשות ומחשב חלופות אידיאליות...'}</div>;
 
   if (error) return <div className="text-center p-10 font-bold text-red-500">{error}</div>;
 
@@ -3038,11 +3020,11 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
 
       <div className="flex flex-col items-center justify-center p-10 text-center">
 
-        <span className="text-4xl mb-4">נ›¡ן¸</span>
+        <span className="text-4xl mb-4">🛡️</span>
 
-        <h4 className="text-xl font-black text-emerald-500 mb-2">{isEnglish ? 'No urgent transfers needed!' : '׳”׳¡׳’׳ ׳©׳׳ ׳—׳¡׳™׳ ׳›׳¨׳’׳¢! ׳׳™׳ ׳—׳™׳׳•׳₪׳™׳ ׳“׳—׳•׳₪׳™׳.'}</h4>
+        <h4 className="text-xl font-black text-emerald-500 mb-2">{isEnglish ? 'No urgent transfers needed!' : 'הסגל שלך חסין כרגע! אין חילופים דחופים.'}</h4>
 
-        <p className={textMuted}>{isEnglish ? 'Your squad looks solid based on FDR, form, and xP.' : '׳¢׳ ׳¡׳׳ ׳ ׳×׳•׳ ׳™ ׳₪׳¦׳™׳¢׳•׳×, ׳§׳•׳©׳™ ׳׳©׳—׳§׳™׳ ׳•׳›׳•׳©׳¨, ׳›׳ ׳”׳©׳—׳§׳ ׳™׳ ׳©׳׳ ׳ ׳¨׳׳™׳ ׳›׳׳• ׳‘׳—׳™׳¨׳•׳× ׳‘׳˜׳•׳—׳•׳× ׳›׳¨׳’׳¢.'}</p>
+        <p className={textMuted}>{isEnglish ? 'Your squad looks solid based on FDR, form, and xP.' : 'על סמך נתוני פציעות, קושי משחקים וכושר, כל השחקנים שלך נראים כמו בחירות בטוחות כרגע.'}</p>
 
       </div>
 
@@ -3062,7 +3044,7 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
 
           ? 'The algorithm has identified the following weak links in your squad based on tough fixtures, poor form, or injury risks. Here are the top affordable replacements.' 
 
-          : '׳”׳׳¢׳¨׳›׳× ׳׳™׳×׳¨׳” ׳׳× ׳”׳—׳•׳׳™׳•׳× ׳”׳—׳׳©׳•׳× ׳‘׳¡׳’׳ ׳©׳׳ ׳¢׳ ׳‘׳¡׳™׳¡ ׳׳©׳—׳§׳™׳ ׳§׳©׳™׳, ׳₪׳¦׳™׳¢׳•׳× ׳׳• ׳×׳•׳—׳׳× ׳ ׳§׳•׳“׳•׳× ׳ ׳׳•׳›׳”. ׳׳׳• ׳”׳׳—׳׳™׳₪׳™׳ ׳”׳˜׳•׳‘׳™׳ ׳‘׳™׳•׳×׳¨ ׳©׳×׳•׳›׳ ׳׳”׳¨׳©׳•׳× ׳׳¢׳¦׳׳ ׳‘׳×׳§׳¦׳™׳‘ ׳”׳ ׳•׳›׳—׳™.'}
+          : 'המערכת איתרה את החוליות החלשות בסגל שלך על בסיס משחקים קשים, פציעות או תוחלת נקודות נמוכה. אלו המחליפים הטובים ביותר שתוכל להרשות לעצמך בתקציב הנוכחי.'}
 
       </p>
 
@@ -3078,7 +3060,7 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
 
           <div className={`flex-1 text-center md:text-start flex flex-col items-center md:items-start border-b md:border-b-0 md:border-e pb-4 md:pb-0 md:pe-6 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
 
-            <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded mb-3">{isEnglish ? 'SELL' : '׳׳׳›׳•׳¨'}</span>
+            <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded mb-3">{isEnglish ? 'SELL' : 'למכור'}</span>
 
             <div className="flex items-center gap-4">
 
@@ -3090,9 +3072,9 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
 
                 <p className={`text-sm font-bold ${textMuted}`}>{scenario.sell.team}</p>
 
-                <p className="text-red-500 font-bold text-sm mt-1">ג ן¸ {scenario.reason}</p>
+                <p className="text-red-500 font-bold text-sm mt-1">⚠️ {scenario.reason}</p>
 
-                <p className={`text-xs mt-1 ${textHighlight}`}>ֲ£{scenario.sell.cost.toFixed(1)}M | {scenario.sell.xp.toFixed(1)} xP</p>
+                <p className={`text-xs mt-1 ${textHighlight}`}>£{scenario.sell.cost.toFixed(1)}M | {scenario.sell.xp.toFixed(1)} xP</p>
 
               </div>
 
@@ -3106,7 +3088,7 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
 
           <div className="flex-[2] w-full">
 
-            <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded mb-3 inline-block">{isEnglish ? 'RECOMMENDED BUYS' : '׳׳—׳׳™׳₪׳™׳ ׳׳•׳׳׳¦׳™׳'}</span>
+            <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded mb-3 inline-block">{isEnglish ? 'RECOMMENDED BUYS' : 'מחליפים מומלצים'}</span>
 
             <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
 
@@ -3130,7 +3112,7 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
 
                   <div className={`mt-1 text-[10px] w-full text-center font-bold px-1 py-0.5 rounded ${isDarkMode ? 'bg-gray-900 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
 
-                    ֲ£{buy.cost.toFixed(1)}M
+                    £{buy.cost.toFixed(1)}M
 
                   </div>
 
@@ -3142,7 +3124,7 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
 
                   >
 
-                    {isEnglish ? 'Execute Transfer' : '׳‘׳¦׳¢ ׳—׳™׳׳•׳£'}
+                    {isEnglish ? 'Execute Transfer' : 'בצע חילוף'}
 
                   </button>
 
@@ -3292,7 +3274,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
             >
 
-              {isEnglish ? 'Reset Squad' : '׳׳₪׳¡ ׳¡׳’׳'}
+              {isEnglish ? 'Reset Squad' : 'אפס סגל'}
 
             </button>
 
@@ -3334,7 +3316,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
                     }`}
 
-                    title={!available ? (isEnglish ? 'Already used' : '׳›׳‘׳¨ ׳©׳•׳׳©') : ''}
+                    title={!available ? (isEnglish ? 'Already used' : 'כבר שומש') : ''}
 
                   >
 
@@ -3354,7 +3336,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
 
-            <span className={`text-sm font-bold ${textMuted}`}>{isEnglish ? 'Select Gameweek:' : '׳‘׳—׳¨ ׳׳—׳–׳•׳¨:'}</span>
+            <span className={`text-sm font-bold ${textMuted}`}>{isEnglish ? 'Select Gameweek:' : 'בחר מחזור:'}</span>
 
             <div className="flex items-center gap-1">
 
@@ -3384,7 +3366,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
                 {Array.from({length: Math.max(1, 38 - data.next_gw + 1)}, (_, i) => i).map(offset => (
 
-                  <option key={offset} value={offset}>GW {data.next_gw + offset} {offset === 0 ? (isEnglish ? '(Current)' : '(׳ ׳•׳›׳—׳™)') : ''}</option>
+                  <option key={offset} value={offset}>GW {data.next_gw + offset} {offset === 0 ? (isEnglish ? '(Current)' : '(נוכחי)') : ''}</option>
 
                 ))}
 
@@ -3416,7 +3398,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
           <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
 
-            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Expected Points (xP)' : '׳×׳•׳—׳׳× ׳ ׳§׳•׳“׳•׳× (xP)'}</span>
+            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Expected Points (xP)' : 'תוחלת נקודות (xP)'}</span>
 
             <span className="text-lg sm:text-2xl font-black">{totalXP.toFixed(1)}</span>
 
@@ -3424,15 +3406,15 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
           <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
 
-            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Bank Balance' : '׳™׳×׳¨׳” ׳‘׳‘׳ ׳§'}</span>
+            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Bank Balance' : 'יתרה בבנק'}</span>
 
-            <span className={`text-2xl font-black ${data.bank < 0 ? 'text-red-500' : ''}`}>ֲ£{data.bank.toFixed(1)}m</span>
+            <span className={`text-2xl font-black ${data.bank < 0 ? 'text-red-500' : ''}`}>£{data.bank.toFixed(1)}m</span>
 
           </div>
 
           <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
 
-            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Hit Points' : '׳§׳ ׳¡ ׳ ׳§׳•׳“׳•׳× (Hits)'}</span>
+            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Hit Points' : 'קנס נקודות (Hits)'}</span>
 
             <span className={`text-2xl font-black ${hitPoints < 0 ? 'text-red-500' : 'text-gray-500'}`}>{hitPoints}</span>
 
@@ -3440,7 +3422,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
           <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
 
-            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Available Transfers' : '׳—׳™׳׳•׳₪׳™׳ ׳–׳׳™׳ ׳™׳'}</span>
+            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Available Transfers' : 'חילופים זמינים'}</span>
 
             <div className="flex items-center gap-2">
 
@@ -3454,7 +3436,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
               <span className={`text-2xl font-black ${(activeChip === 'wildcard' || activeChip === 'freehit') ? 'text-purple-500' : (transfersRemaining < 0 ? 'text-red-500' : 'text-emerald-500')}`} title={`Base: ${ftAvailable} + Offset: ${selectedGwOffset}`}>
 
-                {(activeChip === 'wildcard' || activeChip === 'freehit') ? 'גˆ' : `FT ${transfersRemaining}`}
+                {(activeChip === 'wildcard' || activeChip === 'freehit') ? '∞' : `FT ${transfersRemaining}`}
 
               </span>
 
@@ -3546,7 +3528,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
         <div className={`w-full lg:w-1/4 rounded-xl border p-4 shadow-sm flex flex-col h-fit ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
 
-          <h4 className={`text-lg font-black mb-4 ${textHighlight}`}>{isEnglish ? `GW ${selectedGwNumber} Fixtures` : `׳׳©׳—׳§׳™ ׳׳—׳–׳•׳¨ ${selectedGwNumber}`}</h4>
+          <h4 className={`text-lg font-black mb-4 ${textHighlight}`}>{isEnglish ? `GW ${selectedGwNumber} Fixtures` : `משחקי מחזור ${selectedGwNumber}`}</h4>
 
           <div className="flex flex-col gap-2 overflow-y-auto max-h-[600px] pr-1">
 
@@ -3576,7 +3558,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
             ))}
 
-            {scheduleForGw.length === 0 && <p className={`text-center text-sm ${textMuted}`}>{isEnglish ? 'No fixtures' : '׳׳™׳ ׳׳©׳—׳§׳™׳'}</p>}
+            {scheduleForGw.length === 0 && <p className={`text-center text-sm ${textMuted}`}>{isEnglish ? 'No fixtures' : 'אין משחקים'}</p>}
 
           </div>
 
@@ -3682,7 +3664,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
       const res = await fetch(`${API_BASE_URL}/api/compare/${data.team_id}/${rivalId}?gw=${Math.max(1, data.next_gw - 1)}`);
 
-      if (!res.ok) throw new Error(isEnglish ? "Could not fetch rival team." : "׳׳ ׳ ׳™׳×׳ ׳׳˜׳¢׳•׳ ׳׳× ׳”׳¡׳’׳ ׳©׳ ׳”׳™׳¨׳™׳‘.");
+      if (!res.ok) throw new Error(isEnglish ? "Could not fetch rival team." : "לא ניתן לטעון את הסגל של היריב.");
 
       const json = await res.json();
 
@@ -3722,7 +3704,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
           ? 'Track your rivals in mini-leagues: see which players they own, who picked which captain, and find the differentials that will make or break your rank.'
 
-          : '׳¢׳§׳•׳‘ ׳׳—׳¨׳™ ׳™׳¨׳™׳‘׳™׳ ׳‘׳׳™׳ ׳™-׳׳™׳’׳”: ׳–׳”׳” ׳‘׳׳™׳׳• ׳©׳—׳§׳ ׳™׳ ׳”׳ ׳׳—׳–׳™׳§׳™׳, ׳׳™ ׳‘׳—׳¨ ׳׳™׳–׳” ׳§׳₪׳˜׳, ׳•׳׳×׳¨ ׳“׳™׳₪׳¨׳ ׳©׳™׳׳׳™׳ ׳©׳™׳§׳₪׳™׳¦׳• ׳׳•׳×׳ ׳‘׳“׳™׳¨׳•׳’.'}
+          : 'עקוב אחרי יריביך במיני-ליגה: זהה באילו שחקנים הם מחזיקים, מי בחר איזה קפטן, ואתר דיפרנשיאלים שיקפיצו אותך בדירוג.'}
 
       </p>
 
@@ -3734,7 +3716,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
         <div className="flex-1">
 
-          <label className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Select from your leagues:' : '׳‘׳—׳¨ ׳׳×׳•׳ ׳”׳׳™׳ ׳™-׳׳™׳’׳•׳× ׳©׳ ׳”׳§׳‘׳•׳¦׳” ׳©׳׳:'}</label>
+          <label className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Select from your leagues:' : 'בחר מתוך המיני-ליגות של הקבוצה שלך:'}</label>
 
           <select 
 
@@ -3752,7 +3734,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
           >
 
-            <option value="">{isEnglish ? '-- Choose a League --' : '-- ׳‘׳—׳¨ ׳׳™׳’׳” --'}</option>
+            <option value="">{isEnglish ? '-- Choose a League --' : '-- בחר ליגה --'}</option>
 
             {allLeagues.map((l: any) => (
 
@@ -3766,7 +3748,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
         <div className="flex-1">
 
-          <label className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Or search by league ID:' : '׳׳• ׳—׳₪׳© ׳׳₪׳™ ׳§׳•׳“ ׳׳™׳’׳” ׳׳—׳¨:'}</label>
+          <label className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Or search by league ID:' : 'או חפש לפי קוד ליגה אחר:'}</label>
 
           <div className="flex gap-2">
 
@@ -3780,7 +3762,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
               onKeyDown={(e) => e.key === 'Enter' && fetchExternalLeague()}
 
-              placeholder={isEnglish ? 'League ID...' : '׳§׳•׳“ ׳׳™׳’׳”...'}
+              placeholder={isEnglish ? 'League ID...' : 'קוד ליגה...'}
 
               className={`flex-1 p-3 rounded-lg border font-bold ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
 
@@ -3788,7 +3770,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
             <button onClick={fetchExternalLeague} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-3 rounded-lg transition-colors">
 
-              {isEnglish ? 'Search' : '׳—׳₪׳©'}
+              {isEnglish ? 'Search' : 'חפש'}
 
             </button>
 
@@ -3808,7 +3790,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
           <h3 className={`text-xl font-black ${textHighlight}`}>
 
-            {isEnglish ? `League Table: ${selectedLeague.name}` : `׳˜׳‘׳׳× ׳׳™׳’׳”: ${selectedLeague.name}`}
+            {isEnglish ? `League Table: ${selectedLeague.name}` : `טבלת ליגה: ${selectedLeague.name}`}
 
           </h3>
 
@@ -3816,27 +3798,27 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
             <div className={`p-5 rounded-xl border text-center ${bgCard}`}>
 
-              <div className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'League Leader' : '׳׳•׳‘׳™׳ ׳”׳׳™׳’׳”'}</div>
+              <div className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'League Leader' : 'מוביל הליגה'}</div>
 
               <div className={`text-2xl font-black ${textHighlight} truncate`}>{leaderTeam?.entry_name || '-'}</div>
 
-              <div className="text-emerald-500 font-bold text-sm mt-1">{leaderTeam?.total || 0} {isEnglish ? 'pts' : "׳ ׳§'"} ג¬†</div>
+              <div className="text-emerald-500 font-bold text-sm mt-1">{leaderTeam?.total || 0} {isEnglish ? 'pts' : "נק'"} ⬆</div>
 
             </div>
 
             <div className={`p-5 rounded-xl border text-center ${bgCard}`}>
 
-              <div className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Your Rank in League' : '׳”׳“׳™׳¨׳•׳’ ׳©׳׳ ׳‘׳׳™׳’׳”'}</div>
+              <div className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Your Rank in League' : 'הדירוג שלך בליגה'}</div>
 
-              <div className={`text-4xl font-black ${textHighlight}`}>{isEnglish ? `#${myStanding?.rank || selectedLeague.entry_rank || '?'}` : `׳׳§׳•׳ ${myStanding?.rank || selectedLeague.entry_rank || '?'}`}</div>
+              <div className={`text-4xl font-black ${textHighlight}`}>{isEnglish ? `#${myStanding?.rank || selectedLeague.entry_rank || '?'}` : `מקום ${myStanding?.rank || selectedLeague.entry_rank || '?'}`}</div>
 
-              {myStanding && <div className="text-blue-500 font-bold text-xs mt-1">{myStanding.total} {isEnglish ? 'pts' : "׳ ׳§'"}</div>}
+              {myStanding && <div className="text-blue-500 font-bold text-xs mt-1">{myStanding.total} {isEnglish ? 'pts' : "נק'"}</div>}
 
             </div>
 
             <div className={`p-5 rounded-xl border text-center ${bgCard}`}>
 
-              <div className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Members' : '׳׳©׳×׳×׳₪׳™׳ ׳‘׳׳™׳’׳”'}</div>
+              <div className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Members' : 'משתתפים בליגה'}</div>
 
               <div className={`text-4xl font-black ${textHighlight}`}>+{standings.length}</div>
 
@@ -3850,7 +3832,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
 
 
-      {loadingLeague && <div className="p-8 text-center font-bold animate-pulse">{isEnglish ? 'Loading standings...' : '׳˜׳•׳¢׳ ׳˜׳‘׳׳× ׳“׳™׳¨׳•׳’...'}</div>}
+      {loadingLeague && <div className="p-8 text-center font-bold animate-pulse">{isEnglish ? 'Loading standings...' : 'טוען טבלת דירוג...'}</div>}
 
 
 
@@ -3862,7 +3844,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
           <div className={`text-xs font-bold mb-2 ${textMuted} text-start`}>
 
-            {isEnglish ? `Showing top ${standings.length} in league` : `׳׳¦׳™׳’ ׳׳× ${standings.length} ׳”׳׳•׳‘׳™׳׳™׳ ׳‘׳׳™׳’׳”`}
+            {isEnglish ? `Showing top ${standings.length} in league` : `מציג את ${standings.length} המובילים בליגה`}
 
           </div>
 
@@ -3876,17 +3858,17 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
                   <tr>
 
-                    <th className="px-4 py-3">{isEnglish ? '#' : '׳“׳™׳¨׳•׳’'}</th>
+                    <th className="px-4 py-3">{isEnglish ? '#' : 'דירוג'}</th>
 
-                    <th className="px-4 py-3">{isEnglish ? 'Team Name' : '׳©׳ ׳”׳§׳‘׳•׳¦׳”'}</th>
+                    <th className="px-4 py-3">{isEnglish ? 'Team Name' : 'שם הקבוצה'}</th>
 
-                    <th className="px-4 py-3">{isEnglish ? 'Manager' : "׳׳ ׳’'׳¨"}</th>
+                    <th className="px-4 py-3">{isEnglish ? 'Manager' : "מנג'ר"}</th>
 
-                    <th className="px-4 py-3 text-center">{isEnglish ? 'Total Points' : '׳¡׳”"׳› ׳ ׳§׳•׳“׳•׳×'}</th>
+                    <th className="px-4 py-3 text-center">{isEnglish ? 'Total Points' : 'סה"כ נקודות'}</th>
 
-                    <th className="px-4 py-3 text-center">{isEnglish ? 'Team ID' : '׳§׳‘׳•׳¦׳” ID'}</th>
+                    <th className="px-4 py-3 text-center">{isEnglish ? 'Team ID' : 'קבוצה ID'}</th>
 
-                    <th className="px-4 py-3 text-center">{isEnglish ? 'Compare' : '׳”׳©׳•׳•׳”'}</th>
+                    <th className="px-4 py-3 text-center">{isEnglish ? 'Compare' : 'השווה'}</th>
 
                   </tr>
 
@@ -3910,7 +3892,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
                       <td className={`px-4 py-3 ${textMuted}`}>{team.player_name}</td>
 
-                      <td className="px-4 py-3 text-center font-bold">{team.total} {isEnglish ? 'pts' : "׳ ׳§'"}</td>
+                      <td className="px-4 py-3 text-center font-bold">{team.total} {isEnglish ? 'pts' : "נק'"}</td>
 
                       <td className={`px-4 py-3 text-center text-xs ${textMuted}`}>#{team.entry}</td>
 
@@ -3926,13 +3908,13 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
                           >
 
-                            {isEnglish ? 'H2H' : '׳¨׳׳© ׳‘׳¨׳׳©'}
+                            {isEnglish ? 'H2H' : 'ראש בראש'}
 
                           </button>
 
                         ) : (
 
-                          <span className="text-xs font-bold text-emerald-500">{isEnglish ? 'You' : '׳׳×׳” נ‘ˆ'}</span>
+                          <span className="text-xs font-bold text-emerald-500">{isEnglish ? 'You' : 'אתה 👈'}</span>
 
                         )}
 
@@ -3962,19 +3944,19 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
         <div className={`p-6 rounded-2xl border shadow-lg ${bgCard} relative mt-2`}>
 
-          <button onClick={() => { setCompareData(null); setCompareTeamId(null); }} className={`absolute top-4 ${isEnglish ? 'right-4' : 'left-4'} font-bold text-gray-400 hover:text-red-500 text-lg`}>ג•</button>
+          <button onClick={() => { setCompareData(null); setCompareTeamId(null); }} className={`absolute top-4 ${isEnglish ? 'right-4' : 'left-4'} font-bold text-gray-400 hover:text-red-500 text-lg`}>✕</button>
 
           
 
           <h4 className={`text-xl font-black mb-5 ${textHighlight}`}>
 
-            {isEnglish ? 'ג”ן¸ Head-to-Head Comparison' : 'ג”ן¸ ׳”׳©׳•׳•׳׳× ׳¨׳׳© ׳‘׳¨׳׳©'}
+            {isEnglish ? '⚔️ Head-to-Head Comparison' : '⚔️ השוואת ראש בראש'}
 
           </h4>
 
           
 
-          {loadingCompare && <p className="animate-pulse font-bold text-center p-8">{isEnglish ? 'Loading rivalry...' : '׳˜׳•׳¢׳ ׳”׳©׳•׳•׳׳”...'}</p>}
+          {loadingCompare && <p className="animate-pulse font-bold text-center p-8">{isEnglish ? 'Loading rivalry...' : 'טוען השוואה...'}</p>}
 
           {compareError && <p className="text-red-500 font-bold p-8 text-center">{compareError}</p>}
 
@@ -4020,7 +4002,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
                 <h5 className={`font-black text-sm mb-3 ${textHighlight}`}>
 
-                  נ₪ {isEnglish ? `Shared Players (${compareData.shared.length})` : `׳©׳—׳§׳ ׳™׳ ׳–׳”׳™׳ (${compareData.shared.length})`}
+                  🤝 {isEnglish ? `Shared Players (${compareData.shared.length})` : `שחקנים זהים (${compareData.shared.length})`}
 
                 </h5>
 
@@ -4056,7 +4038,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
                   <h5 className="font-black text-sm mb-3 text-blue-500">
 
-                    נ”µ {isEnglish ? `Your Differentials (${compareData.team_a.unique.length})` : `׳”׳“׳™׳₪׳¨׳ ׳©׳™׳׳׳™׳ ׳©׳׳ (${compareData.team_a.unique.length})`}
+                    🔵 {isEnglish ? `Your Differentials (${compareData.team_a.unique.length})` : `הדיפרנשיאלים שלך (${compareData.team_a.unique.length})`}
 
                   </h5>
 
@@ -4076,7 +4058,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
                     ))}
 
-                    {compareData.team_a.unique.length === 0 && <p className={`text-xs ${textMuted}`}>{isEnglish ? 'No differentials' : '׳׳™׳ ׳“׳™׳₪׳¨׳ ׳©׳™׳׳׳™׳'}</p>}
+                    {compareData.team_a.unique.length === 0 && <p className={`text-xs ${textMuted}`}>{isEnglish ? 'No differentials' : 'אין דיפרנשיאלים'}</p>}
 
                   </div>
 
@@ -4086,7 +4068,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
                   <h5 className="font-black text-sm mb-3 text-red-500">
 
-                    נ”´ {isEnglish ? `Rival Differentials (${compareData.team_b.unique.length})` : `׳”׳“׳™׳₪׳¨׳ ׳©׳™׳׳׳™׳ ׳©׳ ׳”׳™׳¨׳™׳‘ (${compareData.team_b.unique.length})`}
+                    🔴 {isEnglish ? `Rival Differentials (${compareData.team_b.unique.length})` : `הדיפרנשיאלים של היריב (${compareData.team_b.unique.length})`}
 
                   </h5>
 
@@ -4106,7 +4088,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
                     ))}
 
-                    {compareData.team_b.unique.length === 0 && <p className={`text-xs ${textMuted}`}>{isEnglish ? 'No differentials' : '׳׳™׳ ׳“׳™׳₪׳¨׳ ׳©׳™׳׳׳™׳'}</p>}
+                    {compareData.team_b.unique.length === 0 && <p className={`text-xs ${textMuted}`}>{isEnglish ? 'No differentials' : 'אין דיפרנשיאלים'}</p>}
 
                   </div>
 
@@ -4146,7 +4128,7 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 
         <h3 className={`text-xl font-black mb-4 flex items-center gap-2 ${textHighlight}`}>
 
-          <span>ג±ן¸</span> {isEnglish ? '60-Second Pre-Deadline Checklist:' : '׳¦\'׳§-׳׳™׳¡׳˜ 60 ׳©׳ ׳™׳•׳× ׳׳₪׳ ׳™ ׳“׳“׳׳™׳™׳ ׳”׳׳—׳–׳•׳¨:'}
+          <span>⏱️</span> {isEnglish ? '60-Second Pre-Deadline Checklist:' : 'צ\'ק-ליסט 60 שניות לפני דדליין המחזור:'}
 
         </h3>
 
@@ -4158,7 +4140,7 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 
             <span className={`text-base font-medium group-hover:text-green-600 transition-colors ${textHighlight}`}>
 
-              {isEnglish ? 'Confirm Captain (C) and Vice-Captain (VC) safeguards' : '׳׳™׳׳•׳× ׳§׳₪׳˜׳ (C) ׳•׳¡׳’׳ (VC) ׳׳׳•׳‘׳˜׳— ׳׳׳§׳¨׳” ׳©׳ ׳׳™-׳₪׳×׳™׳—׳” ׳׳₪׳×׳™׳¢׳”'}
+              {isEnglish ? 'Confirm Captain (C) and Vice-Captain (VC) safeguards' : 'אימות קפטן (C) וסגן (VC) מאובטח למקרה של אי-פתיחה מפתיעה'}
 
             </span>
 
@@ -4170,7 +4152,7 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 
             <span className={`text-base font-medium group-hover:text-green-600 transition-colors ${textHighlight}`}>
 
-              {isEnglish ? 'Check bench order (1-3) prioritized by return upside and minutes' : '׳‘׳“׳™׳§׳× ׳¡׳“׳¨ ׳”׳׳—׳׳™׳₪׳™׳ ׳‘׳¡׳₪׳¡׳ (1-3) ׳׳₪׳™ ׳¡׳‘׳™׳¨׳•׳× ׳“׳§׳•׳× ׳•׳₪׳•׳˜׳ ׳¦׳™׳׳'}
+              {isEnglish ? 'Check bench order (1-3) prioritized by return upside and minutes' : 'בדיקת סדר המחליפים בספסל (1-3) לפי סבירות דקות ופוטנציאל'}
 
             </span>
 
@@ -4182,7 +4164,7 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 
             <span className={`text-base font-medium group-hover:text-green-600 transition-colors ${textHighlight}`}>
 
-              {isEnglish ? 'Verify late-breaking press conference injury updates' : '׳•׳™׳“׳•׳ ׳׳¡׳™׳‘׳•׳× ׳¢׳™׳×׳•׳ ׳׳™׳ ׳•׳¢׳“׳›׳•׳ ׳™ ׳₪׳¦׳™׳¢׳•׳× ׳©׳ ׳”׳¨׳’׳¢ ׳”׳׳—׳¨׳•׳'}
+              {isEnglish ? 'Verify late-breaking press conference injury updates' : 'וידוא מסיבות עיתונאים ועדכוני פציעות של הרגע האחרון'}
 
             </span>
 
@@ -4194,7 +4176,7 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 
             <span className={`text-base font-medium group-hover:text-green-600 transition-colors ${textHighlight}`}>
 
-              {isEnglish ? 'Roll your free transfer if no critical surgery is required' : '׳©׳׳™׳¨׳× ׳—׳™׳׳•׳£ (Roll FT) ׳׳ ׳׳™׳ ׳¦׳•׳¨׳ ׳“׳—׳•׳£ ׳•׳׳•׳‘׳”׳§ ׳‘׳—׳™׳׳•׳£'}
+              {isEnglish ? 'Roll your free transfer if no critical surgery is required' : 'שמירת חילוף (Roll FT) אם אין צורך דחוף ומובהק בחילוף'}
 
             </span>
 
@@ -4214,13 +4196,13 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 
           <h2 className={`text-3xl font-black mb-2 ${textHighlight}`}>
 
-            {isEnglish ? '10 Pro Tips for FPL Success' : '10 ׳˜׳™׳₪׳™׳ ׳׳”׳¦׳׳—׳” ׳‘-FPL'}
+            {isEnglish ? '10 Pro Tips for FPL Success' : '10 טיפים להצלחה ב-FPL'}
 
           </h2>
 
           <p className={`text-lg ${textMuted}`}>
 
-            {isEnglish ? 'Top 10k Strategic Golden Rules for Long-Term FPL Mastery' : '׳¢׳§׳¨׳•׳ ׳•׳× ׳–׳”׳‘ ׳׳¡׳˜׳¨׳˜׳’׳™׳™׳ ׳©׳ ׳©׳—׳§׳ ׳™ ׳˜׳•׳₪ 10k ׳¢׳•׳׳׳™ ׳׳ ׳™׳”׳•׳ ׳¡׳’׳ ׳׳ ׳¦׳— ׳׳׳•׳¨׳ ׳”׳¢׳•׳ ׳”'}
+            {isEnglish ? 'Top 10k Strategic Golden Rules for Long-Term FPL Mastery' : 'עקרונות זהב אסטרטגיים של שחקני טופ 10k עולמי לניהול סגל מנצח לאורך העונה'}
 
           </p>
 
@@ -4270,7 +4252,7 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 
               <div className={`mt-3 p-3 rounded-lg text-sm font-bold border-l-4 border-yellow-400 ${isDarkMode ? 'bg-yellow-900/20 text-yellow-200' : 'bg-yellow-50 text-yellow-800'}`}>
 
-                <span className="opacity-80 block text-xs uppercase mb-0 sm:mb-1">{isEnglish ? 'Golden Rule:' : '׳›׳׳ ׳׳₪׳×׳—:'}</span>
+                <span className="opacity-80 block text-xs uppercase mb-0 sm:mb-1">{isEnglish ? 'Golden Rule:' : 'כלל מפתח:'}</span>
 
                 {isEnglish ? tip.rule_en : tip.rule_he}
 
@@ -4288,74 +4270,4 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 
   );
 
-}
-
-function PriceChangesTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any) {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'risers'|'fallers'>('risers');
-
-  useEffect(() => {
-    fetch(`${API_BASE_URL}/api/price-changes`)
-      .then(r => r.json())
-      .then(d => { setData(d); setLoading(false); })
-      .catch(e => { console.error(e); setLoading(false); });
-  }, []);
-
-  if (loading) return <div className="p-8 text-center"><div className="w-8 h-8 mx-auto border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div><p className="mt-4 font-bold">Loading Predictions...</p></div>;
-  if (!data) return <div className="text-center text-red-500 font-bold p-8">Error loading data</div>;
-
-  const currentList = view === 'risers' ? data.risers : data.fallers;
-  const barColor = view === 'risers' ? 'bg-green-500' : 'bg-red-500';
-
-  return (
-    <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-      <div className="flex justify-center gap-4 mb-6">
-        <button onClick={() => setView('risers')} className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-black transition-all ${view === 'risers' ? 'bg-green-500 text-white shadow-lg scale-105' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
-          {isEnglish ? 'Rising' : '׳¦׳₪׳™ ׳¢׳׳™׳•׳×'}
-        </button>
-        <button onClick={() => setView('fallers')} className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-black transition-all ${view === 'fallers' ? 'bg-red-500 text-white shadow-lg scale-105' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
-          {isEnglish ? 'Falling' : '׳¦׳₪׳™ ׳™׳¨׳™׳“׳•׳×'}
-        </button>
-      </div>
-
-      <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
-        <table className={`w-full text-sm ${isEnglish ? 'text-left' : 'text-right'}`}>
-          <thead className={`text-xs uppercase font-black ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
-            <tr>
-              <th className="px-4 py-3">{isEnglish ? 'Player' : '׳©׳—׳§׳'}</th>
-              <th className="px-4 py-3 text-center">{isEnglish ? 'Cost' : '׳׳—׳™׳¨'}</th>
-              <th className="px-4 py-3 text-center">{isEnglish ? 'Net Transfers' : '׳׳׳–׳ ׳”׳¢׳‘׳¨׳•׳×'}</th>
-              <th className="px-4 py-3 text-center min-w-[150px]">{isEnglish ? 'Target' : '׳™׳¢׳“ (Progress)'}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {currentList.map((p: any) => (
-              <tr key={p.id} className={`border-b last:border-0 ${isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-200 hover:bg-gray-50'}`}>
-                <td className="px-4 py-3 font-bold flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                  <span className={textHighlight}>{p.name}</span>
-                  <span className={`text-[10px] sm:text-xs px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 ${textMuted} w-fit`}>{p.team}</span>
-                </td>
-                <td className={`px-4 py-3 text-center font-bold ${textHighlight}`}>ֲ£{p.cost.toFixed(1)}m</td>
-                <td className={`px-4 py-3 text-center font-bold ${view === 'risers' ? 'text-green-500' : 'text-red-500'}`} dir="ltr">
-                  {p.net_transfers > 0 ? '+' : ''}{p.net_transfers.toLocaleString()}
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2 w-full max-w-[200px] mx-auto">
-                    <div className="w-full h-3 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden border border-gray-300 dark:border-gray-500" dir="ltr">
-                      <div className={`h-full ${barColor} transition-all duration-1000 ease-out`} style={{ width: `${Math.min(100, Math.max(0, p.progress))}%` }}></div>
-                    </div>
-                    <span className={`text-xs font-black w-12 text-center ${view === 'risers' ? 'text-green-500' : 'text-red-500'}`} dir="ltr">{p.progress.toFixed(1)}%</span>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {currentList.length === 0 && (
-              <tr><td colSpan={4} className="text-center py-8">{isEnglish ? 'No data' : '׳׳™׳ ׳ ׳×׳•׳ ׳™׳'}</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
 }
