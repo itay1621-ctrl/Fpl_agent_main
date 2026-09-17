@@ -585,8 +585,7 @@ export default function Home() {
             <div className="mb-8 text-center">
               <h1 className="text-5xl md:text-6xl font-black mb-2 text-[#01fc7a] tracking-tight">FPL Elite Scout</h1>
               <p className="text-purple-200 font-medium text-lg">{isEnglish ? 'Next-Gen AI Squad Planner' : 'מערכת תכנון סגל מבוססת AI'}</p>
-        
-
+            </div>
 
             <div className="bg-white p-8 rounded-2xl shadow-xl w-full text-[#37003c]" dir={isEnglish ? "ltr" : "rtl"}>
               <h2 className="text-xl font-bold mb-6 text-center text-[#37003c]">{t.enterId}</h2>
