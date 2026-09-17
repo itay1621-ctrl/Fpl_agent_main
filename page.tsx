@@ -7,627 +7,103 @@ import { useState, useMemo, useEffect } from 'react';
 
 
 const FPL_SUCCESS_TIPS = [
-
   {
-
       "num": 1,
-
       "icon": "⏳",
-
       "title_he": "שמירת חילופים (Roll Transfers)",
-
       "title_en": "Roll Your Free Transfers",
-
       "desc_he": "אל תבצע חילוף אוטומטי בכל מחזור רק כי יש לך חילוף פנוי. צבירת 2 עד 5 חילופים חינמיים מעניקה גמישות אסטרטגית אדירה למהפכות סגל קטנות ללא קנס נקודות.",
-
       "desc_en": "Never burn a free transfer just because you have one. Stacking 2 to 5 free transfers provides massive strategic leverage to overhaul multiple positions without taking point hits.",
-
       "rule_he": "אין מהלך בוער? שמור את החילוף ותהנה מכוח תמרון כפול במחזור הבא.",
-
       "rule_en": "No urgent move? Roll the transfer and gain double flexibility next week.",
-
       "tag_he": "סבלנות",
-
       "tag_en": "Patience",
-
   },
-
   {
-
       "num": 2,
-
-      "icon": "🛡️",
-
-      "title_he": "הימנעות ממינוסים מיותרים (Avoid -4 Hits)",
-
+      "icon": "🚑",
+      "title_he": "הימנעות מקנסות מיותרים (Avoid -4 Hits)",
       "title_en": "Avoid Unnecessary -4 Point Hits",
-
-      "desc_he": "שחקן שנרכש בקנס 4- נקודות נדרש להבקיע או לבשל רק כדי לאפס את העלות שלו. קח מינוס רק במקרה חירום של חוסר 11 שחקנים כשירים או עבור קפטן מובהק לטווח ארוך.",
-
+      "desc_he": "שחקן שנקנה במינוס 4 חייב להחזיר שער או בישול רק כדי לכסות את עלות ההעברה שלו. קח מינוסים אך ורק עבור משברי פציעות או קפטנים לטווח ארוך.",
       "desc_en": "A player bought on a -4 hit must effectively return a goal or assist just to break even. Take hits strictly for injury crises or long-term high-ceiling captains.",
-
-      "rule_he": "מינוסים מצטברים שוחקים את הדירוג: הימנע מהם ככל האפשר.",
-
+      "rule_he": "מינוסים שוחקים את הדירוג: קח אותם רק בחירום.",
       "rule_en": "Point hits erode long-term rank. Take them only for emergencies or long-term holds.",
-
       "tag_he": "משמעת",
-
       "tag_en": "Discipline",
-
   },
-
   {
-
       "num": 3,
-
       "icon": "👑",
-
       "title_he": "משמעת קפטן ובעלות אפקטיבית (Captaincy)",
-
       "title_en": "Captaincy Discipline & Effective Ownership",
-
-      "desc_he": "אל תהמר על קפטן הרפתקני רק כדי 'להתחכם'. מעל 60% מהניקוד מגיע מהקפטן; בחר בשחקן המוביל עם ה-xP והבעלות הגבוהים ביותר (כמו האלנד או ברונו פרננדס).",
-
+      "desc_he": "אל תהמר על קפטנים 'דיפרנציאלים' פראיים. למעלה מ-60% מהתקדמות הדירוג שלך תלויה בקפטן; סמוך על שחקני עוגן עם xP גבוה, בעלות אפקטיבית גבוהה ולוח משחקים נוח.",
       "desc_en": "Don't gamble on wild differential captains. Over 60% of your rank progress relies on the armband; trust high-xP, high-ownership talismans with favorable fixtures.",
-
-      "rule_he": "הקפטן מגן על הדירוג - את הדיפרנציאלים מייצרים בשחקני השדה.",
-
+      "rule_he": "הקפטן שומר על הדירוג שלך - תן לשחקני השדה ליצור את הפער.",
       "rule_en": "The armband protects your rank - let your outfield picks provide the differential edge.",
-
       "tag_he": "קפטן",
-
       "tag_en": "Captaincy",
-
   },
-
   {
-
       "num": 4,
-
-      "icon": "🗓️",
-
-      "title_he": "תכנון בטווחי 3-5 מחזורים (3-5 GW Blocks)",
-
+      "icon": "📅",
+      "title_he": "תכנון של 3-5 מחזורים (3-5 GW Blocks)",
       "title_en": "Plan in 3-5 Gameweek Horizons",
-
-      "desc_he": "לעולם אל תקנה שחקן בשביל משחק אחד בלבד. בחן תמיד את לוח המשחקים (FDR) של 3 עד 5 המחזורים הבאים כדי להימנע מחילופי 'כיבוי שריפות' שבוע לאחר מכן.",
-
+      "desc_he": "לעולם אל תקנה שחקן עבור משחק בודד. תמיד תעריך את 3 עד 5 המשחקים הקרובים (FDR) כדי למנוע בזבוז חילופים עתידיים על תיקון החלטות קצרות טווח.",
       "desc_en": "Never buy a player for a single fixture. Always evaluate the upcoming 3 to 5 gameweek run (FDR) to avoid burning future transfers fixing short-term punts.",
-
-      "rule_he": "חשוב תמיד שבועיים-שלושה קדימה לפני כל לחיצה על כפתור הרכש.",
-
+      "rule_he": "תמיד סקור את 3-5 המשחקים הבאים לפני אישור כל העברה בשוק.",
       "rule_en": "Always review the next 3-5 fixtures before confirming any market transfer.",
-
       "tag_he": "תכנון",
-
       "tag_en": "Planning",
-
   },
-
   {
-
       "num": 5,
-
-      "icon": "⏱️",
-
-      "title_he": "החלטות סמוך לדדליין (Wait for Press Conferences)",
-
+      "icon": "🎙️",
+      "title_he": "המתנה למסיבות עיתונאים (Wait for Press Conferences)",
       "title_en": "Wait for Press Conferences & News",
-
-      "desc_he": "המתן למסיבות העיתונאים של ימי שישי ולעדכוני פציעות אחרונים לפני ביצוע חילוף. העברות מוקדמות באמצע השבוע מסתכנות בפציעות באימונים או בגביעים אירופיים.",
-
+      "desc_he": "השהה העברות עד למסיבות העיתונאים של יום שישי וחדשות סגל ודאיות. העברות מוקדמות באמצע השבוע חושפות אותך לסיכוני פציעות באימונים והפתעות רוטציה מאירופה.",
       "desc_en": "Delay transfers until Friday press conferences and verified deadline team news. Mid-week transfers risk training knocks and European rotation surprises.",
-
-      "rule_he": "סבלנות מונעת אסונות: המתן לעדכוני המאמנים הרשמיים לפני חילופים.",
-
+      "rule_he": "סבלנות מונעת טעויות: המתן עם חילופים עד אחרי מסיבות העיתונאים.",
       "rule_en": "Patience prevents blunders: hold transfers until verified press conferences.",
-
       "tag_he": "תזמון",
-
       "tag_en": "Timing",
-
   },
-
   {
-
       "num": 6,
-
       "icon": "🪑",
-
-      "title_he": "ספסל חסכוני ובטוח דקות (Smart Bench Enablers)",
-
+      "title_he": "ספסל חכם ומאפשר (Smart Bench Enablers)",
       "title_en": "Smart Bench & Budget Enablers",
-
-      "desc_he": "אל תקבור מיליונים יקרים בספסל. דאג לשחקן ספסל אחד או שניים בטוחים לפתוח במחיר רצפה (£4.0m-£4.5m) שייכנסו אוטומטית בעת הצורך, והשקע את הכסף ב-11 הפותחים.",
-
+      "desc_he": "אל תלכוד ערך רב מדי על הספסל שלך. החזק 1-2 שחקני הרכב זולים וודאיים (£4.0m-£4.5m) כרשת ביטחון אוטומטית, ומקסם את התקציב על ה-11 הפותחים שלך.",
       "desc_en": "Do not trap valuable team value on your bench. Keep 1-2 cheap, guaranteed starters (£4.0m-£4.5m) as auto-sub safety nets while maximizing funds on your Starting XI.",
-
-      "rule_he": "ספסל זול עם דקות קבועות מאפשר הרכב פותח עתיר כוכבים.",
-
+      "rule_he": "ספסל זול עם דקות בטוחות מאפשר לך לממן שחקני פרמיום בהרכב הפותח.",
       "rule_en": "A cheap bench with secure minutes funds premium heavy hitters in your starting XI.",
-
       "tag_he": "תקציב",
-
       "tag_en": "Budget",
-
   },
-
   {
-
       "num": 7,
-
       "icon": "📊",
-
-      "title_he": "ללא פאניקה - אמון בנתונים (Trust Underlying Data)",
-
+      "title_he": "הימנעות מפאניקה וסמך על נתונים (Trust Underlying Data)",
       "title_en": "Avoid Knee-Jerking & Trust Analytics",
-
-      "desc_he": "אל תמכור שחקן איכותי רק כי סיים עם 2 נקודות במחזור בודד, ואל תרוץ לקנות שחקן שהבקיע שער מקרי. סמוך על מדדי ה-xG/xA והנתונים הסטטיסטיים לאורך זמן.",
-
+      "desc_he": "אל תמכור שחקני פרמיום בגלל משחק אחד חלש, ואל תרדוף אחרי שחקני הגנה שהבקיעו במקרה. סמוך על מדדים מתקדמים כמו xG, xA, ו-xP במקום על אירועים נקודתיים.",
       "desc_en": "Do not rage-sell premium assets after a single blank, nor chase random defensive flukes. Trust underlying expected metrics (xG, xA, xP) over past variance.",
-
-      "rule_he": "מזל חולף, תוחלת מנצחת: שחקן שמייצר מצבים טובים יחזיר נקודות לאורך זמן.",
-
+      "rule_he": "סטייה היא זמנית, תהליך הוא קבוע: סמוך על כוכבי xG/xA.",
       "rule_en": "Variance is temporary, underlying process is permanent: trust high-xG/xA stars.",
-
       "tag_he": "אנליטיקה",
-
       "tag_en": "Analytics",
-
   },
-
   {
-
       "num": 8,
-
-      "icon": "🏦",
-
-      "title_he": "שמירה על רזרבה בבנק (£0.5m-£1.0m ITB)",
-
+      "icon": "💰",
+      "title_he": "שמירת נזילות בקופה (£0.5m-£1.0m ITB)",
       "title_en": "Keep Liquidity In The Bank (£0.5m-£1.0m ITB)",
-
-      "desc_he": "השארת סכום צנוע של 0.5-1.0 מיליון ליש\"ט בבנק מעניקה גמישות אדירה לעבור מיד לשחקן פורץ או כוכב בכושר בלי צורך לפרק חצי סגל או לקחת מינוסים.",
-
+      "desc_he": "שמירת £0.5m-£1.0m בקופה מעניקה לך את היכולת לקפוץ על טרנדים חמים ושחקנים פורצים מבלי שתצטרך לבצע מספר חילופים במקביל כדי למצוא תקציב.",
       "desc_en": "Maintaining £0.5m-£1.0m in the bank allows you to instantly jump onto emerging breakout stars without requiring multi-transfer squad surgery.",
-
-      "rule_he": "כסף בבנק הוא חופש תמרון שמגן עליך משינויי מחירים מהירים.",
-
+      "rule_he": "מזומן בקופה שווה גמישות: זה מגן עליך מפני עליות מחיר מהירות.",
       "rule_en": "Cash in the bank equals agility: it shields you from rapid market price rises.",
-
       "tag_he": "גמישות",
-
       "tag_en": "Flexibility",
-
-  },
-
-  {
-
-      "num": 9,
-
-      "icon": "⚡",
-
-      "title_he": "תזמון צ'יפים במחזורים מיוחדים (DGW & BGW)",
-
-      "title_en": "Strategic Chip Timing (DGW & BGW)",
-
-      "desc_he": "שמור את הצ'יפים החזקים (Wildcard, Free Hit, Bench Boost, Triple Captain) למחזורים הכפולים (DGW) והריקים (BGW) בחצי השני של העונה לקצירת עשרות נקודות יתרון.",
-
-      "desc_en": "Preserve high-impact chips (Wildcard, Free Hit, Bench Boost, Triple Captain) for late-season Double (DGW) and Blank (BGW) weeks to exploit massive point swings.",
-
-      "rule_he": "צ'יפ במחזור כפול שווה פי שניים או שלושה לעומת מחזור רגיל.",
-
-      "rule_en": "A chip played in a Double Gameweek yields massively higher returns.",
-
-      "tag_he": "צ'יפים",
-
-      "tag_en": "Chips",
-
-  },
-
-  {
-
-      "num": 10,
-
-      "icon": "🎯",
-
-      "title_he": "דיפרנציאלים מחושבים לטיפוס בליגה (Target Differentials)",
-
-      "title_en": "Target High-Upside Differentials",
-
-      "desc_he": "שחקנים בבעלות של מעל 60% מגנים על הדירוג שלך; אבל כדי לסגור פערים בליגה הפרטית שלך כשאתה רודף מאחור, שחקני מפתח איכותיים בבעלות מתחת ל-10% הם המנוע לניצחון.",
-
-      "desc_en": "High-ownership players protect rank; but to bridge deficits in private mini-leagues, high-upside low-ownership differentials (<10%) are the true accelerators.",
-
-      "rule_he": "שמור על שלד בטוח להגנה על הדירוג, והוסף 1-2 דיפרנציאלים לעקיפה.",
-
-      "rule_en": "Anchor with essential template players, and hunt differentials to bridge gaps.",
-
-      "tag_he": "מיני-ליגות",
-
-      "tag_en": "Mini-Leagues",
-
-  },
-
-]
-
-
-
-
-
-
-
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/+$/, "");
-
-
-
-export default function Home() {
-
-  const [teamId, setTeamId] = useState('');
-
-  const [data, setData] = useState<any>(null);
-
-
-
-  const [initLoading, setInitLoading] = useState(true);
-
-  const [tipIndex, setTipIndex] = useState(0);
-
-
-
-
-
-
-
-  const [originalData, setOriginalData] = useState<any>(null);
-
-  const [loading, setLoading] = useState(false);
-
-  const [error, setError] = useState('');
-
-  
-
-  const [swapSourceId, setSwapSourceId] = useState<number | null>(null);
-  const [actionPlayer, setActionPlayer] = useState<any>(null);
-
-  const [activeTab, setActiveTab] = useState<'pitch' | 'transfer' | 'planner' | 'analysis' | 'radar' | 'budget' | 'leagues' | 'tips'>('planner');
-
-  const [appAlert, setAppAlert] = useState<string | null>(null);
-
-  const [transferOutId, setTransferOutId] = useState<number | null>(null);
-
-  const [transferRecs, setTransferRecs] = useState<any[]>([]);
-
-  const [loadingRecs, setLoadingRecs] = useState(false);
-
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const [transferError, setTransferError] = useState('');
-
-
-
-  // חדש: מצב כהה ושפות
-
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  const [isEnglish, setIsEnglish] = useState(false);
-
-
-
-  // מילון תרגומים
-
-  const dict = {
-
-    he: {
-
-      changeTeam: "החלף קבוצה",
-
-      darkMode: "מצב כהה",
-
-      lightMode: "מצב בהיר",
-
-      overallRank: "דירוג כללי",
-
-      bank: "יתרה בבנק",
-
-      xp: "תוחלת נקודות (xP)",
-
-      squadScore: "ציון סגל נוכחי",
-
-      timeUntil: "זמן נותר עד נעילת חילופים",
-
-      pitchTab: "הסגל על המגרש",
-
-      transferTab: "מעבדת חילופים",
-
-      analysisTab: "ניתוח סגל וחסרונות",
-
-      radarTab: "רדאר רכש עילית",
-
-      budgetTab: "תרחישי תקציב",
-
-      plannerTab: "מתכנן מחזורים",
-
-      leaguesTab: "מיני-ליגות וראש בראש",
-
-      tipsTab: "טיפים להצלחה 💡",
-
-      cap: "קפטן (C):",
-
-      vcap: "סגן קפטן (VC):",
-
-      enterId: "הזן את מספר הקבוצה שלך",
-
-      placeholder: "לדוגמה: 139103",
-
-      connect: "התחבר",
-
-      loading: "טוען...",
-
-      engineFor: "מנוע המלצות למחזור",
-
-      teamWord: "קבוצה:"
-
-    },
-
-    en: {
-
-      changeTeam: "Change Team",
-
-      darkMode: "Dark Mode",
-
-      lightMode: "Light Mode",
-
-      overallRank: "Overall Rank",
-
-      bank: "Bank Balance",
-
-      xp: "Expected Points (xP)",
-
-      squadScore: "Squad Score",
-
-      timeUntil: "Time until GW deadline",
-
-      pitchTab: "Pitch View",
-
-      transferTab: "Transfer Lab",
-
-      analysisTab: "Squad Analysis",
-
-      radarTab: "Elite Radar",
-
-      budgetTab: "Budget Scenarios",
-
-      plannerTab: "GW Planner",
-
-      leaguesTab: "Mini-Leagues & H2H",
-
-      tipsTab: "Tips & Tricks 💡",
-
-      cap: "Captain (C):",
-
-      vcap: "Vice Captain (VC):",
-
-      enterId: "Enter your Team ID",
-
-      placeholder: "Example: 139103",
-
-      connect: "Connect",
-
-      loading: "Loading...",
-
-      engineFor: "Planning for GW",
-
-      teamWord: "Team:"
-
-    }
-
-  };
-
-  
-
-  const t = isEnglish ? dict.en : dict.he;
-
-  
-
-  // צבעי המערכת בהתאם למצב (Dark/Light)
-
-  const bgMain = isDarkMode ? "bg-gray-900 text-gray-100" : "bg-[#f8f9fa] text-gray-900";
-
-  const bgCard = isDarkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900";
-
-  const bgBox = isDarkMode ? "bg-gray-800 shadow-md text-white" : "bg-white shadow-sm text-gray-900";
-
-
-
-  const textMuted = isDarkMode ? "text-gray-400" : "text-gray-500";
-
-  const textHighlight = isDarkMode ? "text-gray-200" : "text-[#1a202c]";
-
-
-
-  const fetchTeam = async (overrideId?: string) => {
-
-    const idToFetch = (overrideId || teamId)?.toString().trim();
-
-    if (!idToFetch) return;
-
-    setLoading(true);
-
-    setError('');
-
-    setTransferError('');
-
-    setSwapSourceId(null);
-
-    setTransferOutId(null);
-
-    setTransferRecs([]);
-
-    try {
-
-      const res = await fetch(`${API_BASE_URL}/api/dashboard/${idToFetch}`);
-
-      if (!res.ok) throw new Error(`[Debug] HTTP ${res.status} from ${res.url} | ID: '${idToFetch}'`);
-
-      const result = await res.json();
-
-      setOriginalData(JSON.parse(JSON.stringify(result)));
-
-      localStorage.setItem('fpl_team_id', idToFetch);
-
-      
-
-      const savedPlanStr = localStorage.getItem(`fpl_plan_${idToFetch}`);
-
-      if (savedPlanStr) {
-
-        try {
-
-          const savedPlan = JSON.parse(savedPlanStr);
-
-          // Only load if it matches the current upcoming GW, so outdated plans are wiped
-
-          if (savedPlan.next_gw === result.next_gw) {
-
-            setData(savedPlan);
-
-            return;
-
-          }
-
-        } catch (e) {}
-
-      }
-
-      setData(JSON.parse(JSON.stringify(result)));
-
-    } catch (err: any) {
-
-      setError(err.message);
-
-      if (overrideId) localStorage.removeItem('fpl_team_id');
-
-    } finally {
-
-      setLoading(false);
-
-    }
-
-  };
-
-
-
-  useEffect(() => {
-
-    const savedId = localStorage.getItem('fpl_team_id');
-
-    if (savedId) {
-
-      setTeamId(savedId);
-
-      fetchTeam(savedId).finally(() => setInitLoading(false));
-
-    } else {
-
-      setInitLoading(false);
-
-    }
-
-    
-
-    const interval = setInterval(() => {
-
-      setTipIndex(prev => (prev + 1) % FPL_SUCCESS_TIPS.length);
-
-    }, 6000);
-
-    return () => clearInterval(interval);
-
-  }, []);
-
-
-
-  useEffect(() => {
-
-    if (data && data.team_id) {
-
-      localStorage.setItem(`fpl_plan_${data.team_id}`, JSON.stringify(data));
-
-    }
-
-  }, [data]);
-
-
-
-  const handleReset = () => {
-
-    if (originalData) {
-
-      setData(JSON.parse(JSON.stringify(originalData)));
-
-      setSwapSourceId(null);
-
-      setTransferOutId(null);
-
-      localStorage.removeItem(`fpl_plan_${originalData.team_id}`);
-
-    }
-
-  };
-
-
-
-  const handleRestorePlayer = (position: number) => {
-
-    if (!originalData) return;
-
-    const originalPlayer = originalData.squad.find((p: any) => p.position === position);
-
-    const currentPlayer = data.squad.find((p: any) => p.position === position);
-
-    if (!originalPlayer || !currentPlayer) return;
-
-
-
-    const newBank = data.bank + currentPlayer.cost - originalPlayer.cost;
-
-    const newSquad = data.squad.map((p: any) => p.position === position ? originalPlayer : p);
-
-    
-
-    setData({ ...data, squad: newSquad, bank: newBank });
-
-  };
-
-
-
-  const executeTransfer = (newPlayer: any) => {
-
-    if (!transferOutId) return;
-
-    const oldPlayer = data.squad.find((p: any) => p.id === transferOutId);
-
-    if (!oldPlayer) return;
-
-
-
-    const newBank = data.bank + oldPlayer.cost - newPlayer.cost;
-
-    
-
-    // בדיקת חריגה מהתקציב - הוסרה לבקשת המשתמש כדי לאפשר תכנון
-
-    // if (newBank < 0) {
-
-    //   setTransferError(isEnglish ? `Cannot afford ${newPlayer.name}. You are short £${Math.abs(newBank).toFixed(1)}M.` : `אין לך מספיק תקציב עבור ${newPlayer.name}. חסר לך £${Math.abs(newBank).toFixed(1)}M.`);
-
-    //   return;
-
-    // }
-
-
-
-    const upcoming_fixtures = [];
+  }
+];
 
     for (let offset = 0; offset <= 38 - data.next_gw; offset++) {
 
@@ -823,14 +299,9 @@ export default function Home() {
 
           });
 
-          const recsData = await res.json();
-          if (recsData.candidates && recsData.candidates.length > 0) {
-            recsData.candidates[0].is_hold = (recsData.recommendation === "HOLD");
-            recsData.candidates[0].reason = recsData.best_transfer?.reason || "";
-            recsData.candidates[0].confidence = recsData.best_transfer?.confidence || "";
-            recsData.candidates[0].delta = recsData.delta || 0;
-          }
-          setTransferRecs(recsData.candidates || recsData);
+          const recs = await res.json();
+
+          setTransferRecs(recs);
 
         } catch (err) {
 
@@ -1986,14 +1457,9 @@ export default function Home() {
 
                       body: JSON.stringify({ pos_code: playerToSell.pos_code, max_budget: budget, current_squad_ids: currentSquadIds, transfer_out_id: playerToSell.id })
 
-                    }).then(res => res.json()).then(recsData => {
-                      if (recsData.candidates && recsData.candidates.length > 0) {
-                        recsData.candidates[0].is_hold = (recsData.recommendation === "HOLD");
-                        recsData.candidates[0].reason = recsData.best_transfer?.reason || "";
-                        recsData.candidates[0].confidence = recsData.best_transfer?.confidence || "";
-                        recsData.candidates[0].delta = recsData.delta || 0;
-                      }
-                      setTransferRecs(recsData.candidates || recsData);
+                    }).then(res => res.json()).then(recs => {
+
+                      setTransferRecs(recs);
 
                     }).catch(err => {
 
@@ -4313,4 +3779,3 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
   );
 
 }
-
