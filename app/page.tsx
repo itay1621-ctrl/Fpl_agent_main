@@ -648,26 +648,26 @@ export default function Home() {
           {/* Metrics Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className={`border-2 border-red-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
-              <p className={`text-xs font-bold ${textMuted}`}>{t.overallRank}</p>
+              <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.overallRank}</p>
               <p className="text-lg sm:text-2xl font-black">{data.rank.toLocaleString()}</p>
             </div>
             <div className={`border-2 border-orange-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
-              <p className={`text-xs font-bold ${textMuted}`}>{t.bank}</p>
+              <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.bank}</p>
               <p className="text-lg sm:text-2xl font-black">£{data.bank.toFixed(1)}m</p>
             </div>
             <div className={`border-2 border-blue-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
-              <p className={`text-xs font-bold ${textMuted}`}>{t.xp}</p>
+              <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.xp}</p>
               <p className="text-lg sm:text-2xl font-black">{totalXP.toFixed(1)}</p>
             </div>
             <div className={`border-2 border-green-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
-              <p className={`text-xs font-bold ${textMuted}`}>{t.squadScore}</p>
+              <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.squadScore}</p>
               <p className="text-lg sm:text-2xl font-black">{calculatedSquadScore || 0} <span className={`text-sm ${textMuted}`}>/ 100</span></p>
             </div>
           </div>
 
           {/* Timer Box */}
           <div className={`border border-green-400 rounded-xl p-4 mb-8 flex flex-col items-center justify-center ${bgBox}`}>
-            <p className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{t.timeUntil} (GW {data.next_gw})</p>
+            <p className={`text-[8px] sm:text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{t.timeUntil} (GW {data.next_gw})</p>
             <p className="text-xl font-bold text-green-600">2d 8h 54m 46s</p>
           </div>
 
@@ -694,7 +694,7 @@ export default function Home() {
           {/* FPL Pitch Area */}
           {activeTab === 'pitch' && (
             <div className="max-w-4xl mx-auto">
-              <div className="bg-[#126b3f] rounded-t-lg p-1 md:p-4 relative shadow-md overflow-hidden min-h-[550px] md:min-h-[500px] flex flex-col justify-around">
+              <div className="bg-[#126b3f] rounded-t-lg p-1 md:p-4 relative shadow-md overflow-hidden min-h-[380px] md:min-h-[500px] flex flex-col justify-around">
                 <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
                   {/* Center Line & Circle */}
                   <div className="absolute top-1/2 left-0 right-0 h-1 bg-white"></div>
@@ -717,17 +717,17 @@ export default function Home() {
                     <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} onCaptainClick={handleSetCaptain} onViceClick={handleSetViceCaptain} />
                   ))}
                 </div>
-                <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-3 sm:mt-6">
+                <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-1 sm:mt-6">
                   {starters.filter((p: any) => p.pos_code === 2).map((p: any) => (
                     <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} onCaptainClick={handleSetCaptain} onViceClick={handleSetViceCaptain} />
                   ))}
                 </div>
-                <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-3 sm:mt-6">
+                <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-1 sm:mt-6">
                   {starters.filter((p: any) => p.pos_code === 3).map((p: any) => (
                     <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} onCaptainClick={handleSetCaptain} onViceClick={handleSetViceCaptain} />
                   ))}
                 </div>
-                <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-3 sm:mt-6">
+                <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-1 sm:mt-6">
                   {starters.filter((p: any) => p.pos_code === 4).map((p: any) => (
                     <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} onCaptainClick={handleSetCaptain} onViceClick={handleSetViceCaptain} />
                   ))}
@@ -816,22 +816,22 @@ export default function Home() {
                             <h4 className={`text-sm font-bold mb-3 ${textMuted}`}>
                               {isEnglish ? 'Top 3 AI Recommendations:' : '3 ההמלצות המובילות של המערכת (לפי xP):'}
                             </h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
                               {transferRecs.slice(0, 3).map((rec, idx) => (
                                 <button 
                                   key={rec.id} 
                                   onClick={() => executeTransfer(rec)}
-                                  className={`w-full text-center p-3 rounded-xl border flex flex-col items-center gap-2 hover:border-purple-500 transition-colors group ${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-700' : 'bg-purple-50/50 border-purple-100 hover:bg-purple-50'}`}
+                                  className={`w-full text-center p-1.5 sm:p-3 rounded-xl border flex flex-col items-center gap-1 sm:gap-2 hover:border-purple-500 transition-colors group ${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-700' : 'bg-purple-50/50 border-purple-100 hover:bg-purple-50'}`}
                                 >
-                                  <div className="bg-purple-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shadow-sm group-hover:scale-110 transition-transform">
+                                  <div className="bg-purple-600 text-white w-4 h-4 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-bold text-[8px] sm:text-xs shadow-sm group-hover:scale-110 transition-transform">
                                     {idx + 1}
                                   </div>
-                                  <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${rec.team_code}-66.webp`} className="w-10" />
+                                  <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${rec.team_code}-66.webp`} className="w-7 sm:w-10" />
                                   <div className="w-full">
-                                    <p className={`font-black text-sm truncate ${textHighlight}`}>{rec.name}</p>
-                                    <p className={`text-xs font-bold ${textMuted}`}>{rec.team}</p>
+                                    <p className={`font-black text-[9px] sm:text-sm truncate ${textHighlight}`}>{rec.name}</p>
+                                    <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{rec.team}</p>
                                   </div>
-                                  <div className={`w-full text-xs font-bold px-2 py-1 rounded flex justify-between ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
+                                  <div className={`w-full text-[8px] sm:text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded flex justify-between ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
                                     <span className={textHighlight}>£{rec.cost.toFixed(1)}</span>
                                     <span className="text-emerald-500">{rec.xp.toFixed(1)} XP</span>
                                   </div>
@@ -1015,22 +1015,22 @@ export default function Home() {
                             <h4 className={`text-sm font-bold mb-3 ${textMuted}`}>
                               {isEnglish ? 'Top 3 AI Recommendations:' : '3 ההמלצות המובילות של המערכת (לפי xP):'}
                             </h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
                               {transferRecs.slice(0, 3).map((rec, idx) => (
                                 <button 
                                   key={rec.id} 
                                   onClick={() => { executeTransfer(rec); setActiveTab('planner'); }}
-                                  className={`w-full text-center p-3 rounded-xl border flex flex-col items-center gap-2 hover:border-purple-500 transition-colors group ${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-700' : 'bg-purple-50/50 border-purple-100 hover:bg-purple-50'}`}
+                                  className={`w-full text-center p-1.5 sm:p-3 rounded-xl border flex flex-col items-center gap-1 sm:gap-2 hover:border-purple-500 transition-colors group ${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-700' : 'bg-purple-50/50 border-purple-100 hover:bg-purple-50'}`}
                                 >
-                                  <div className="bg-purple-600 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shadow-sm group-hover:scale-110 transition-transform">
+                                  <div className="bg-purple-600 text-white w-4 h-4 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-bold text-[8px] sm:text-xs shadow-sm group-hover:scale-110 transition-transform">
                                     {idx + 1}
                                   </div>
-                                  <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${rec.team_code}-66.webp`} className="w-10" />
+                                  <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${rec.team_code}-66.webp`} className="w-7 sm:w-10" />
                                   <div className="w-full">
-                                    <p className={`font-black text-sm truncate ${textHighlight}`}>{rec.name}</p>
-                                    <p className={`text-xs font-bold ${textMuted}`}>{rec.team}</p>
+                                    <p className={`font-black text-[9px] sm:text-sm truncate ${textHighlight}`}>{rec.name}</p>
+                                    <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{rec.team}</p>
                                   </div>
-                                  <div className={`w-full text-xs font-bold px-2 py-1 rounded flex justify-between ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
+                                  <div className={`w-full text-[8px] sm:text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded flex justify-between ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
                                     <span className={textHighlight}>£{rec.cost.toFixed(1)}</span>
                                     <span className="text-emerald-500">{rec.xp.toFixed(1)} XP</span>
                                   </div>
@@ -1357,12 +1357,12 @@ function PlayerCard({
   const isActionMode = activeId !== null;
 
   return (
-    <div className={`relative flex flex-col items-center w-[52px] min-[400px]:w-[60px] sm:w-[95px] transition-all duration-300 ${isBench && !isActionMode ? 'opacity-90 hover:opacity-100' : ''} ${isSelected ? 'scale-110 z-30' : ''}`}>
+    <div className={`relative flex flex-col items-center w-[46px] min-[400px]:w-[52px] sm:w-[95px] transition-all duration-300 ${isBench && !isActionMode ? 'opacity-90 hover:opacity-100' : ''} ${isSelected ? 'scale-110 z-30' : ''}`}>
       
       {/* Swap/Cancel Button */}
       <button 
         onClick={() => onActionClick(player.id)}
-        className={`absolute -top-3 -left-3 z-40 w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full font-bold shadow-sm transition-transform hover:scale-110 ${
+        className={`absolute -top-3 -left-3 z-40 w-5 h-5 sm:w-7 sm:h-7 flex items-center justify-center rounded-full font-bold shadow-sm transition-transform hover:scale-110 ${
           isSelected ? 'bg-red-500 text-white text-[10px]' : 'bg-white text-gray-600 text-[10px] border border-gray-300'
         }`}
       >
@@ -1371,13 +1371,13 @@ function PlayerCard({
 
       {/* Shirt */}
       <div className="relative">
-        <img src={shirtImg} alt={player.name} className={`w-10 sm:w-14 h-auto drop-shadow-md transition-transform ${isSelected ? 'brightness-110 drop-shadow-xl' : ''}`} />
+        <img src={shirtImg} alt={player.name} className={`w-7 sm:w-14 h-auto drop-shadow-md transition-transform ${isSelected ? 'brightness-110 drop-shadow-xl' : ''}`} />
         
       </div>
       
       {/* Name */}
       <div 
-        className={`text-white text-[10px] min-[400px]:text-[11px] sm:text-sm font-bold px-1 sm:px-2 py-0.5 rounded shadow w-full text-center truncate mt-[-3px] z-10 
+        className={`text-white text-[8px] min-[400px]:text-[8px] sm:text-sm font-bold px-0.5 sm:px-2 py-0 rounded shadow w-full text-center truncate mt-[-4px] z-10 
         ${isSelected ? 'bg-blue-600' : 
           (player.chance_of_playing === 0 ? 'bg-red-600' : 
           (player.chance_of_playing !== null && player.chance_of_playing !== undefined && player.chance_of_playing < 100 ? 'bg-orange-500' : 'bg-[#2c3e50]'))}`}
@@ -1387,12 +1387,12 @@ function PlayerCard({
       </div>
       
       {/* Fixture */}
-      <div className={`w-full text-center text-[9px] min-[400px]:text-[10px] sm:text-xs font-bold py-0.5 shadow-sm ${getDiffColor(player.fixture_diff)}`}>
+      <div className={`w-full text-center text-[7px] min-[400px]:text-[9px] sm:text-xs font-bold py-0 shadow-sm ${getDiffColor(player.fixture_diff)}`}>
         {player.fixture || 'Blank'}
       </div>
 
       {/* Data Row */}
-      <div className="bg-white text-gray-900 text-[9px] min-[400px]:text-[10px] sm:text-xs font-bold px-1 w-full text-center rounded-b shadow-sm flex justify-between items-center border-b border-x border-gray-200">
+      <div className="bg-white text-gray-900 text-[7px] min-[400px]:text-[9px] sm:text-xs font-bold px-0.5 w-full text-center rounded-b shadow-sm flex justify-between items-center border-b border-x border-gray-200">
         <span>£{player.cost.toFixed(1)}</span>
         <span className="text-[#126b3f]">{player.xp?.toFixed(1) || '0.0'}</span>
       </div>
@@ -1405,12 +1405,12 @@ function PlayerCard({
         <div className="absolute -top-2 -right-2 bg-gray-100 text-gray-800 text-[9px] w-4 h-4 flex items-center justify-center rounded-full font-bold z-20 shadow border border-gray-300">V</div>
       )}
       {!isBench && onCaptainClick && onViceClick && !transferMode && (
-        <div className="flex justify-center gap-1 mt-1 w-[110%] z-20">
+        <div className="flex justify-center gap-1 mt-0.5 w-[110%] z-20">
           <button 
             onClick={(e) => { e.stopPropagation(); onCaptainClick(player.id); }}
             disabled={activeId !== null}
             title="Set Captain"
-            className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${activeId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'} ${player.is_captain ? 'bg-black text-yellow-400 border border-yellow-400' : 'bg-gray-100 text-gray-700 border border-gray-300'}`}
+            className={`w-[22px] h-[22px] sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${activeId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'} ${player.is_captain ? 'bg-black text-yellow-400 border border-yellow-400' : 'bg-gray-100 text-gray-700 border border-gray-300'}`}
           >
             <span className="text-[8px] sm:text-xs font-black">C</span>
           </button>
@@ -1418,7 +1418,7 @@ function PlayerCard({
             onClick={(e) => { e.stopPropagation(); onViceClick(player.id); }}
             disabled={activeId !== null}
             title="Set Vice Captain"
-            className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${activeId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'} ${player.is_vice_captain ? 'bg-white text-black border border-black' : 'bg-gray-100 text-gray-700 border border-gray-300'}`}
+            className={`w-[22px] h-[22px] sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${activeId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'} ${player.is_vice_captain ? 'bg-white text-black border border-black' : 'bg-gray-100 text-gray-700 border border-gray-300'}`}
           >
             <span className="text-[8px] sm:text-xs font-black">V</span>
           </button>
@@ -1579,11 +1579,11 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
           {/* Buy Section */}
           <div className="flex-[2] w-full">
             <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded mb-3 inline-block">{isEnglish ? 'RECOMMENDED BUYS' : 'מחליפים מומלצים'}</span>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
               {scenario.buys.map((buy: any) => (
                 <div key={buy.id} className={`p-3 rounded-lg border ${isDarkMode ? 'bg-gray-750 border-gray-600' : 'bg-gray-50 border-gray-200'} flex flex-col items-center text-center relative`}>
                   <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${buy.team_code}-66.webp`} className="w-10 mb-2 drop-shadow-sm" />
-                  <p className={`font-black text-sm truncate w-full ${textHighlight}`}>{buy.name}</p>
+                  <p className={`font-black text-[9px] sm:text-sm truncate w-full ${textHighlight}`}>{buy.name}</p>
                   <p className={`text-[10px] font-bold ${textMuted}`}>{buy.team}</p>
                   
                   <div className={`flex justify-center w-full mt-2 text-xs border-t pt-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}>
@@ -1658,14 +1658,14 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
     const isTransfer = !originalSquadIds.includes(p.id);
 
     return (
-      <div key={p.id} className={`flex flex-col items-center w-[52px] min-[400px]:w-[60px] sm:w-24 transition-transform hover:scale-105 ${isBench ? 'opacity-90 hover:opacity-100' : ''}`}>
+      <div key={p.id} className={`flex flex-col items-center w-[46px] min-[400px]:w-[52px] sm:w-24 transition-transform hover:scale-105 ${isBench ? 'opacity-90 hover:opacity-100' : ''}`}>
         <div className="relative mb-0 sm:mb-1">
-          <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${p.team_code}-66.webp`} className="w-9 min-[400px]:w-10 sm:w-12 h-12 min-[400px]:h-14 sm:h-16 object-contain drop-shadow-md" />
+          <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${p.team_code}-66.webp`} className="w-7 min-[400px]:w-8 sm:w-12 h-9 min-[400px]:h-10 sm:h-16 object-contain drop-shadow-md" />
           {p.is_captain && <div className="absolute -bottom-1 -right-2 bg-black text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-yellow-400 shadow z-10">C</div>}
           {p.is_vice_captain && <div className="absolute -bottom-1 -right-2 bg-white text-black text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-black shadow z-10">V</div>}
         </div>
         
-        <div className={`text-[10px] min-[400px]:text-[11px] sm:text-sm font-black px-1 sm:px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap overflow-hidden text-ellipsis w-[110%] text-center border ${
+        <div className={`text-[9px] min-[400px]:text-[10px] sm:text-xs font-black px-0.5 sm:px-1.5 py-0 rounded shadow-sm mt-[-4px] whitespace-nowrap overflow-hidden text-ellipsis w-[110%] text-center border ${
             isSelected ? 'bg-blue-600 text-white border-blue-700' :
             p.chance_of_playing === 0 ? 'bg-red-600 text-white border-red-700' :
             (p.chance_of_playing !== null && p.chance_of_playing !== undefined && p.chance_of_playing < 100) ? 'bg-orange-500 text-white border-orange-600' :
@@ -1675,34 +1675,34 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
           {p.name}
         </div>
         
-        <div className="flex flex-col w-[110%] mt-1 gap-[1px]">
+        <div className="flex flex-col w-[110%] mt-1 gap-1">
           {fix0 ? (
-            <div className={`text-[9px] min-[400px]:text-[10px] sm:text-xs font-bold py-[3px] w-full text-center rounded shadow-sm border ${getFDRColor(fix0.difficulty)}`}>{fix0.opponent}</div>
+            <div className={`text-[7.5px] min-[400px]:text-[9px] sm:text-xs font-bold py-0 w-full text-center rounded shadow-sm border ${getFDRColor(fix0.difficulty)}`}>{fix0.opponent}</div>
           ) : (
-            <div className={`text-[9px] min-[400px]:text-[10px] sm:text-xs font-bold py-[3px] w-full text-center rounded shadow-sm border bg-gray-500 text-white border-gray-600`}>Blank</div>
+            <div className={`text-[7.5px] min-[400px]:text-[9px] sm:text-xs font-bold py-0 w-full text-center rounded shadow-sm border bg-gray-500 text-white border-gray-600`}>Blank</div>
           )}
         </div>
         
-        <div className={`mt-1 text-[7px] sm:text-[10px] font-bold w-full text-center drop-shadow-sm ${isBench ? (isDarkMode ? 'text-gray-300' : 'text-gray-700') : 'text-white'}`}>
+        <div className={`mt-0 text-[7px] sm:text-[10px] font-bold w-full text-center drop-shadow-sm ${isBench ? (isDarkMode ? 'text-gray-300' : 'text-gray-700') : 'text-white'}`}>
           £{p.cost.toFixed(1)}m | xP {p.xp.toFixed(1)}
         </div>
         
-        <div className="flex flex-wrap justify-center gap-1 mt-1 w-[110%]">
+        <div className="flex flex-wrap justify-center gap-1 mt-0.5 w-[110%]">
           <button 
             onClick={() => onSwap(p.id)}
             title={isEnglish ? 'Swap Player' : 'חילוף (ספסל/הרכב)'}
-            className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded shadow cursor-pointer transition-colors ${isSelected ? 'bg-yellow-500 hover:bg-yellow-600 text-black' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
+            className={`w-[22px] h-[22px] sm:w-6 sm:h-6 flex items-center justify-center rounded shadow cursor-pointer transition-colors ${isSelected ? 'bg-yellow-500 hover:bg-yellow-600 text-black' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
           </button>
           
           <button 
             onClick={() => onSell(p.id)}
             disabled={swapSourceId !== null}
             title={isEnglish ? 'Transfer Out (Buy new player)' : 'מכור שחקן (העברה)'}
-            className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${swapSourceId !== null ? 'opacity-50 cursor-not-allowed bg-red-400 text-white' : 'cursor-pointer bg-red-500 hover:bg-red-600 text-white'}`}
+            className={`w-[22px] h-[22px] sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${swapSourceId !== null ? 'opacity-50 cursor-not-allowed bg-red-400 text-white' : 'cursor-pointer bg-red-500 hover:bg-red-600 text-white'}`}
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </button>
 
           {isTransfer && (
@@ -1710,9 +1710,9 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
               onClick={() => onRestorePlayer(p.position)}
               disabled={swapSourceId !== null}
               title={isEnglish ? 'Undo Transfer' : 'בטל חילוף זה'}
-              className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${swapSourceId !== null ? 'opacity-50 cursor-not-allowed bg-purple-400 text-white' : 'cursor-pointer bg-purple-500 hover:bg-purple-600 text-white'}`}
+              className={`w-[22px] h-[22px] sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${swapSourceId !== null ? 'opacity-50 cursor-not-allowed bg-purple-400 text-white' : 'cursor-pointer bg-purple-500 hover:bg-purple-600 text-white'}`}
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
             </button>
           )}
 
@@ -1722,7 +1722,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
                 onClick={() => onCaptain(p.id)}
                 disabled={swapSourceId !== null}
                 title={isEnglish ? 'Set Captain' : 'בחר קפטן'}
-                className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${swapSourceId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${p.is_captain ? 'bg-black text-yellow-400 border border-yellow-400' : isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
+                className={`w-[22px] h-[22px] sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${swapSourceId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${p.is_captain ? 'bg-black text-yellow-400 border border-yellow-400' : isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
               >
                 <span className="text-[8px] sm:text-xs font-black">C</span>
               </button>
@@ -1730,7 +1730,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
                 onClick={() => onVice(p.id)}
                 disabled={swapSourceId !== null}
                 title={isEnglish ? 'Set Vice Captain' : 'בחר סגן קפטן'}
-                className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${swapSourceId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${p.is_vice_captain ? 'bg-white text-black border border-black' : isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
+                className={`w-[22px] h-[22px] sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${swapSourceId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${p.is_vice_captain ? 'bg-white text-black border border-black' : isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
               >
                 <span className="text-[8px] sm:text-xs font-black">V</span>
               </button>
@@ -1845,7 +1845,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         {/* Pitch Container */}
         <div className={`w-full lg:w-3/4 max-w-5xl mx-auto rounded-3xl shadow-xl overflow-hidden border-4 flex flex-col ${isDarkMode ? 'border-gray-800' : 'border-gray-300'}`}>
-          <div className="bg-[#126b3f] p-1 sm:p-6 md:p-8 relative flex flex-col justify-around min-h-[600px] md:min-h-[600px] flex-grow">
+          <div className="bg-[#126b3f] p-1 sm:p-6 md:p-8 relative flex flex-col justify-around min-h-[420px] md:min-h-[600px] flex-grow">
             <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
               <div className="absolute top-1/2 left-0 right-0 h-1 bg-white"></div>
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 md:w-48 h-32 md:h-48 border-4 border-white rounded-full"></div>
@@ -1863,13 +1863,13 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
             <div className="flex justify-around w-full px-1 sm:px-4 z-10 sm:gap-6 md:gap-8">
               {starters.filter((p: any) => p.pos_code === 1).map((p: any) => renderPlayer(p, false))}
             </div>
-            <div className="flex justify-around w-full px-1 sm:px-4 z-10 sm:gap-6 md:gap-8 mt-3 sm:mt-8">
+            <div className="flex justify-around w-full px-1 sm:px-4 z-10 sm:gap-6 md:gap-8 mt-1 sm:mt-8">
               {starters.filter((p: any) => p.pos_code === 2).map((p: any) => renderPlayer(p, false))}
             </div>
-            <div className="flex justify-around w-full px-1 sm:px-4 z-10 sm:gap-6 md:gap-8 mt-3 sm:mt-8">
+            <div className="flex justify-around w-full px-1 sm:px-4 z-10 sm:gap-6 md:gap-8 mt-1 sm:mt-8">
               {starters.filter((p: any) => p.pos_code === 3).map((p: any) => renderPlayer(p, false))}
             </div>
-            <div className="flex justify-around w-full px-1 sm:px-4 z-10 sm:gap-6 md:gap-8 mt-3 sm:mt-8">
+            <div className="flex justify-around w-full px-1 sm:px-4 z-10 sm:gap-6 md:gap-8 mt-1 sm:mt-8">
               {starters.filter((p: any) => p.pos_code === 4).map((p: any) => renderPlayer(p, false))}
             </div>
           </div>
