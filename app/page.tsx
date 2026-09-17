@@ -1381,7 +1381,7 @@ export default function Home() {
 
               <button onClick={handleReset} className={`px-4 py-1.5 border rounded text-xs font-bold hover:opacity-80 transition-opacity text-white bg-red-600 border-red-700 shadow-sm`}>
 
-                {isEnglish ? 'Reset Virtual Changes' : 'איפוס שינויים וירטואליים'}
+                {isEnglish ? 'Reset Changes' : 'איפוס שינויים'}
 
               </button>
 
@@ -2691,7 +2691,7 @@ function ActionModal({ player, onClose, onSwap, onCaptain, onVice, onSell, isEng
         
         <div className="flex flex-col gap-2 mt-2">
           <button onClick={() => { onSwap(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
-            <span>🔄</span> {isEnglish ? 'Substitute / Swap' : 'חילוף שחקן'}
+            <span>🔄</span> {isEnglish ? 'Swap' : 'חילוף שחקן'}
           </button>
           
           <button onClick={() => { onCaptain(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
