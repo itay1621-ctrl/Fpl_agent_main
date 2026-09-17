@@ -1318,8 +1318,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
           </tbody>
         </table>
       </div>
-
-    </button>
+    </div>
   );
 }
 
