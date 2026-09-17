@@ -1180,7 +1180,7 @@ export default function Home() {
 
             <div className="bg-white p-8 rounded-2xl shadow-xl w-full text-[#37003c]" dir={isEnglish ? "ltr" : "rtl"}>
 
-              <h2 className="text-xl font-bold mb-6 text-center text-[#37003c]">{t.enterId}</h2>
+              <h2 className="text-xl font-black mb-6 text-center text-[#37003c]">{t.enterId}</h2>
 
               <div className="flex flex-col gap-4">
 
@@ -1282,7 +1282,7 @@ export default function Home() {
 
             </div>
 
-            <div className={`w-full md:w-auto ${isEnglish ? 'text-left' : 'text-right'}`}>
+            <div className={`w-full md:w-auto text-start`}>
 
               <h2 className={`text-2xl font-black ${textHighlight}`}>{data.team_name}</h2>
 
@@ -1298,7 +1298,7 @@ export default function Home() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
 
-            <div className={`border-2 border-red-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
+            <div className={`border-2 border-red-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
 
               <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.overallRank}</p>
 
@@ -1306,7 +1306,7 @@ export default function Home() {
 
             </div>
 
-            <div className={`border-2 border-orange-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
+            <div className={`border-2 border-orange-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
 
               <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.bank}</p>
 
@@ -1314,7 +1314,7 @@ export default function Home() {
 
             </div>
 
-            <div className={`border-2 border-blue-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
+            <div className={`border-2 border-blue-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
 
               <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.xp}</p>
 
@@ -1322,11 +1322,11 @@ export default function Home() {
 
             </div>
 
-            <div className={`border-2 border-green-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} ${isEnglish ? 'items-start' : 'items-end'}`}>
+            <div className={`border-2 border-green-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
 
               <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.squadScore}</p>
 
-              <p className="text-lg sm:text-2xl font-black">{calculatedSquadScore || 0} <span className={`text-sm ${textMuted}`}>/ 100</span></p>
+              <p className="text-lg sm:text-2xl font-black" dir="ltr">{calculatedSquadScore || 0} <span className={`text-sm ${textMuted}`}>/ 100</span></p>
 
             </div>
 
@@ -1378,7 +1378,7 @@ export default function Home() {
 
               <button onClick={handleReset} className={`px-4 py-1.5 border rounded text-xs font-bold hover:opacity-80 transition-opacity text-white bg-red-600 border-red-700 shadow-sm`}>
 
-                {isEnglish ? 'Reset  Changes' : 'איפוס שינויים'}
+                {isEnglish ? 'Reset Virtual Changes' : 'איפוס שינויים וירטואליים'}
 
               </button>
 
@@ -1502,7 +1502,7 @@ export default function Home() {
 
                   <div className="flex justify-between items-center mb-4">
 
-                    <h4 className={`text-lg font-bold ${textHighlight}`}>
+                    <h4 className={`text-lg font-black ${textHighlight}`}>
 
                       {transferOutId ? (isEnglish ? 'Select replacement below' : 'בחר מחליף למטה') : (isEnglish ? 'Select player to sell' : 'בחר שחקן למכירה')}
 
@@ -1640,7 +1640,7 @@ export default function Home() {
 
                           <div className="mb-6">
 
-                            <h4 className={`text-sm font-bold mb-3 ${textMuted}`}>
+                            <h4 className={`text-sm font-black mb-3 ${textMuted}`}>
 
                               {isEnglish ? 'Top 3 Smart Recommendations:' : '3 ההמלצות המובילות של המערכת (לפי xP):'}
 
@@ -1722,7 +1722,7 @@ export default function Home() {
 
                         <div className={`flex-1 max-h-[400px] overflow-y-auto rounded-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
 
-                          <table className={`w-full text-sm ${isEnglish ? 'text-left' : 'text-right'}`}>
+                          <table className={`w-full text-sm text-start`}>
 
                             <thead className={`sticky top-0 z-10 text-xs uppercase font-bold ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
 
@@ -1737,6 +1737,7 @@ export default function Home() {
                                 <th className="px-3 py-2 text-center">{isEnglish ? 'Points' : 'נקודות'}</th>
 
                                 <th className="px-3 py-2 text-center">xP</th>
+                                <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : 'משחק'}</th>
 
                                 <th className="px-3 py-2 text-center"></th>
 
@@ -1765,6 +1766,11 @@ export default function Home() {
                                   <td className={`px-3 py-2 text-center font-bold text-blue-500`}>{rec.total_points}</td>
 
                                   <td className="px-3 py-2 text-center text-emerald-500 font-bold">{rec.xp.toFixed(1)}</td>
+                                  <td className="px-3 py-2 text-center">
+                                    <div className={`text-[10px] font-bold py-1 px-2 rounded shadow-sm inline-block whitespace-nowrap ${rec.fixture_diff === 1 ? 'bg-green-800 text-white' : rec.fixture_diff === 2 ? 'bg-green-500 text-white' : rec.fixture_diff === 4 ? 'bg-red-500 text-white' : rec.fixture_diff === 5 ? 'bg-red-800 text-white' : 'bg-gray-200 text-gray-800'}`}>
+                                      {rec.fixture || 'Blank'}
+                                    </div>
+                                  </td>
 
                                   <td className="px-3 py-2 text-center">
 
@@ -2038,7 +2044,7 @@ export default function Home() {
 
                           <div className="mb-6 shrink-0">
 
-                            <h4 className={`text-sm font-bold mb-3 ${textMuted}`}>
+                            <h4 className={`text-sm font-black mb-3 ${textMuted}`}>
 
                               {isEnglish ? 'Top 3 Smart Recommendations:' : '3 ההמלצות המובילות של המערכת (לפי xP):'}
 
@@ -2120,7 +2126,7 @@ export default function Home() {
 
                         <div className={`flex-1 overflow-y-auto rounded-lg border min-h-[200px] ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
 
-                          <table className={`w-full text-sm ${isEnglish ? 'text-left' : 'text-right'}`}>
+                          <table className={`w-full text-sm text-start`}>
 
                             <thead className={`sticky top-0 z-10 text-xs uppercase font-bold ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
 
@@ -2135,6 +2141,7 @@ export default function Home() {
                                 <th className="px-3 py-2 text-center">{isEnglish ? 'Points' : 'נקודות'}</th>
 
                                 <th className="px-3 py-2 text-center">xP</th>
+                                <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : 'משחק'}</th>
 
                                 <th className="px-3 py-2 text-center"></th>
 
@@ -2163,6 +2170,11 @@ export default function Home() {
                                   <td className={`px-3 py-2 text-center font-bold text-blue-500`}>{rec.total_points}</td>
 
                                   <td className="px-3 py-2 text-center text-emerald-500 font-bold">{rec.xp.toFixed(1)}</td>
+                                  <td className="px-3 py-2 text-center">
+                                    <div className={`text-[10px] font-bold py-1 px-2 rounded shadow-sm inline-block whitespace-nowrap ${rec.fixture_diff === 1 ? 'bg-green-800 text-white' : rec.fixture_diff === 2 ? 'bg-green-500 text-white' : rec.fixture_diff === 4 ? 'bg-red-500 text-white' : rec.fixture_diff === 5 ? 'bg-red-800 text-white' : 'bg-gray-200 text-gray-800'}`}>
+                                      {rec.fixture || 'Blank'}
+                                    </div>
+                                  </td>
 
                                   <td className="px-3 py-2 text-center">
 
@@ -2404,7 +2416,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
       <div className={`p-5 rounded-xl border ${bgBox}`}>
 
-        <h4 className="text-lg font-bold mb-4 flex items-center gap-2 text-red-500">
+        <h4 className="text-lg font-black mb-4 flex items-center gap-2 text-red-500">
 
           <span>⚠️</span> {isEnglish ? 'Urgent Weaknesses' : 'נקודות תורפה דחופות (בהרכב)'}
 
@@ -2476,7 +2488,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
       <div className={`p-5 rounded-xl border ${bgBox}`}>
 
-        <h4 className={`text-lg font-bold mb-4 flex items-center gap-2 ${textHighlight}`}>
+        <h4 className={`text-lg font-black mb-4 flex items-center gap-2 ${textHighlight}`}>
 
           <span>🏗️</span> {isEnglish ? 'Squad Structure & Budget' : 'מבנה הסגל וניהול תקציב'}
 
@@ -2576,7 +2588,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
       <div className={`col-span-1 md:col-span-2 p-5 rounded-xl border ${bgBox} overflow-x-auto`}>
 
-        <h4 className={`text-lg font-bold mb-4 flex items-center gap-2 ${textHighlight}`}>
+        <h4 className={`text-lg font-black mb-4 flex items-center gap-2 ${textHighlight}`}>
 
           <span>📈</span> {isEnglish ? 'Underlying Stats (Season)' : 'נתוני עומק של השחקנים שלך (העונה)'}
 
@@ -2676,7 +2688,7 @@ function ActionModal({ player, onClose, onSwap, onCaptain, onVice, onSell, isEng
         
         <div className="flex flex-col gap-2 mt-2">
           <button onClick={() => { onSwap(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
-            <span>🔄</span> {isEnglish ? 'Sub' : 'חילוף שחקן'}
+            <span>🔄</span> {isEnglish ? 'Substitute / Swap' : 'חילוף שחקן'}
           </button>
           
           <button onClick={() => { onCaptain(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
@@ -2820,7 +2832,7 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
 
     <div className={`p-4 rounded-xl border ${isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'} mb-6`}>
 
-      <h4 className={`text-lg font-bold mb-2 flex items-center gap-2 ${colorClass}`}>
+      <h4 className={`text-lg font-black mb-2 flex items-center gap-2 ${colorClass}`}>
 
         <span>{icon}</span> {titleStr}
 
@@ -2843,6 +2855,7 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
               <th className="px-3 py-2 text-center">{isEnglish ? 'Cost' : 'מחיר'}</th>
 
               <th className="px-3 py-2 text-center">xP</th>
+                                <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : 'משחק'}</th>
 
               <th className="px-3 py-2 text-center">{isEnglish ? 'Form' : 'כושר'}</th>
 
@@ -3006,7 +3019,7 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
 
         <span className="text-4xl mb-4">🛡️</span>
 
-        <h4 className="text-xl font-bold text-emerald-500 mb-2">{isEnglish ? 'No urgent transfers needed!' : 'הסגל שלך חסין כרגע! אין חילופים דחופים.'}</h4>
+        <h4 className="text-xl font-black text-emerald-500 mb-2">{isEnglish ? 'No urgent transfers needed!' : 'הסגל שלך חסין כרגע! אין חילופים דחופים.'}</h4>
 
         <p className={textMuted}>{isEnglish ? 'Your squad looks solid based on FDR, form, and xP.' : 'על סמך נתוני פציעות, קושי משחקים וכושר, כל השחקנים שלך נראים כמו בחירות בטוחות כרגע.'}</p>
 
@@ -3826,7 +3839,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
         <div>
 
-          <div className={`text-xs font-bold mb-2 ${textMuted} ${isEnglish ? 'text-left' : 'text-right'}`}>
+          <div className={`text-xs font-bold mb-2 ${textMuted} text-start`}>
 
             {isEnglish ? `Showing top ${standings.length} in league` : `מציג את ${standings.length} המובילים בליגה`}
 
@@ -3836,7 +3849,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
             <div className="max-h-[500px] overflow-y-auto">
 
-              <table className={`w-full text-sm ${isEnglish ? 'text-left' : 'text-right'}`}>
+              <table className={`w-full text-sm text-start`}>
 
                 <thead className={`sticky top-0 z-10 text-xs uppercase font-bold ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-500'}`}>
 
@@ -3984,7 +3997,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
               <div>
 
-                <h5 className={`font-bold text-sm mb-3 ${textHighlight}`}>
+                <h5 className={`font-black text-sm mb-3 ${textHighlight}`}>
 
                   🤝 {isEnglish ? `Shared Players (${compareData.shared.length})` : `שחקנים זהים (${compareData.shared.length})`}
 
@@ -4020,7 +4033,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
                 <div>
 
-                  <h5 className="font-bold text-sm mb-3 text-blue-500">
+                  <h5 className="font-black text-sm mb-3 text-blue-500">
 
                     🔵 {isEnglish ? `Your Differentials (${compareData.team_a.unique.length})` : `הדיפרנשיאלים שלך (${compareData.team_a.unique.length})`}
 
@@ -4050,7 +4063,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
                 <div>
 
-                  <h5 className="font-bold text-sm mb-3 text-red-500">
+                  <h5 className="font-black text-sm mb-3 text-red-500">
 
                     🔴 {isEnglish ? `Rival Differentials (${compareData.team_b.unique.length})` : `הדיפרנשיאלים של היריב (${compareData.team_b.unique.length})`}
 
@@ -4204,7 +4217,7 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 
                 <span className="text-3xl">{tip.icon}</span>
 
-                <h4 className={`text-lg font-bold ${textHighlight}`}>
+                <h4 className={`text-lg font-black ${textHighlight}`}>
 
                   {tip.num}. {isEnglish ? tip.title_en : tip.title_he}
 
