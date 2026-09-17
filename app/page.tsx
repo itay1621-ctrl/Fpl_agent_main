@@ -283,6 +283,7 @@ export default function Home() {
       setData(originalData);
       setSwapSourceId(null);
       setTransferOutId(null);
+      localStorage.removeItem(`fpl_plan_${originalData.team_id}`);
     }
   };
 
@@ -572,12 +573,7 @@ export default function Home() {
     <main className={`min-h-screen font-sans pb-24 md:pb-0 transition-colors duration-300 ${bgMain}`} dir={isEnglish ? "ltr" : "rtl"}>
       
       {!data && !initLoading && (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-green-900 text-white relative overflow-hidden">
-          
-          {/* Background Decorative Elements */}
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-500 rounded-full mix-blend-multiply filter blur-[120px] opacity-40 animate-pulse"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-green-500 rounded-full mix-blend-multiply filter blur-[120px] opacity-40 animate-pulse" style={{animationDelay: "2s"}}></div>
-
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[#37003c] text-white relative">
           <button 
             onClick={() => setIsEnglish(!isEnglish)} 
             className="absolute top-4 right-4 text-sm font-bold px-4 py-2 rounded-lg border-2 border-white/30 text-white hover:bg-white/20 transition-all z-50"
@@ -587,34 +583,55 @@ export default function Home() {
           
           <div className="z-10 flex flex-col items-center w-full max-w-md px-4">
             <div className="mb-8 text-center">
-              <h1 className="text-5xl md:text-6xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300 drop-shadow-sm tracking-tight">FPL Elite Scout</h1>
+              <h1 className="text-5xl md:text-6xl font-black mb-2 text-[#01fc7a] tracking-tight">FPL Elite Scout</h1>
               <p className="text-purple-200 font-medium text-lg">{isEnglish ? 'Next-Gen AI Squad Planner' : 'מערכת תכנון סגל מבוססת AI'}</p>
-            </div>
+        
+      {!isBench && onCaptainClick && onViceClick && !transferMode && (
+        <div className="flex justify-center gap-1 mt-1 w-[110%] z-20">
+          <button 
+            onClick={() => onCaptainClick(player.id)}
+            disabled={activeId !== null}
+            title="Set Captain"
+            className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${activeId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'} ${player.is_captain ? 'bg-black text-yellow-400 border border-yellow-400' : 'bg-gray-100 text-gray-700 border border-gray-300'}`}
+          >
+            <span className="text-[8px] sm:text-xs font-black">C</span>
+          </button>
+          <button 
+            onClick={() => onViceClick(player.id)}
+            disabled={activeId !== null}
+            title="Set Vice Captain"
+            className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${activeId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'} ${player.is_vice_captain ? 'bg-white text-black border border-black' : 'bg-gray-100 text-gray-700 border border-gray-300'}`}
+          >
+            <span className="text-[8px] sm:text-xs font-black">V</span>
+          </button>
+        </div>
+      )}
+    </div>
 
-            <div className="bg-white/10 backdrop-blur-md p-8 rounded-3xl shadow-2xl border border-white/20 text-white w-full transition-all hover:border-white/30" dir={isEnglish ? "ltr" : "rtl"}>
-              <h2 className="text-xl font-bold mb-6 text-center text-white/90">{t.enterId}</h2>
+            <div className="bg-white p-8 rounded-2xl shadow-xl w-full text-[#37003c]" dir={isEnglish ? "ltr" : "rtl"}>
+              <h2 className="text-xl font-bold mb-6 text-center text-[#37003c]">{t.enterId}</h2>
               <div className="flex flex-col gap-4">
                 <input 
                   type="number" 
                   value={teamId} 
                   onChange={(e) => setTeamId(e.target.value)} 
                   placeholder={t.placeholder} 
-                  className="w-full bg-black/30 border border-white/10 rounded-xl p-4 text-center text-2xl font-black focus:outline-none focus:ring-2 focus:ring-green-400 transition-all placeholder:text-gray-500 placeholder:text-lg placeholder:font-medium" 
+                  className="w-full bg-gray-50 border border-gray-300 rounded-xl p-4 text-center text-2xl font-black focus:outline-none focus:ring-2 focus:ring-[#01fc7a] transition-all placeholder:text-gray-400 placeholder:text-lg placeholder:font-medium" 
                   onKeyDown={(e) => e.key === 'Enter' && fetchTeam()} 
                 />
                 <button 
-                  onClick={() => fetchTeam()} 
+                  onClick={handleReset} 
                   disabled={loading || !teamId} 
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-white px-6 py-4 rounded-xl font-black text-lg shadow-lg hover:shadow-green-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-95"
+                  className="w-full bg-[#01fc7a] hover:bg-[#00e36d] text-[#37003c] px-6 py-4 rounded-xl font-black text-lg shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                 >
-                  {loading ? t.loading : (isEnglish ? 'Start Managing 🚀' : 'התחבר לקבוצה 🚀')}
+                  {loading ? t.loading : (isEnglish ? 'Start Managing' : 'התחבר לקבוצה')}
                 </button>
               </div>
               {error && <p className="text-red-400 mt-4 text-center font-bold bg-red-900/40 p-2 rounded-lg">{error}</p>}
             </div>
             
             {/* Rotating Tips */}
-            <div className="mt-12 h-24 w-full flex flex-col items-center justify-center text-center px-4 animate-fade-in-up">
+            <div className="mt-12 h-24 w-full flex flex-col items-center justify-center text-center px-4 opacity-80">
               <span className="text-2xl mb-2">{FPL_SUCCESS_TIPS[tipIndex]?.icon}</span>
               <p className="text-sm font-medium text-purple-200 max-w-sm">
                 {isEnglish ? FPL_SUCCESS_TIPS[tipIndex]?.title_en : FPL_SUCCESS_TIPS[tipIndex]?.title_he}
@@ -671,7 +688,7 @@ export default function Home() {
 
           {/* Timer Box */}
           <div className={`border border-green-400 rounded-xl p-4 mb-8 flex flex-col items-center justify-center ${bgBox}`}>
-            <p className={`text-xs font-bold mb-1 ${textMuted}`}>{t.timeUntil} (GW {data.next_gw})</p>
+            <p className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{t.timeUntil} (GW {data.next_gw})</p>
             <p className="text-xl font-bold text-green-600">2d 8h 54m 46s</p>
           </div>
 
@@ -687,40 +704,18 @@ export default function Home() {
             <button onClick={() => setActiveTab('tips')} className={`${activeTab === 'tips' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.tipsTab}</button>
           </div>
 
-          {/* Captain / VC Selectors & Reset Squad */}
+          {/* Reset Squad */}
           {activeTab === 'pitch' && (
-            <div className="flex flex-col md:flex-row gap-4 md:gap-8 mb-6 items-end">
-              <div className="flex-1 w-full">
-                <label className={`block text-xs font-bold mb-1 ${textMuted} ${isEnglish ? 'text-left' : 'text-right'}`}>{t.cap}</label>
-                <select 
-                  className={`w-full border rounded-md p-2 text-sm ${bgCard}`}
-                  value={currentCaptain?.id || ''}
-                  onChange={(e) => handleSetCaptain(Number(e.target.value))}
-                >
-                  {data.squad.map((p: any) => <option key={p.id} value={p.id}>{p.name} ({p.team}) — xP: {p.xp}</option>)}
-                </select>
-              </div>
-              <div className="flex-1 w-full">
-                <label className={`block text-xs font-bold mb-1 ${textMuted} ${isEnglish ? 'text-left' : 'text-right'}`}>{t.vcap}</label>
-                <select 
-                  className={`w-full border rounded-md p-2 text-sm ${bgCard}`}
-                  value={currentVice?.id || ''}
-                  onChange={(e) => handleSetViceCaptain(Number(e.target.value))}
-                >
-                  {data.squad.map((p: any) => <option key={p.id} value={p.id}>{p.name} ({p.team}) — xP: {p.xp}</option>)}
-                </select>
-              </div>
-              <div className="flex-none">
-                <button onClick={() => fetchTeam()} className={`w-full md:w-auto px-6 py-2 border rounded-md text-sm font-bold hover:opacity-80 transition-opacity text-white bg-red-600 border-red-700 shadow-md`}>
-                  {isEnglish ? '🔄 Reset Virtual Changes' : '🔄 איפוס סגל וחילופים'}
-                </button>
-              </div>
+            <div className="flex justify-end mb-4">
+              <button onClick={handleReset} className={`w-full md:w-auto px-6 py-2 border rounded-md text-sm font-bold hover:opacity-80 transition-opacity text-white bg-red-600 border-red-700 shadow-md`}>
+                {isEnglish ? '🔄 Reset Virtual Changes' : '🔄 איפוס שינויים וירטואליים'}
+              </button>
             </div>
           )}
           {/* FPL Pitch Area */}
           {activeTab === 'pitch' && (
             <div className="max-w-4xl mx-auto">
-              <div className="bg-[#126b3f] rounded-t-lg p-1 md:p-4 relative shadow-md overflow-hidden min-h-[500px] flex flex-col justify-around">
+              <div className="bg-[#126b3f] rounded-t-lg p-1 md:p-4 relative shadow-md overflow-hidden min-h-[360px] md:min-h-[500px] flex flex-col justify-around">
                 <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
                   {/* Center Line & Circle */}
                   <div className="absolute top-1/2 left-0 right-0 h-1 bg-white"></div>
@@ -740,27 +735,27 @@ export default function Home() {
                 
                 <div className="flex justify-center z-10">
                   {starters.filter((p: any) => p.pos_code === 1).map((p: any) => (
-                    <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} />
+                    <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} onCaptainClick={handleSetCaptain} onViceClick={handleSetViceCaptain} />
                   ))}
                 </div>
-                <div className="flex justify-center gap-2 sm:gap-6 z-10 mt-6">
+                <div className="flex justify-center gap-0 sm:gap-6 z-10 mt-3 sm:mt-6">
                   {starters.filter((p: any) => p.pos_code === 2).map((p: any) => (
-                    <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} />
+                    <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} onCaptainClick={handleSetCaptain} onViceClick={handleSetViceCaptain} />
                   ))}
                 </div>
-                <div className="flex justify-center gap-2 sm:gap-6 z-10 mt-6">
+                <div className="flex justify-center gap-0 sm:gap-6 z-10 mt-3 sm:mt-6">
                   {starters.filter((p: any) => p.pos_code === 3).map((p: any) => (
-                    <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} />
+                    <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} onCaptainClick={handleSetCaptain} onViceClick={handleSetViceCaptain} />
                   ))}
                 </div>
-                <div className="flex justify-center gap-2 sm:gap-6 z-10 mt-6">
+                <div className="flex justify-center gap-0 sm:gap-6 z-10 mt-3 sm:mt-6">
                   {starters.filter((p: any) => p.pos_code === 4).map((p: any) => (
-                    <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} />
+                    <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={handleSwapClick} onCaptainClick={handleSetCaptain} onViceClick={handleSetViceCaptain} />
                   ))}
                 </div>
               </div>
               
-              <div className="bg-[#0e5230] rounded-b-lg p-2 md:p-4 flex justify-center gap-1 sm:gap-6 shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
+              <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-center gap-0 sm:gap-6 shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
                 {bench.sort((a: any, b: any) => a.position - b.position).map((p: any) => (
                   <PlayerCard key={p.id} player={p} isBench activeId={swapSourceId} onActionClick={handleSwapClick} />
                 ))}
@@ -1176,20 +1171,20 @@ export default function Home() {
 
       {/* Mobile Bottom Navigation */}
       {data && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-[100] flex overflow-x-auto scrollbar-hide shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#37003c] z-[100] flex overflow-x-auto scrollbar-hide shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.3)]">
           {[
-            { id: 'pitch', icon: '🏟️', nameEn: 'Pitch', nameHe: 'מגרש' },
-            { id: 'transfer', icon: '🔄', nameEn: 'Transfers', nameHe: 'העברות' },
-            { id: 'planner', icon: '📝', nameEn: 'Planner', nameHe: 'תכנון' },
-            { id: 'analysis', icon: '📊', nameEn: 'Analysis', nameHe: 'ניתוח' },
-            { id: 'radar', icon: '🎯', nameEn: 'Radar', nameHe: 'ראדאר' },
-            { id: 'budget', icon: '💰', nameEn: 'Budget', nameHe: 'תקציב' },
-            { id: 'leagues', icon: '🏆', nameEn: 'Leagues', nameHe: 'ליגות' },
-            { id: 'tips', icon: '💡', nameEn: 'Tips', nameHe: 'טיפים' }
+            { id: 'pitch', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="12" x2="22" y2="12"></line><circle cx="12" cy="12" r="3"></circle></svg>, nameEn: 'Pitch', nameHe: 'מגרש' },
+            { id: 'transfer', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>, nameEn: 'Transfers', nameHe: 'העברות' },
+            { id: 'planner', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>, nameEn: 'Planner', nameHe: 'תכנון' },
+            { id: 'analysis', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>, nameEn: 'Analysis', nameHe: 'ניתוח' },
+            { id: 'radar', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>, nameEn: 'Radar', nameHe: 'ראדאר' },
+            { id: 'budget', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>, nameEn: 'Budget', nameHe: 'תקציב' },
+            { id: 'leagues', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>, nameEn: 'Leagues', nameHe: 'ליגות' },
+            { id: 'tips', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></svg>, nameEn: 'Tips', nameHe: 'טיפים' }
           ].map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-shrink-0 flex flex-col items-center justify-center w-[72px] py-3 gap-1 ${activeTab === tab.id ? 'text-red-500 font-black' : 'text-gray-500 dark:text-gray-400 font-medium'}`}>
-              <span className={`text-xl transition-transform ${activeTab === tab.id ? 'scale-110' : ''}`}>{tab.icon}</span>
-              <span className="text-[10px]">{isEnglish ? tab.nameEn : tab.nameHe}</span>
+            <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-shrink-0 flex flex-col items-center justify-center w-[72px] py-3 gap-1.5 transition-colors ${activeTab === tab.id ? 'text-[#01fc7a]' : 'text-purple-200/70'}`}>
+              <div className={`transition-transform duration-300 ${activeTab === tab.id ? 'scale-110 drop-shadow-[0_0_8px_rgba(1,252,122,0.5)]' : ''}`}>{tab.icon}</div>
+              <span className={`text-[10px] tracking-wide ${activeTab === tab.id ? 'font-bold' : 'font-medium'}`}>{isEnglish ? tab.nameEn : tab.nameHe}</span>
             </button>
           ))}
         </div>
@@ -1263,17 +1258,17 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
         <div className="space-y-6">
           <div className="flex gap-4">
             <div className={`flex-1 p-3 rounded-lg border ${innerBoxBg}`}>
-              <span className={`block text-xs font-bold mb-1 ${textMuted}`}>{isEnglish ? 'Squad Value' : 'שווי הסגל (ללא בנק)'}</span>
+              <span className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Squad Value' : 'שווי הסגל (ללא בנק)'}</span>
               <span className={`text-lg font-black ${textHighlight}`}>£{data.squad.reduce((s:any,p:any)=>s+p.cost,0).toFixed(1)}M</span>
             </div>
             <div className={`flex-1 p-3 rounded-lg border ${innerBoxBg}`}>
-              <span className={`block text-xs font-bold mb-1 ${textMuted}`}>{isEnglish ? 'Bench Value' : 'שווי הספסל'}</span>
+              <span className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Bench Value' : 'שווי הספסל'}</span>
               <span className={`text-lg font-black ${textHighlight}`}>£{_bench.reduce((sum:number, p:any) => sum + p.cost, 0).toFixed(1)}M</span>
             </div>
           </div>
           <div>
-            <span className="font-bold text-sm block mb-1">{isEnglish ? 'Bench Budget Efficiency' : 'ניצולת תקציב הספסל:'}</span>
-            <div className={`w-full rounded-full h-2.5 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} mb-1`}>
+            <span className="font-bold text-sm block mb-0 sm:mb-1">{isEnglish ? 'Bench Budget Efficiency' : 'ניצולת תקציב הספסל:'}</span>
+            <div className={`w-full rounded-full h-2.5 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} mb-0 sm:mb-1`}>
               <div className={`${_bench.reduce((sum:number, p:any) => sum + p.cost, 0) > 19.0 ? 'bg-red-500' : 'bg-blue-500'} h-2.5 rounded-full transition-all`} style={{ width: `${Math.min(100, (_bench.reduce((sum:number, p:any) => sum + p.cost, 0) / 20) * 100)}%` }}></div>
             </div>
             <p className={`text-xs mt-2 ${textMuted}`}>
@@ -1354,13 +1349,17 @@ function PlayerCard({
   isBench = false, 
   activeId, 
   onActionClick,
-  transferMode = false
+  transferMode = false,
+  onCaptainClick,
+  onViceClick
 }: { 
   player: any, 
   isBench?: boolean, 
   activeId: number | null,
   onActionClick: (id: number) => void,
-  transferMode?: boolean
+  transferMode?: boolean,
+  onCaptainClick?: (id: number) => void,
+  onViceClick?: (id: number) => void
 }) {
   const shirtImg = `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${player.team_code}-66.webp`;
   
@@ -1379,7 +1378,7 @@ function PlayerCard({
   const isActionMode = activeId !== null;
 
   return (
-    <div className={`relative flex flex-col items-center w-[55px] min-[400px]:w-[65px] sm:w-[95px] transition-all duration-300 ${isBench && !isActionMode ? 'opacity-90 hover:opacity-100' : ''} ${isSelected ? 'scale-110 z-30' : ''}`}>
+    <div className={`relative flex flex-col items-center w-[46px] min-[400px]:w-[56px] sm:w-[95px] transition-all duration-300 ${isBench && !isActionMode ? 'opacity-90 hover:opacity-100' : ''} ${isSelected ? 'scale-110 z-30' : ''}`}>
       
       {/* Swap/Cancel Button */}
       <button 
@@ -1392,7 +1391,11 @@ function PlayerCard({
       </button>
 
       {/* Shirt */}
-      <img src={shirtImg} alt={player.name} className={`w-10 sm:w-14 h-auto drop-shadow-md transition-transform ${isSelected ? 'brightness-110 drop-shadow-xl' : ''}`} />
+      <div className="relative">
+        <img src={shirtImg} alt={player.name} className={`w-10 sm:w-14 h-auto drop-shadow-md transition-transform ${isSelected ? 'brightness-110 drop-shadow-xl' : ''}`} />
+        {player.is_captain && <div className="absolute -bottom-1 -right-1 sm:-right-2 bg-black text-white text-[8px] sm:text-[10px] font-bold w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center border border-yellow-400 shadow z-10">C</div>}
+        {player.is_vice_captain && <div className="absolute -bottom-1 -right-1 sm:-right-2 bg-white text-black text-[8px] sm:text-[10px] font-bold w-3 h-3 sm:w-4 sm:h-4 rounded-full flex items-center justify-center border border-black shadow z-10">V</div>}
+      </div>
       
       {/* Name */}
       <div 
@@ -1406,7 +1409,7 @@ function PlayerCard({
       </div>
       
       {/* Fixture */}
-      <div className={`w-full text-center text-[8px] sm:text-[10px] font-bold py-0.5 shadow-sm ${getDiffColor(player.fixture_diff)}`}>
+      <div className={`w-full text-center text-[7px] sm:text-[10px] font-bold py-0.5 shadow-sm ${getDiffColor(player.fixture_diff)}`}>
         {player.fixture || 'Blank'}
       </div>
 
@@ -1657,9 +1660,9 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
     const isTransfer = !originalSquadIds.includes(p.id);
 
     return (
-      <div key={p.id} className={`flex flex-col items-center w-20 sm:w-24 transition-transform hover:scale-105 ${isBench ? 'opacity-90 hover:opacity-100' : ''}`}>
-        <div className="relative mb-1">
-          <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${p.team_code}-66.webp`} className="w-10 sm:w-12 h-14 sm:h-16 object-contain drop-shadow-md" />
+      <div key={p.id} className={`flex flex-col items-center w-12 sm:w-24 transition-transform hover:scale-105 ${isBench ? 'opacity-90 hover:opacity-100' : ''}`}>
+        <div className="relative mb-0 sm:mb-1">
+          <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${p.team_code}-66.webp`} className="w-7 sm:w-12 h-14 sm:h-16 object-contain drop-shadow-md" />
           {p.is_captain && <div className="absolute -bottom-1 -right-2 bg-black text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-yellow-400 shadow z-10">C</div>}
           {p.is_vice_captain && <div className="absolute -bottom-1 -right-2 bg-white text-black text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-black shadow z-10">V</div>}
         </div>
@@ -1682,7 +1685,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
           )}
         </div>
         
-        <div className={`mt-1 text-[8px] sm:text-[10px] font-bold w-full text-center drop-shadow-sm ${isBench ? (isDarkMode ? 'text-gray-300' : 'text-gray-700') : 'text-white'}`}>
+        <div className={`mt-1 text-[7px] sm:text-[10px] font-bold w-full text-center drop-shadow-sm ${isBench ? (isDarkMode ? 'text-gray-300' : 'text-gray-700') : 'text-white'}`}>
           £{p.cost.toFixed(1)}m | xP {p.xp.toFixed(1)}
         </div>
         
@@ -1723,7 +1726,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
                 title={isEnglish ? 'Set Captain' : 'בחר קפטן'}
                 className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${swapSourceId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${p.is_captain ? 'bg-black text-yellow-400 border border-yellow-400' : isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
               >
-                <span className="text-[9px] sm:text-xs font-black">C</span>
+                <span className="text-[8px] sm:text-xs font-black">C</span>
               </button>
               <button 
                 onClick={() => onVice(p.id)}
@@ -1731,7 +1734,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
                 title={isEnglish ? 'Set Vice Captain' : 'בחר סגן קפטן'}
                 className={`w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${swapSourceId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${p.is_vice_captain ? 'bg-white text-black border border-black' : isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
               >
-                <span className="text-[9px] sm:text-xs font-black">V</span>
+                <span className="text-[8px] sm:text-xs font-black">V</span>
               </button>
             </>
           )}
@@ -1811,19 +1814,19 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className={`border rounded-xl p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
-            <span className={`text-xs font-bold mb-1 ${textMuted}`}>{isEnglish ? 'Expected Points (xP)' : 'תוחלת נקודות (xP)'}</span>
+            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Expected Points (xP)' : 'תוחלת נקודות (xP)'}</span>
             <span className="text-2xl font-black">{totalXP.toFixed(1)}</span>
           </div>
           <div className={`border rounded-xl p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
-            <span className={`text-xs font-bold mb-1 ${textMuted}`}>{isEnglish ? 'Bank Balance' : 'יתרה בבנק'}</span>
+            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Bank Balance' : 'יתרה בבנק'}</span>
             <span className={`text-2xl font-black ${data.bank < 0 ? 'text-red-500' : ''}`}>£{data.bank.toFixed(1)}m</span>
           </div>
           <div className={`border rounded-xl p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
-            <span className={`text-xs font-bold mb-1 ${textMuted}`}>{isEnglish ? 'Hit Points' : 'קנס נקודות (Hits)'}</span>
+            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Hit Points' : 'קנס נקודות (Hits)'}</span>
             <span className={`text-2xl font-black ${hitPoints < 0 ? 'text-red-500' : 'text-gray-500'}`}>{hitPoints}</span>
           </div>
           <div className={`border rounded-xl p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
-            <span className={`text-xs font-bold mb-1 ${textMuted}`}>{isEnglish ? 'Available Transfers' : 'חילופים זמינים'}</span>
+            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Available Transfers' : 'חילופים זמינים'}</span>
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => setFtAvailable(Math.max(0, ftAvailable - 1))}
@@ -1841,7 +1844,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 items-start">
+      <div className="flex flex-col-reverse lg:flex-row gap-6 items-start">
         {/* Schedule Sidebar */}
         <div className={`w-full lg:w-1/4 rounded-xl border p-4 shadow-sm flex flex-col h-fit ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <h4 className={`text-lg font-black mb-4 ${textHighlight}`}>{isEnglish ? `GW ${selectedGwNumber} Fixtures` : `משחקי מחזור ${selectedGwNumber}`}</h4>
@@ -1865,7 +1868,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
         {/* Pitch Container */}
         <div className={`w-full lg:w-3/4 max-w-5xl mx-auto rounded-3xl shadow-xl overflow-hidden border-4 flex flex-col ${isDarkMode ? 'border-gray-800' : 'border-gray-300'}`}>
-          <div className="bg-[#126b3f] p-1 sm:p-6 md:p-8 relative flex flex-col justify-around min-h-[600px] flex-grow">
+          <div className="bg-[#126b3f] p-1 sm:p-6 md:p-8 relative flex flex-col justify-around min-h-[400px] md:min-h-[600px] flex-grow">
             <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
               <div className="absolute top-1/2 left-0 right-0 h-1 bg-white"></div>
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 md:w-48 h-32 md:h-48 border-4 border-white rounded-full"></div>
@@ -1880,21 +1883,21 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
               <div className="absolute bottom-[8rem] md:bottom-[10rem] left-1/2 -translate-x-1/2 w-24 h-12 border-4 border-transparent border-t-white rounded-full"></div>
             </div>
             
-            <div className="flex justify-center z-10 gap-2 sm:gap-6 md:gap-8">
+            <div className="flex justify-center z-10 gap-0 sm:gap-6 md:gap-8">
               {starters.filter((p: any) => p.pos_code === 1).map((p: any) => renderPlayer(p, false))}
             </div>
-            <div className="flex justify-center z-10 gap-2 sm:gap-6 md:gap-8 mt-6 sm:mt-8">
+            <div className="flex justify-center z-10 gap-0 sm:gap-6 md:gap-8 mt-3 sm:mt-8">
               {starters.filter((p: any) => p.pos_code === 2).map((p: any) => renderPlayer(p, false))}
             </div>
-            <div className="flex justify-center z-10 gap-2 sm:gap-6 md:gap-8 mt-6 sm:mt-8">
+            <div className="flex justify-center z-10 gap-0 sm:gap-6 md:gap-8 mt-3 sm:mt-8">
               {starters.filter((p: any) => p.pos_code === 3).map((p: any) => renderPlayer(p, false))}
             </div>
-            <div className="flex justify-center z-10 gap-2 sm:gap-6 md:gap-8 mt-6 sm:mt-8">
+            <div className="flex justify-center z-10 gap-0 sm:gap-6 md:gap-8 mt-3 sm:mt-8">
               {starters.filter((p: any) => p.pos_code === 4).map((p: any) => renderPlayer(p, false))}
             </div>
           </div>
           
-          <div className={`p-2 sm:p-6 md:p-8 flex justify-center gap-1 sm:gap-6 md:gap-8 border-t-2 border-white/20 border-dashed z-20 bg-[#0e5230]`}>
+          <div className={`p-2 sm:p-6 md:p-8 flex justify-center gap-0 sm:gap-6 md:gap-8 border-t-2 border-white/20 border-dashed z-20 bg-[#0e5230]`}>
             {bench.map((p: any) => renderPlayer(p, true))}
           </div>
         </div>
@@ -1974,7 +1977,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
       {/* League Selector Row */}
       <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
         <div className="flex-1">
-          <label className={`block text-xs font-bold mb-1 ${textMuted}`}>{isEnglish ? 'Select from your leagues:' : 'בחר מתוך המיני-ליגות של הקבוצה שלך:'}</label>
+          <label className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Select from your leagues:' : 'בחר מתוך המיני-ליגות של הקבוצה שלך:'}</label>
           <select 
             value={selectedLeague?.id || ''}
             onChange={(e) => {
@@ -1990,7 +1993,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
           </select>
         </div>
         <div className="flex-1">
-          <label className={`block text-xs font-bold mb-1 ${textMuted}`}>{isEnglish ? 'Or search by league ID:' : 'או חפש לפי קוד ליגה אחר:'}</label>
+          <label className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Or search by league ID:' : 'או חפש לפי קוד ליגה אחר:'}</label>
           <div className="flex gap-2">
             <input 
               type="number"
@@ -2015,17 +2018,17 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className={`p-5 rounded-xl border text-center ${bgCard}`}>
-              <div className={`text-xs font-bold mb-1 ${textMuted}`}>{isEnglish ? 'League Leader' : 'מוביל הליגה'}</div>
+              <div className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'League Leader' : 'מוביל הליגה'}</div>
               <div className={`text-2xl font-black ${textHighlight} truncate`}>{leaderTeam?.entry_name || '-'}</div>
               <div className="text-emerald-500 font-bold text-sm mt-1">{leaderTeam?.total || 0} {isEnglish ? 'pts' : "נק'"} ⬆</div>
             </div>
             <div className={`p-5 rounded-xl border text-center ${bgCard}`}>
-              <div className={`text-xs font-bold mb-1 ${textMuted}`}>{isEnglish ? 'Your Rank in League' : 'הדירוג שלך בליגה'}</div>
+              <div className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Your Rank in League' : 'הדירוג שלך בליגה'}</div>
               <div className={`text-4xl font-black ${textHighlight}`}>{isEnglish ? `#${myStanding?.rank || selectedLeague.entry_rank || '?'}` : `מקום ${myStanding?.rank || selectedLeague.entry_rank || '?'}`}</div>
               {myStanding && <div className="text-blue-500 font-bold text-xs mt-1">{myStanding.total} {isEnglish ? 'pts' : "נק'"}</div>}
             </div>
             <div className={`p-5 rounded-xl border text-center ${bgCard}`}>
-              <div className={`text-xs font-bold mb-1 ${textMuted}`}>{isEnglish ? 'Members' : 'משתתפים בליגה'}</div>
+              <div className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Members' : 'משתתפים בליגה'}</div>
               <div className={`text-4xl font-black ${textHighlight}`}>+{standings.length}</div>
             </div>
           </div>
@@ -2242,7 +2245,7 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
               </p>
               
               <div className={`mt-3 p-3 rounded-lg text-sm font-bold border-l-4 border-yellow-400 ${isDarkMode ? 'bg-yellow-900/20 text-yellow-200' : 'bg-yellow-50 text-yellow-800'}`}>
-                <span className="opacity-80 block text-xs uppercase mb-1">{isEnglish ? 'Golden Rule:' : 'כלל מפתח:'}</span>
+                <span className="opacity-80 block text-xs uppercase mb-0 sm:mb-1">{isEnglish ? 'Golden Rule:' : 'כלל מפתח:'}</span>
                 {isEnglish ? tip.rule_en : tip.rule_he}
               </div>
             </div>
