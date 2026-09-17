@@ -824,13 +824,19 @@ export default function Home() {
           });
 
           const recsData = await res.json();
-          if (recsData.candidates && recsData.candidates.length > 0) {
+          let finalRecs = recsData.candidates || recsData;
+          if (!Array.isArray(finalRecs)) {
+            console.error("API Error:", finalRecs);
+            setTransferError(isEnglish ? "Engine Error: Could not generate recommendations." : "שגיאת מנוע: " + JSON.stringify(finalRecs).substring(0, 100));
+            finalRecs = [];
+          } else if (recsData.candidates && recsData.candidates.length > 0) {
             recsData.candidates[0].is_hold = (recsData.recommendation === "HOLD");
             recsData.candidates[0].reason = recsData.best_transfer?.reason || "";
             recsData.candidates[0].confidence = recsData.best_transfer?.confidence || "";
             recsData.candidates[0].delta = recsData.delta || 0;
           }
-          setTransferRecs(recsData.candidates || recsData);
+          setTransferRecs(finalRecs);
+
 
         } catch (err) {
 
@@ -1972,13 +1978,18 @@ export default function Home() {
                       body: JSON.stringify({ pos_code: playerToSell.pos_code, max_budget: budget, current_squad_ids: currentSquadIds })
 
                     }).then(res => res.json()).then(recsData => {
-                      if (recsData.candidates && recsData.candidates.length > 0) {
+                      let finalRecs = recsData.candidates || recsData;
+                      if (!Array.isArray(finalRecs)) {
+                        console.error("API Error:", finalRecs);
+                        setTransferError(isEnglish ? "Engine Error: Could not generate recommendations." : "שגיאת מנוע: " + JSON.stringify(finalRecs).substring(0, 100));
+                        finalRecs = [];
+                      } else if (recsData.candidates && recsData.candidates.length > 0) {
                         recsData.candidates[0].is_hold = (recsData.recommendation === "HOLD");
                         recsData.candidates[0].reason = recsData.best_transfer?.reason || "";
                         recsData.candidates[0].confidence = recsData.best_transfer?.confidence || "";
                         recsData.candidates[0].delta = recsData.delta || 0;
                       }
-                      setTransferRecs(recsData.candidates || recsData);
+                      setTransferRecs(finalRecs);
 
                     }).catch(err => {
 
