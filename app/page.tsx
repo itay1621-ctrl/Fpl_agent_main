@@ -590,6 +590,7 @@ export default function Home() {
             <div className="bg-white p-8 rounded-2xl shadow-xl w-full text-[#37003c]" dir={isEnglish ? "ltr" : "rtl"}>
               <h2 className="text-xl font-bold mb-6 text-center text-[#37003c]">{t.enterId}</h2>
               <div className="flex flex-col gap-4">
+      <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={onSwap} onCaptain={onCaptain} onVice={onVice} onSell={onSell} isEnglish={isEnglish} isDarkMode={isDarkMode} />
                 <input 
                   type="number" 
                   value={teamId} 
@@ -1611,6 +1612,7 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
 
 function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onSwap, swapSourceId, onSell, onCaptain, onVice, onReset, originalData, onRestorePlayer }: any) {
   const [selectedGwOffset, setSelectedGwOffset] = useState(0);
+  const [actionPlayer, setActionPlayer] = useState<any>(null);
   const [ftAvailable, setFtAvailable] = useState(1);
   const [activeChip, setActiveChip] = useState<string | null>(null);
 
@@ -1658,7 +1660,8 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
     const isTransfer = !originalSquadIds.includes(p.id);
 
     return (
-      <div key={p.id} className={`flex flex-col items-center w-[46px] min-[400px]:w-[52px] sm:w-24 transition-transform hover:scale-105 ${isBench ? 'opacity-90 hover:opacity-100' : ''}`}>
+      <button key={p.id} onClick={() => swapSourceId !== null ? onSwap(p.id) : setActionPlayer(p)}
+        className={`flex flex-col items-center w-[46px] min-[400px]:w-[52px] sm:w-24 transition-transform hover:scale-105 cursor-pointer ${isBench ? 'opacity-90 hover:opacity-100' : ''}`}>
         <div className="relative mb-0 sm:mb-1">
           <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${p.team_code}-66.webp`} className="w-7 min-[400px]:w-8 sm:w-12 h-9 min-[400px]:h-10 sm:h-16 object-contain drop-shadow-md" />
           {p.is_captain && <div className="absolute -bottom-1 -right-2 bg-black text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-yellow-400 shadow z-10">C</div>}
@@ -1687,58 +1690,8 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
           £{p.cost.toFixed(1)}m | xP {p.xp.toFixed(1)}
         </div>
         
-        <div className="flex flex-wrap justify-center gap-1 mt-0.5 w-[110%]">
-          <button 
-            onClick={() => onSwap(p.id)}
-            title={isEnglish ? 'Swap Player' : 'חילוף (ספסל/הרכב)'}
-            className={`w-[22px] h-[22px] sm:w-6 sm:h-6 flex items-center justify-center rounded shadow cursor-pointer transition-colors ${isSelected ? 'bg-yellow-500 hover:bg-yellow-600 text-black' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
-          >
-            <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-          </button>
-          
-          <button 
-            onClick={() => onSell(p.id)}
-            disabled={swapSourceId !== null}
-            title={isEnglish ? 'Transfer Out (Buy new player)' : 'מכור שחקן (העברה)'}
-            className={`w-[22px] h-[22px] sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${swapSourceId !== null ? 'opacity-50 cursor-not-allowed bg-red-400 text-white' : 'cursor-pointer bg-red-500 hover:bg-red-600 text-white'}`}
-          >
-            <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          </button>
-
-          {isTransfer && (
-            <button 
-              onClick={() => onRestorePlayer(p.position)}
-              disabled={swapSourceId !== null}
-              title={isEnglish ? 'Undo Transfer' : 'בטל חילוף זה'}
-              className={`w-[22px] h-[22px] sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${swapSourceId !== null ? 'opacity-50 cursor-not-allowed bg-purple-400 text-white' : 'cursor-pointer bg-purple-500 hover:bg-purple-600 text-white'}`}
-            >
-              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
-            </button>
-          )}
-
-          {!isBench && (
-            <>
-              <button 
-                onClick={() => onCaptain(p.id)}
-                disabled={swapSourceId !== null}
-                title={isEnglish ? 'Set Captain' : 'בחר קפטן'}
-                className={`w-[22px] h-[22px] sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${swapSourceId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${p.is_captain ? 'bg-black text-yellow-400 border border-yellow-400' : isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
-              >
-                <span className="text-[8px] sm:text-xs font-black">C</span>
-              </button>
-              <button 
-                onClick={() => onVice(p.id)}
-                disabled={swapSourceId !== null}
-                title={isEnglish ? 'Set Vice Captain' : 'בחר סגן קפטן'}
-                className={`w-[22px] h-[22px] sm:w-6 sm:h-6 flex items-center justify-center rounded shadow transition-colors ${swapSourceId !== null ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${p.is_vice_captain ? 'bg-white text-black border border-black' : isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}
-              >
-                <span className="text-[8px] sm:text-xs font-black">V</span>
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-    );
+        </button>
+      );
   };
 
   return (
