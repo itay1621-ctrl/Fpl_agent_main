@@ -233,9 +233,18 @@ export default function Home() {
       const result = await res.json();
       
       // Fix missing position property by using the array index (FPL API returns them in order)
-      if (result.squad && result.squad.length > 0 && result.squad[0].position === undefined) {
+      const TEAM_CODES: Record<string, number> = {'ARS': 3, 'AVL': 7, 'BOU': 91, 'BRE': 94, 'BHA': 36, 'CHE': 8, 'COV': 9, 'CRY': 31, 'EVE': 11, 'FUL': 54, 'HUL': 88, 'IPS': 40, 'LEE': 2, 'LIV': 14, 'MCI': 43, 'MUN': 1, 'NEW': 4, 'NFO': 17, 'TOT': 6, 'SUN': 56};
+      
+      if (result.squad && result.squad.length > 0) {
         result.squad.forEach((p: any, index: number) => {
-          p.position = index + 1;
+          if (p.position === undefined) p.position = index + 1;
+          if (p.team_code === undefined && p.team) {
+            p.team_code = TEAM_CODES[p.team] || 1;
+          }
+          if (!p.fixture && p.upcoming_fixtures && p.upcoming_fixtures.length > 0) {
+            p.fixture = p.upcoming_fixtures[0].opponent;
+            p.fixture_diff = p.upcoming_fixtures[0].difficulty;
+          }
         });
       }
 
@@ -261,9 +270,18 @@ export default function Home() {
           const savedPlan = JSON.parse(savedPlanStr);
           // Only load if it matches the current upcoming GW, so outdated plans are wiped
           if (savedPlan.next_gw === result.next_gw) {
-            if (savedPlan.squad && savedPlan.squad.length > 0 && savedPlan.squad[0].position === undefined) {
+            const TEAM_CODES: Record<string, number> = {'ARS': 3, 'AVL': 7, 'BOU': 91, 'BRE': 94, 'BHA': 36, 'CHE': 8, 'COV': 9, 'CRY': 31, 'EVE': 11, 'FUL': 54, 'HUL': 88, 'IPS': 40, 'LEE': 2, 'LIV': 14, 'MCI': 43, 'MUN': 1, 'NEW': 4, 'NFO': 17, 'TOT': 6, 'SUN': 56};
+            
+            if (savedPlan.squad && savedPlan.squad.length > 0) {
               savedPlan.squad.forEach((p: any, index: number) => {
-                p.position = index + 1;
+                if (p.position === undefined) p.position = index + 1;
+                if (p.team_code === undefined && p.team) {
+                  p.team_code = TEAM_CODES[p.team] || 1;
+                }
+                if (!p.fixture && p.upcoming_fixtures && p.upcoming_fixtures.length > 0) {
+                  p.fixture = p.upcoming_fixtures[0].opponent;
+                  p.fixture_diff = p.upcoming_fixtures[0].difficulty;
+                }
               });
             }
             if (savedPlan.schedule) {
