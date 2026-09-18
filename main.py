@@ -9,8 +9,8 @@ app = FastAPI(title="FPL Elite Scout API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://fpl-agent-main-five.vercel.app", "http://localhost:3000"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
