@@ -151,6 +151,39 @@ export default function Home() {
   // חדש: מצב כהה ושפות
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isEnglish, setIsEnglish] = useState(false);
+  const [countdown, setCountdown] = useState("Calculating...");
+
+  useEffect(() => {
+    if (!data || !data.schedule || !data.schedule[data.next_gw] || data.schedule[data.next_gw].length === 0) return;
+    
+    // Sort matches to find the earliest kickoff
+    const matches = [...data.schedule[data.next_gw]].sort((a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime());
+    const firstMatchTime = new Date(matches[0].time);
+    
+    // FPL deadline is 90 mins before the first match
+    const deadline = new Date(firstMatchTime.getTime() - 90 * 60000);
+
+    const updateTimer = () => {
+      const now = new Date();
+      const diff = deadline.getTime() - now.getTime();
+      
+      if (diff <= 0) {
+        setCountdown("Deadline Passed");
+        return;
+      }
+      
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const m = Math.floor((diff / 1000 / 60) % 60);
+      const s = Math.floor((diff / 1000) % 60);
+      
+      setCountdown(`${d}d ${h}h ${m}m ${s}s`);
+    };
+    
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [data]);
 
   // מילון תרגומים
   const dict = {
@@ -707,7 +740,7 @@ export default function Home() {
 
           <div className={`border border-green-400 rounded-xl p-4 mb-8 flex flex-col items-center justify-center ${bgBox}`}>
             <p className={`text-[8px] sm:text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{t.timeUntil} (GW {data.next_gw})</p>
-            <p className="text-xl font-bold text-green-600">2d 8h 54m 46s</p>
+            <p className="text-xl font-bold text-green-600">{countdown}</p>
           </div>
 
           <div className="hidden md:flex overflow-x-auto gap-6 border-b border-gray-200 mb-6 pb-2 text-sm font-bold whitespace-nowrap scrollbar-hide">
@@ -1578,6 +1611,14 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
     fetch(`${API_BASE_URL}/api/budget-scenarios/${teamId}`)
       .then(res => res.json())
       .then(data => {
+        const TEAM_CODES: Record<string, number> = {'ARS': 3, 'AVL': 7, 'BOU': 91, 'BRE': 94, 'BHA': 36, 'CHE': 8, 'COV': 9, 'CRY': 31, 'EVE': 11, 'FUL': 54, 'HUL': 88, 'IPS': 40, 'LEE': 2, 'LIV': 14, 'MCI': 43, 'MUN': 1, 'NEW': 4, 'NFO': 17, 'TOT': 6, 'SUN': 56};
+        if (Array.isArray(data)) {
+          data.forEach(scenario => {
+            if (scenario.sell && scenario.sell.team_code === undefined && scenario.sell.team) {
+              scenario.sell.team_code = TEAM_CODES[scenario.sell.team] || 1;
+            }
+          });
+        }
         setScenarios(data);
         setLoading(false);
       })
