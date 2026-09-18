@@ -127,6 +127,17 @@ const FPL_SUCCESS_TIPS = [
 
 const API_BASE_URL = "";
 
+const TEAM_CODES: Record<string, number> = {'ARS': 3, 'AVL': 7, 'BOU': 91, 'BRE': 94, 'BHA': 36, 'CHE': 8, 'COV': 9, 'CRY': 31, 'EVE': 11, 'FUL': 54, 'HUL': 88, 'IPS': 40, 'LEE': 2, 'LIV': 14, 'MCI': 43, 'MUN': 1, 'NEW': 4, 'NFO': 17, 'TOT': 6, 'SUN': 56};
+
+function getTeamCode(teamShortName: string): number {
+  const code = TEAM_CODES[teamShortName];
+  if (code === undefined) {
+    console.warn(`Unknown team short_name: "${teamShortName}" — falling back to default code 1`);
+    return 1;
+  }
+  return code;
+}
+
 export default function Home() {
   const [teamId, setTeamId] = useState('');
   const [data, setData] = useState<any>(null);
@@ -279,13 +290,11 @@ export default function Home() {
       const result = await res.json();
       
       // Fix missing position property by using the array index (FPL API returns them in order)
-      const TEAM_CODES: Record<string, number> = {'ARS': 3, 'AVL': 7, 'BOU': 91, 'BRE': 94, 'BHA': 36, 'CHE': 8, 'COV': 9, 'CRY': 31, 'EVE': 11, 'FUL': 54, 'HUL': 88, 'IPS': 40, 'LEE': 2, 'LIV': 14, 'MCI': 43, 'MUN': 1, 'NEW': 4, 'NFO': 17, 'TOT': 6, 'SUN': 56};
-      
       if (result.squad && result.squad.length > 0) {
         result.squad.forEach((p: any, index: number) => {
           if (p.position === undefined) p.position = index + 1;
           if (p.team_code === undefined && p.team) {
-            p.team_code = TEAM_CODES[p.team] || 1;
+            p.team_code = getTeamCode(p.team);
           }
           if (!p.fixture && p.upcoming_fixtures && p.upcoming_fixtures.length > 0) {
             p.fixture = p.upcoming_fixtures[0].opponent;
@@ -316,13 +325,11 @@ export default function Home() {
           const savedPlan = JSON.parse(savedPlanStr);
           // Only load if it matches the current upcoming GW, so outdated plans are wiped
           if (savedPlan.next_gw === result.next_gw) {
-            const TEAM_CODES: Record<string, number> = {'ARS': 3, 'AVL': 7, 'BOU': 91, 'BRE': 94, 'BHA': 36, 'CHE': 8, 'COV': 9, 'CRY': 31, 'EVE': 11, 'FUL': 54, 'HUL': 88, 'IPS': 40, 'LEE': 2, 'LIV': 14, 'MCI': 43, 'MUN': 1, 'NEW': 4, 'NFO': 17, 'TOT': 6, 'SUN': 56};
-            
             if (savedPlan.squad && savedPlan.squad.length > 0) {
               savedPlan.squad.forEach((p: any, index: number) => {
                 if (p.position === undefined) p.position = index + 1;
                 if (p.team_code === undefined && p.team) {
-                  p.team_code = TEAM_CODES[p.team] || 1;
+                  p.team_code = getTeamCode(p.team);
                 }
                 if (!p.fixture && p.upcoming_fixtures && p.upcoming_fixtures.length > 0) {
                   p.fixture = p.upcoming_fixtures[0].opponent;
@@ -1531,7 +1538,10 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/radar`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
         setRadarData(data);
         setLoading(false);
@@ -1623,13 +1633,15 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/budget-scenarios/${teamId}`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
-        const TEAM_CODES: Record<string, number> = {'ARS': 3, 'AVL': 7, 'BOU': 91, 'BRE': 94, 'BHA': 36, 'CHE': 8, 'COV': 9, 'CRY': 31, 'EVE': 11, 'FUL': 54, 'HUL': 88, 'IPS': 40, 'LEE': 2, 'LIV': 14, 'MCI': 43, 'MUN': 1, 'NEW': 4, 'NFO': 17, 'TOT': 6, 'SUN': 56};
         if (Array.isArray(data)) {
           data.forEach(scenario => {
             if (scenario.sell && scenario.sell.team_code === undefined && scenario.sell.team) {
-              scenario.sell.team_code = TEAM_CODES[scenario.sell.team] || 1;
+              scenario.sell.team_code = getTeamCode(scenario.sell.team);
             }
           });
         }

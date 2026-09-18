@@ -52,6 +52,14 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     xa_90 = float(p.get("expected_assists_per_90", 0) or 0) * weights["xa_weight"]
     xgc_90 = float(p.get("expected_goals_conceded_per_90", 0) or 0)
     defcon_90 = float(p.get("defensive_contribution_per_90", 0) or 0)
+
+    # סף הגנתי אמיתי לפי חוקי FPL: 10 פעולות למגנים, 12 לקשרים/חלוצים
+    defcon_threshold = 10 if pos_code == 2 else 12
+    # קירוב נורמלי: סטיית תקן ~35% מהממוצע (הערכה שמרנית לשונות בין משחקים)
+    defcon_std = max(defcon_90 * 0.35, 1.0)
+    z = (defcon_90 - defcon_threshold) / defcon_std
+    # פונקציית לוגיסטיק כקירוב מהיר ל-CDF נורמלי
+    prob_cross_threshold = 1 / (1 + math.exp(-1.7 * z))
     
     # Goal / Assist Points
     goal_pts = {1: 6, 2: 6, 3: 5, 4: 4}.get(pos_code, 4)
@@ -69,7 +77,7 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         saves_90 = float(p.get("saves_per_90", 0) or 0)
         xSave_90 = (saves_90 / 3.0) * 1
         
-    xBPS_90 = defcon_90 * weights["defcon_weight"]
+    xBPS_90 = prob_cross_threshold * 2.0  # 2 נקודות FPL על מעבר סף
     
     gw_range = min(5, 38 - next_gw + 1)
     
@@ -120,7 +128,7 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         total_5gw_projection += gw_proj
         
     form_val = float(p.get("form", 0) or 0)
-    total_5gw_projection += (form_val * weights["form_weight"])
+    total_5gw_projection += (form_val * weights["form_weight"] * gw_range)
     total_5gw_projection = max(0.0, total_5gw_projection)
     
     # Confidence metrics based on uncertainty, not just DGW
@@ -176,30 +184,48 @@ def enrich_shared(shared_ids, squad_a, squad_b):
         if player:
             enriched.append(player)
     return enriched
+def get_fpl_context(gw_limit: int = 5):
+    """מחזיר bootstrap, teams, elements, next_gw ו-fixtures לטווח נתון — משותף לכל ה-endpoints."""
+    bootstrap = fetch_bootstrap()
+    events = bootstrap.get("events", [])
+    current_gw = next((e["id"] for e in events if e["is_current"]), None)
+    next_gw = next((e["id"] for e in events if e["is_next"]), None)
+    if not next_gw and current_gw:
+        next_gw = current_gw + 1
+    elif not next_gw:
+        next_gw = 1
+    all_fixtures = fetch_all_fixtures()
+    max_gw = 38
+    gw_range = min(gw_limit, max_gw - next_gw + 1) if gw_limit else max(1, max_gw - next_gw + 1)
+    upper_bound = next_gw + gw_range - 1 if gw_limit else max_gw
+    upcoming_fixtures_raw = [
+        f for f in all_fixtures
+        if f.get("event") and next_gw <= f["event"] <= upper_bound
+    ]
+    teams = {t["id"]: t["short_name"] for t in bootstrap.get("teams", [])}
+    elements = {p["id"]: p for p in bootstrap.get("elements", [])}
+    return {
+        "bootstrap": bootstrap,
+        "teams": teams,
+        "elements": elements,
+        "next_gw": next_gw,
+        "gw_range": gw_range,
+        "upcoming_fixtures_raw": upcoming_fixtures_raw,
+    }
 
+
+@app.get("/api/dashboard/{team_id}")
 @app.get("/api/dashboard/{team_id}")
 def get_dashboard_data(team_id: int):
     try:
-        bootstrap = fetch_bootstrap()
-        
-        events = bootstrap.get("events", [])
-        current_gw = next((e["id"] for e in events if e["is_current"]), None)
-        next_gw = next((e["id"] for e in events if e["is_next"]), None)
-        if not next_gw and current_gw:
-            next_gw = current_gw + 1
-        elif not next_gw:
-            next_gw = 1
-            
+        ctx = get_fpl_context(gw_limit=None)
+        next_gw = ctx["next_gw"]
+        gw_range = ctx["gw_range"]
+        upcoming_fixtures_raw = ctx["upcoming_fixtures_raw"]
+        elements = ctx["elements"]
+        teams = ctx["teams"]
+
         picks, bank, team_name, rank, chips_used, leagues = fetch_user_team(team_id, next_gw)
-        gw_fixtures = fetch_fixtures(next_gw)
-        
-        elements = {p["id"]: p for p in bootstrap.get("elements", [])}
-        teams = {t["id"]: t["short_name"] for t in bootstrap.get("teams", [])}
-        
-        all_fixtures = fetch_all_fixtures()
-        max_gw = 38
-        gw_range = max(1, max_gw - next_gw + 1)
-        upcoming_fixtures_raw = [f for f in all_fixtures if f.get("event") and next_gw <= f["event"] <= max_gw]
 
         enriched_picks = []
         for pick in picks:
@@ -284,7 +310,7 @@ def get_league_data(league_id: int):
     try:
         url = f"https://fantasy.premierleague.com/api/leagues-classic/{league_id}/standings/"
         import requests
-        res = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'})
+        res = requests.get(url, headers={'User-Agent': 'Mozilla/5.0'}, timeout=12)
         if res.status_code != 200:
             raise Exception("League not found")
         return res.json()
@@ -302,8 +328,8 @@ def compare_teams(team_a: int, team_b: int):
         b_picks, b_bank, _, _, _, _ = fetch_user_team(team_b, next_gw)
         
         import requests
-        a_info = requests.get(f"https://fantasy.premierleague.com/api/entry/{team_a}/", headers={'User-Agent': 'Mozilla/5.0'})
-        b_info = requests.get(f"https://fantasy.premierleague.com/api/entry/{team_b}/", headers={'User-Agent': 'Mozilla/5.0'})
+        a_info = requests.get(f"https://fantasy.premierleague.com/api/entry/{team_a}/", headers={'User-Agent': 'Mozilla/5.0'}, timeout=12)
+        b_info = requests.get(f"https://fantasy.premierleague.com/api/entry/{team_b}/", headers={'User-Agent': 'Mozilla/5.0'}, timeout=12)
         
         a_data = {}
         b_data = {}
@@ -370,16 +396,11 @@ class TransferRequest(BaseModel):
 @app.post("/api/transfer-lab")
 def get_transfer_recommendations(req: TransferRequest):
     try:
-        bootstrap = fetch_bootstrap()
-        events = bootstrap.get("events", [])
-        next_gw = next((e["id"] for e in events if e["is_next"]), 1)
-        all_fixtures = fetch_all_fixtures()
-        
-        gw_range = min(5, 38 - next_gw + 1)
-        upcoming_fixtures_raw = [f for f in all_fixtures if f.get("event") and next_gw <= f["event"] <= next_gw + gw_range - 1]
-        
-        elements = bootstrap.get("elements", [])
-        teams = {t["id"]: t["short_name"] for t in bootstrap.get("teams", [])}
+        ctx = get_fpl_context(gw_limit=5)
+        next_gw = ctx["next_gw"]
+        upcoming_fixtures_raw = ctx["upcoming_fixtures_raw"]
+        elements = ctx["bootstrap"].get("elements", [])
+        teams = ctx["teams"]
         
         current_player = None
         if req.transfer_out_id:

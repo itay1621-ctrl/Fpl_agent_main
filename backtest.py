@@ -20,9 +20,51 @@ def load_historical_data(filepath):
         print(f"Error loading data: {e}")
         return None
 
+def build_rolling_features(df, window=5):
+    """
+    בונה features מבוססי-עבר בלבד: לכל שורה, ה-xG/xA/xGC/form מחושבים
+    מהחלון של N המשחקים *הקודמים* לאותו שחקן, לא כולל המשחק הנוכחי.
+    זה מונע דליפת מידע (data leakage) בין ה-features לתשואה המנובאת.
+    """
+    df = df.sort_values(["element", "GW"]).copy()
+
+    roll_cols = {
+        "expected_goals": "expected_goals_per_90",
+        "expected_assists": "expected_assists_per_90",
+        "expected_goals_conceded": "expected_goals_conceded_per_90",
+        "saves": "saves_per_90",
+    }
+    for raw_col, per90_col in roll_cols.items():
+        if raw_col not in df.columns:
+            df[raw_col] = 0
+        # ממוצע נגלל על פני window משחקים קודמים בלבד (shift(1) מוציא את המשחק הנוכחי)
+        df[per90_col] = (
+            df.groupby("element")[raw_col]
+            .transform(lambda s: s.shift(1).rolling(window, min_periods=1).mean())
+            .fillna(0)
+        )
+
+    df["defensive_contribution_per_90"] = (
+        df.groupby("element")["defensive_contribution"].transform(
+            lambda s: s.shift(1).rolling(window, min_periods=1).mean()
+        ).fillna(0)
+        if "defensive_contribution" in df.columns else 0
+    )
+
+    # form עצמו חייב להיות ה-form ההיסטורי (לפני המשחק), לא form שכולל אותו
+    df["form"] = (
+        df.groupby("element")["total_points"]
+        .transform(lambda s: s.shift(1).rolling(window, min_periods=1).mean())
+        .fillna(0)
+    )
+
+    return df
+
+
 def mock_fpl_api_format(row):
     """
-    Converts a historical CSV row into the dict format expected by calculate_player_projection
+    Converts a historical CSV row (with rolling, pre-match features) into the
+    dict format expected by calculate_player_projection.
     """
     return {
         "id": row.get("element", 0),
@@ -31,17 +73,17 @@ def mock_fpl_api_format(row):
         "team_code": 0,
         "element_type": row.get("position", 3), # 1=GK, 2=DEF, 3=MID, 4=FWD
         "now_cost": row.get("value", 50),
-        "form": row.get("form", 0.0),
+        "form": row.get("form", 0.0),  # כעת ממוצע נגלל היסטורי, לא form סופי
         "total_points": row.get("total_points", 0),
         "selected_by_percent": 5.0, # dummy
         "minutes": row.get("minutes", 0),
         "starts": row.get("starts", 0),
         "chance_of_playing_next_round": 100,
-        "expected_goals_per_90": row.get("expected_goals_per_90", row.get("expected_goals", 0)/max(1, row.get("minutes", 90)/90)),
-        "expected_assists_per_90": row.get("expected_assists_per_90", row.get("expected_assists", 0)/max(1, row.get("minutes", 90)/90)),
-        "expected_goals_conceded_per_90": row.get("expected_goals_conceded_per_90", row.get("expected_goals_conceded", 0)/max(1, row.get("minutes", 90)/90)),
+        "expected_goals_per_90": row.get("expected_goals_per_90", 0),
+        "expected_assists_per_90": row.get("expected_assists_per_90", 0),
+        "expected_goals_conceded_per_90": row.get("expected_goals_conceded_per_90", 0),
         "defensive_contribution_per_90": row.get("defensive_contribution_per_90", 0),
-        "saves_per_90": row.get("saves", 0) / max(1, row.get("minutes", 90)/90)
+        "saves_per_90": row.get("saves_per_90", 0)
     }
 
 def build_mock_fixtures(row, next_gw):
@@ -71,13 +113,16 @@ def run_calibration_grid(df):
     # We want to predict points BEFORE they happen, so we technically need shifting.
     # For this framework demonstration, we assume 'row' contains pre-match expectations.
     # In reality, Vaastav's data has actuals. We use rolling averages for pre-match data in a full DB setup.
+    df = build_rolling_features(df, window=5)
     active_df = df[df["minutes"] > 0].copy().head(5000) # Limit for speed
     
     # Grid of weights to test
     grid = {
         "form_weight": [0.0, 0.25, 0.5, 0.75],
         "xg_weight": [0.8, 1.0, 1.2],
-        "fdr_scale": [0.5, 1.0, 1.5]
+        "xa_weight": [0.8, 1.0, 1.2],
+        "fdr_scale": [0.5, 1.0, 1.5],
+        "opportunity_cost": [1.5, 2.0, 2.5]
     }
     
     best_mae = float('inf')
