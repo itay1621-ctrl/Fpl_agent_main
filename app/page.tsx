@@ -999,7 +999,7 @@ export default function Home() {
                 originalData={originalData}
                 onRestorePlayer={handleRestorePlayer}
                 swapSourceId={swapSourceId} 
-                onSell={(id: number) => {
+                onSell={async (id: number) => {
                   setTransferOutId(id);
                   const playerToSell = data.squad.find((p: any) => p.id === id);
                   if (playerToSell) {
