@@ -458,7 +458,7 @@ export default function Home() {
             })
           });
           const recs = await res.json();
-          setTransferRecs(recs);
+          setTransferRecs(recs.candidates || []);
         } catch (err) {
           console.error("Failed to fetch recs", err);
         } finally {
@@ -1006,17 +1006,25 @@ export default function Home() {
                     setLoadingRecs(true);
                     const budget = data.bank + playerToSell.cost;
                     const currentSquadIds = data.squad.map((p: any) => p.id);
-                    fetch(`${API_BASE_URL}/api/transfer-lab`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ pos_code: playerToSell.pos_code, max_budget: budget, current_squad_ids: currentSquadIds })
-                    }).then(res => res.json()).then(recs => {
-                      setTransferRecs(recs);
-                    }).catch(err => {
+                    try {
+                      const res = await fetch(`${API_BASE_URL}/api/transfer-lab`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          pos_code: playerToSell.pos_code,
+                          max_budget: budget,
+                          current_squad_ids: currentSquadIds
+                        })
+                      });
+                      const recs = await res.json();
+                      setTransferRecs(recs.candidates || []);
+                    } catch (err) {
                       console.error("Failed to fetch recs", err);
-                    }).finally(() => {
+                      setTransferError(isEnglish ? 'Failed to fetch recommendations.' : 'שגיאה בטעינת המלצות.');
+                      setTransferRecs([]);
+                    } finally {
                       setLoadingRecs(false);
-                    });
+                    }
                   }
                 }}
               />
