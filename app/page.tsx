@@ -231,6 +231,27 @@ export default function Home() {
       const res = await fetch(`${API_BASE_URL}/api/dashboard/${idToFetch}`);
       if (!res.ok) throw new Error(`[Debug] HTTP ${res.status} from ${res.url} | ID: '${idToFetch}'`);
       const result = await res.json();
+      
+      // Fix missing position property by using the array index (FPL API returns them in order)
+      if (result.squad && result.squad.length > 0 && result.squad[0].position === undefined) {
+        result.squad.forEach((p: any, index: number) => {
+          p.position = index + 1;
+        });
+      }
+
+      // Map schedule keys to match frontend expectations
+      if (result.schedule) {
+        for (const gw in result.schedule) {
+          result.schedule[gw] = result.schedule[gw].map((m: any) => ({
+            ...m,
+            home_team: m.home || m.home_team,
+            away_team: m.away || m.away_team,
+            home_diff: m.h_diff || m.home_diff,
+            away_diff: m.a_diff || m.away_diff
+          }));
+        }
+      }
+
       setOriginalData(JSON.parse(JSON.stringify(result)));
       localStorage.setItem('fpl_team_id', idToFetch);
       
@@ -240,6 +261,22 @@ export default function Home() {
           const savedPlan = JSON.parse(savedPlanStr);
           // Only load if it matches the current upcoming GW, so outdated plans are wiped
           if (savedPlan.next_gw === result.next_gw) {
+            if (savedPlan.squad && savedPlan.squad.length > 0 && savedPlan.squad[0].position === undefined) {
+              savedPlan.squad.forEach((p: any, index: number) => {
+                p.position = index + 1;
+              });
+            }
+            if (savedPlan.schedule) {
+              for (const gw in savedPlan.schedule) {
+                savedPlan.schedule[gw] = savedPlan.schedule[gw].map((m: any) => ({
+                  ...m,
+                  home_team: m.home || m.home_team,
+                  away_team: m.away || m.away_team,
+                  home_diff: m.h_diff || m.home_diff,
+                  away_diff: m.a_diff || m.away_diff
+                }));
+              }
+            }
             setData(savedPlan);
             return;
           }
