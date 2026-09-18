@@ -1134,10 +1134,15 @@ export default function Home() {
                                     <p className={`font-black text-[9px] sm:text-sm truncate ${textHighlight}`}>{rec.name}</p>
                                     <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{rec.team}</p>
                                   </div>
-                                  <div className={`w-full text-[8px] sm:text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded flex justify-between ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
-                                    <span className={textHighlight}>£{rec.cost.toFixed(1)}</span>
-                                    <span className="text-emerald-500">{rec.xp.toFixed(1)} XP</span>
-                                  </div>
+                                  <div className={`w-full text-[8px] sm:text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded flex flex-col gap-1 ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
+                                      <div className="flex justify-between w-full">
+                                        <span className={textHighlight}>£{rec.cost.toFixed(1)}</span>
+                                        <span className="text-emerald-500">{rec.xp.toFixed(1)} XP</span>
+                                      </div>
+                                      <span className={`text-[7px] sm:text-[9px] px-1 py-0.5 rounded text-center text-white ${rec.fixture_diff <= 2 ? 'bg-emerald-500' : rec.fixture_diff === 3 ? 'bg-slate-400' : 'bg-rose-500'}`}>
+                                        {rec.fixture}
+                                      </span>
+                                    </div>
                                 </button>
                               ))}
                             </div>
