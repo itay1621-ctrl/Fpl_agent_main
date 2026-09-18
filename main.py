@@ -59,16 +59,22 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     chance = p.get("chance_of_playing_next_round")
     availability_prob = 1.0 if chance is None else float(chance) / 100.0
     
-    # 2. Expected Minutes (Basic rotation model)
+    # 2. Expected Minutes (Realistic Model)
     total_mins = p.get("minutes", 0)
     starts = p.get("starts", 0)
-    mins_per_start = total_mins / starts if starts > 0 else 0
-    if mins_per_start == 0 and float(p.get("form", 0) or 0) > 0:
-        mins_per_start = 60 # Default for non-starters getting minutes
+    if starts > 0:
+        mins_per_app = min(90, total_mins / starts)
+    elif total_mins > 0:
+        mins_per_app = 30 # sub appearances only
+    else:
+        mins_per_app = 0
         
-    expected_minutes = mins_per_start * availability_prob
+    form_val = float(p.get("form", 0) or 0)
+    if form_val > 3.0 and mins_per_app < 45:
+        mins_per_app = 60 # Momentum / breaking into team
+
+    expected_minutes = mins_per_app * availability_prob
     if expected_minutes > 90: expected_minutes = 90
-    x_90s = expected_minutes / 90.0
     
     # 3. Base Per-90 Stats
     xg_90 = float(p.get("expected_goals_per_90", 0) or 0) * weights["xg_weight"]
@@ -76,31 +82,25 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     xgc_90 = float(p.get("expected_goals_conceded_per_90", 0) or 0)
     defcon_90 = float(p.get("defensive_contribution_per_90", 0) or 0)
 
-    # סף הגנתי אמיתי לפי חוקי FPL: 10 פעולות למגנים, 12 לקשרים/חלוצים
+    # 4. Form / Momentum Proxy
+    # Instead of adding massive raw points at the end, we scale the xG/xA base
+    form_multiplier = 1.0 + (max(0, form_val) / 20.0) # max +40% for an insane form of 8.0
+    xg_90 *= form_multiplier
+    xa_90 *= form_multiplier
+
     defcon_threshold = 10 if pos_code == 2 else 12
-    # קירוב נורמלי: סטיית תקן ~35% מהממוצע (הערכה שמרנית לשונות בין משחקים)
     defcon_std = max(defcon_90 * 0.35, 1.0)
     z = (defcon_90 - defcon_threshold) / defcon_std
-    # פונקציית לוגיסטיק כקירוב מהיר ל-CDF נורמלי
     prob_cross_threshold = 1 / (1 + math.exp(-1.7 * z))
     
-    # Goal / Assist Points
     goal_pts = {1: 6, 2: 6, 3: 5, 4: 4}.get(pos_code, 4)
     assist_pts = 3
     
-    # Base expectations
     xAtt_90 = (xg_90 * goal_pts) + (xa_90 * assist_pts)
-    
     cs_pts = {1: 4, 2: 4, 3: 1, 4: 0}.get(pos_code, 0)
     cs_prob_90 = math.exp(-xgc_90) if xgc_90 > 0 else 0.5
-    xDef_90 = cs_prob_90 * cs_pts
-    
-    xSave_90 = 0
-    if pos_code == 1:
-        saves_90 = float(p.get("saves_per_90", 0) or 0)
-        xSave_90 = (saves_90 / 3.0) * 1
-        
-    xBPS_90 = prob_cross_threshold * 2.0  # 2 נקודות FPL על מעבר סף
+    xSave_90 = (float(p.get("saves_per_90", 0) or 0) / 3.0) * 1 if pos_code == 1 else 0
+    xBPS_90 = prob_cross_threshold * 2.0
     
     gw_range = min(5, 38 - next_gw + 1)
     
@@ -122,25 +122,41 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
             is_home = (f["team_h"] == team_id_fpl)
             diff = f["team_h_difficulty"] if is_home else f["team_a_difficulty"]
             
+            opp_id = f["team_a"] if is_home else f["team_h"]
+            
             if gw_inc == 0 and fixtures_found == 1:
-                opp_id = f["team_a"] if is_home else f["team_h"]
-                next_gw_opponent = f"{teams.get(opp_id, 'UNK')} ({'H' if is_home else 'A'})"
+                next_gw_opponent = f"{teams.get(opp_id, {}).get('short_name', 'UNK')} ({'H' if is_home else 'A'})"
                 next_gw_diff = diff
             
-            # FDR Multiplier
-            # We scale the FDR intensity using fdr_scale
-            fdr_multiplier = 1.0
-            if diff == 1: fdr_multiplier = 1.0 + (0.3 * weights["fdr_scale"])
-            elif diff == 2: fdr_multiplier = 1.0 + (0.15 * weights["fdr_scale"])
-            elif diff == 3: fdr_multiplier = 1.0
-            elif diff == 4: fdr_multiplier = 1.0 - (0.15 * weights["fdr_scale"])
-            elif diff == 5: fdr_multiplier = 1.0 - (0.3 * weights["fdr_scale"])
+            # Split FDR based on Opponent Strength (V2 Logic)
+            opp_team = teams.get(opp_id, {})
+            avg_strength = 1100.0 # Baseline FPL strength index
             
-            # FIX: FDR ONLY applies to attacking and defensive potential, NOT appearance or saves
-            match_xAtt = xAtt_90 * x_90s * fdr_multiplier
-            match_xDef = xDef_90 * x_90s * fdr_multiplier
-            match_xSave = xSave_90 * x_90s
-            match_xBPS = xBPS_90 * x_90s
+            if is_home:
+                opp_defence_strength = opp_team.get("strength_defence_away", avg_strength)
+                opp_attack_strength = opp_team.get("strength_attack_away", avg_strength)
+                home_adv = 1.05
+            else:
+                opp_defence_strength = opp_team.get("strength_defence_home", avg_strength)
+                opp_attack_strength = opp_team.get("strength_attack_home", avg_strength)
+                home_adv = 0.95
+                
+            # If playing against a strong defence (e.g. 1300), multiplier is < 1.0 (penalty)
+            att_multiplier = (avg_strength / opp_defence_strength) * home_adv if opp_defence_strength > 0 else 1.0
+            
+            # If playing against a strong attack (e.g. 1300), defensive multiplier is < 1.0 (penalty)
+            def_multiplier = (avg_strength / opp_attack_strength) * home_adv if opp_attack_strength > 0 else 1.0
+            
+            match_xAtt = xAtt_90 * (expected_minutes / 90.0) * att_multiplier
+            
+            # Clean sheet
+            # Base xGC modified by opponent attack strength
+            match_xgc = (xgc_90 * (expected_minutes / 90.0)) / def_multiplier
+            match_cs_prob = math.exp(-match_xgc) if match_xgc > 0 else 0.5
+            match_xDef = match_cs_prob * cs_pts
+            
+            match_xSave = xSave_90 * (expected_minutes / 90.0) * def_multiplier
+            match_xBPS = xBPS_90 * (expected_minutes / 90.0)
             
             appearance_pts = 0
             if expected_minutes >= 60: appearance_pts = 2 * availability_prob
@@ -150,8 +166,6 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
             
         total_5gw_projection += gw_proj
         
-    form_val = float(p.get("form", 0) or 0)
-    total_5gw_projection += (form_val * weights["form_weight"] * gw_range)
     total_5gw_projection = max(0.0, total_5gw_projection)
     
     # Confidence metrics based on uncertainty, not just DGW
@@ -163,8 +177,8 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         
     reasons = []
     reasons.append(f"Expected Minutes: {int(expected_minutes)}/match")
-    if form_val > 0:
-        reasons.append(f"Form Adjustment: +{round(form_val * weights['form_weight'], 2)} pts")
+    if form_val > 3.0:
+        reasons.append(f"Form Momentum: +{int((form_multiplier - 1)*100)}% to expected returns")
     if xg_90 > 0.3 or xa_90 > 0.3:
         reasons.append(f"Strong attacking threat (xG/90: {xg_90}, xA/90: {xa_90})")
     if cs_prob_90 > 0.4 and pos_code in [1, 2]:
@@ -175,7 +189,7 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     return {
         "id": p["id"],
         "name": p["web_name"],
-        "team": teams.get(p["team"], "UNK"),
+        "team": teams.get(p["team"], {}).get("short_name", "UNK"),
         "team_code": p["team_code"],
         "pos_code": pos_code,
         "cost": p["now_cost"] / 10,
@@ -225,7 +239,7 @@ def get_fpl_context(gw_limit: int = 5):
         f for f in all_fixtures
         if f.get("event") and next_gw <= f["event"] <= upper_bound
     ]
-    teams = {t["id"]: t["short_name"] for t in bootstrap.get("teams", [])}
+    teams = {t["id"]: t for t in bootstrap.get("teams", [])}
     elements = {p["id"]: p for p in bootstrap.get("elements", [])}
     return {
         "bootstrap": bootstrap,
@@ -264,12 +278,12 @@ def get_dashboard_data(team_id: int):
                     found = False
                     for f in gw_fixs:
                         if f["team_h"] == player["team"]:
-                            opp = teams.get(f["team_a"], "UNK")
+                            opp = teams.get(f["team_a"], {}).get("short_name", "UNK")
                             upcoming_fixtures.append({"gw": target_gw, "opponent": f"{opp} (H)", "difficulty": f["team_h_difficulty"]})
                             found = True
                             break
                         elif f["team_a"] == player["team"]:
-                            opp = teams.get(f["team_h"], "UNK")
+                            opp = teams.get(f["team_h"], {}).get("short_name", "UNK")
                             upcoming_fixtures.append({"gw": target_gw, "opponent": f"{opp} (A)", "difficulty": f["team_a_difficulty"]})
                             found = True
                             break
@@ -279,7 +293,7 @@ def get_dashboard_data(team_id: int):
                 enriched_picks.append({
                     "id": player["id"],
                     "name": player["web_name"],
-                    "team": teams.get(player["team"], "UNK"),
+                    "team": teams.get(player["team"], {}).get("short_name", "UNK"),
                     "team_code": player.get("team_code", 1),
                     "pos_code": player["element_type"],
                     "position": pick.get("position"),
@@ -308,8 +322,8 @@ def get_dashboard_data(team_id: int):
             formatted_fixs = []
             for f in gw_fixs:
                 formatted_fixs.append({
-                    "home": teams.get(f["team_h"], "UNK"),
-                    "away": teams.get(f["team_a"], "UNK"),
+                    "home": teams.get(f["team_h"], {}).get("short_name", "UNK"),
+                    "away": teams.get(f["team_a"], {}).get("short_name", "UNK"),
                     "h_diff": f["team_h_difficulty"],
                     "a_diff": f["team_a_difficulty"],
                     "time": f.get("kickoff_time")
@@ -372,7 +386,7 @@ def compare_teams(team_a: int, team_b: int):
         b_unique = list(b_ids - a_ids)
         
         elements = {p["id"]: p for p in bootstrap.get("elements", [])}
-        teams = {t["id"]: t["short_name"] for t in bootstrap.get("teams", [])}
+        teams = {t["id"]: t for t in bootstrap.get("teams", [])}
         
         def hydrate(pick_list):
             res = []
@@ -382,7 +396,7 @@ def compare_teams(team_a: int, team_b: int):
                     res.append({
                         "id": player["id"],
                         "name": player["web_name"],
-                        "team": teams.get(player["team"], "UNK"),
+                        "team": teams.get(player["team"], {}).get("short_name", "UNK"),
                         "team_code": player.get("team_code", 1),
                         "pos_code": player["element_type"],
                         "position": pick.get("position"),
@@ -488,7 +502,7 @@ def get_radar():
     try:
         bootstrap = fetch_bootstrap()
         elements = bootstrap.get("elements", [])
-        teams = {t["id"]: t["short_name"] for t in bootstrap.get("teams", [])}
+        teams = {t["id"]: t for t in bootstrap.get("teams", [])}
         
         events = bootstrap.get("events", [])
         next_gw = next((e["id"] for e in events if e["is_next"]), 1)
@@ -529,7 +543,7 @@ def get_budget_scenarios(team_id: int):
         bootstrap = fetch_bootstrap()
         all_fixtures = fetch_all_fixtures()
         elements = bootstrap.get("elements", [])
-        teams = {t["id"]: t["short_name"] for t in bootstrap.get("teams", [])}
+        teams = {t["id"]: t for t in bootstrap.get("teams", [])}
         
         gw_range = min(5, 38 - next_gw + 1)
         upcoming_fixtures_raw = [f for f in all_fixtures if f.get("event") and next_gw <= f["event"] <= next_gw + gw_range - 1]
