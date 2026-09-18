@@ -25,6 +25,29 @@ DEFAULT_WEIGHTS = {
     "opportunity_cost": 2.0
 }
 
+import datetime
+import os
+
+def log_prediction(player_id, player_name, gw, xp, context, recommendation=""):
+    try:
+        log_dir = os.path.join(os.path.dirname(__file__), "logs")
+        os.makedirs(log_dir, exist_ok=True)
+        log_file = os.path.join(log_dir, "predictions_log.jsonl")
+        
+        entry = {
+            "timestamp": datetime.datetime.now().isoformat(),
+            "gw": gw,
+            "player_id": player_id,
+            "player_name": player_name,
+            "xp": round(xp, 2),
+            "context": context,
+            "recommendation": recommendation
+        }
+        with open(log_file, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
+    except Exception as e:
+        print(f"Failed to log prediction: {e}")
+
 def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weights=None):
     if weights is None:
         weights = DEFAULT_WEIGHTS
@@ -156,7 +179,7 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         "team_code": p["team_code"],
         "pos_code": pos_code,
         "cost": p["now_cost"] / 10,
-        "xp": round(total_5gw_projection, 2),
+        "xp": round(total_5gw_projection / max(1, gw_range), 2),
         "form": form_val,
         "total_points": p.get("total_points", 0),
         "selected_by_percent": float(p.get("selected_by_percent", 0) or 0),
@@ -257,7 +280,9 @@ def get_dashboard_data(team_id: int):
                     "id": player["id"],
                     "name": player["web_name"],
                     "team": teams.get(player["team"], "UNK"),
+                    "team_code": player.get("team_code", 1),
                     "pos_code": player["element_type"],
+                    "position": pick.get("position"),
                     "cost": player["now_cost"] / 10,
                     "is_captain": pick.get("is_captain", False),
                     "is_vice_captain": pick.get("is_vice_captain", False),
@@ -358,7 +383,9 @@ def compare_teams(team_a: int, team_b: int):
                         "id": player["id"],
                         "name": player["web_name"],
                         "team": teams.get(player["team"], "UNK"),
+                        "team_code": player.get("team_code", 1),
                         "pos_code": player["element_type"],
+                        "position": pick.get("position"),
                         "is_captain": pick.get("is_captain", False),
                         "multiplier": pick.get("multiplier", 1)
                     })
@@ -408,12 +435,19 @@ def get_transfer_recommendations(req: TransferRequest):
             if curr_p_raw:
                 current_player = calculate_player_projection(curr_p_raw, next_gw, upcoming_fixtures_raw, teams)
                 
+        team_counts = {}
+        for p in elements:
+            if p["id"] in req.current_squad_ids and p["id"] != req.transfer_out_id:
+                t = p["team"]
+                team_counts[t] = team_counts.get(t, 0) + 1
+
         candidates = []
         for p in elements:
             if p["element_type"] == req.pos_code and p["id"] not in req.current_squad_ids:
                 if (p["now_cost"] / 10) <= req.max_budget:
-                    c = calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams)
-                    candidates.append(c)
+                    if team_counts.get(p["team"], 0) < 3:
+                        c = calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams)
+                        candidates.append(c)
                     
         candidates = sorted(candidates, key=lambda x: x["xp"], reverse=True)
         best_candidate = candidates[0] if candidates else None
@@ -433,6 +467,11 @@ def get_transfer_recommendations(req: TransferRequest):
             if net_gain <= 0:
                 recommendation = "HOLD"
                 
+        if current_player:
+            log_prediction(current_player["id"], current_player["name"], next_gw, current_player["xp"], "Transfer Lab - Current", "HOLD" if recommendation == "HOLD" else "SELL")
+        if best_candidate:
+            log_prediction(best_candidate["id"], best_candidate["name"], next_gw, best_candidate["xp"], "Transfer Lab - Candidate", recommendation)
+
         return {
             "recommendation": recommendation,
             "delta": delta,
@@ -467,7 +506,7 @@ def get_radar():
         scout_picks = sorted(all_players, key=lambda x: x["xp"], reverse=True)[:10]
         hot_form = sorted(all_players, key=lambda x: x["form"], reverse=True)[:10]
         
-        differentials = sorted([p for p in all_players if p["selected_by_percent"] < 10.0 and p["xp"] > 15.0], key=lambda x: x["xp"], reverse=True)[:10]
+        differentials = sorted([p for p in all_players if p["selected_by_percent"] < 10.0 and p["xp"] > 3.0], key=lambda x: x["xp"], reverse=True)[:10]
         if not differentials:
             differentials = sorted([p for p in all_players if p["selected_by_percent"] < 10.0], key=lambda x: x["xp"], reverse=True)[:10]
             
@@ -510,7 +549,7 @@ def get_budget_scenarios(team_id: int):
                 reason = "Injury / Doubtful"
             elif sp.get("form", 0) < 2.0 and sp.get("xp", 0) < 3.0:
                 reason = "Poor Output (Low Form & Projection)"
-            elif sp.get("xp", 0) < 15.0:
+            elif sp.get("xp", 0) < 3.0:
                 reason = "Tough Upcoming Run (Low 5GW Projection)"
                 
             if reason:
