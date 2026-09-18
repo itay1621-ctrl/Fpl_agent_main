@@ -160,6 +160,11 @@ export default function Home() {
     const matches = [...data.schedule[data.next_gw]].sort((a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime());
     const firstMatchTime = new Date(matches[0].time);
     
+    if (isNaN(firstMatchTime.getTime())) {
+      setCountdown("Time unknown");
+      return;
+    }
+    
     // FPL deadline is 90 mins before the first match
     const deadline = new Date(firstMatchTime.getTime() - 90 * 60000);
 
@@ -319,12 +324,13 @@ export default function Home() {
             }
             if (savedPlan.schedule) {
               for (const gw in savedPlan.schedule) {
-                savedPlan.schedule[gw] = savedPlan.schedule[gw].map((m: any) => ({
+                savedPlan.schedule[gw] = savedPlan.schedule[gw].map((m: any, idx: number) => ({
                   ...m,
                   home_team: m.home || m.home_team,
                   away_team: m.away || m.away_team,
                   home_diff: m.h_diff || m.home_diff,
-                  away_diff: m.a_diff || m.away_diff
+                  away_diff: m.a_diff || m.away_diff,
+                  time: m.time || (result.schedule && result.schedule[gw] && result.schedule[gw][idx] ? result.schedule[gw][idx].time : undefined)
                 }));
               }
             }
@@ -1965,8 +1971,23 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
     setCompareData(null);
     try {
       const res = await fetch(`${API_BASE_URL}/api/compare/${data.team_id}/${rivalId}?gw=${Math.max(1, data.next_gw - 1)}`);
-      if (!res.ok) throw new Error(isEnglish ? "Could not fetch rival team." : "לא ניתן לטעון את הסגל של היריב.");
+      if (!res.ok) throw new Error(isEnglish ? "Could not fetch rival team." : "לא הצלחתי למשוך את קבוצת היריב.");
       const json = await res.json();
+      
+      const TEAM_CODES: Record<string, number> = {'ARS': 3, 'AVL': 7, 'BOU': 91, 'BRE': 94, 'BHA': 36, 'CHE': 8, 'COV': 9, 'CRY': 31, 'EVE': 11, 'FUL': 54, 'HUL': 88, 'IPS': 40, 'LEE': 2, 'LIV': 14, 'MCI': 43, 'MUN': 1, 'NEW': 4, 'NFO': 17, 'TOT': 6, 'SUN': 56};
+      const mapTeamCode = (playerList: any[]) => {
+        if (!playerList) return;
+        playerList.forEach(p => {
+          if (p.team_code === undefined && p.team) p.team_code = TEAM_CODES[p.team] || 1;
+        });
+      };
+
+      if (json.team_a && json.team_a.picks) mapTeamCode(json.team_a.picks);
+      if (json.team_b && json.team_b.picks) mapTeamCode(json.team_b.picks);
+      if (json.team_a && json.team_a.unique) mapTeamCode(json.team_a.unique);
+      if (json.team_b && json.team_b.unique) mapTeamCode(json.team_b.unique);
+      if (json.shared) mapTeamCode(json.shared);
+
       setCompareData(json);
     } catch (err: any) {
       setCompareError(err.message);
