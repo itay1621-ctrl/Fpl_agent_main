@@ -152,6 +152,7 @@ export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isEnglish, setIsEnglish] = useState(false);
   const [countdown, setCountdown] = useState("Calculating...");
+  const [isUrgent, setIsUrgent] = useState(false);
 
   useEffect(() => {
     if (!data || !data.schedule || !data.schedule[data.next_gw] || data.schedule[data.next_gw].length === 0) return;
@@ -174,15 +175,22 @@ export default function Home() {
       
       if (diff <= 0) {
         setCountdown("Deadline Passed");
+        setIsUrgent(true);
         return;
       }
+      
+      setIsUrgent(diff <= 2 * 60 * 60 * 1000);
       
       const d = Math.floor(diff / (1000 * 60 * 60 * 24));
       const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const m = Math.floor((diff / 1000 / 60) % 60);
       const s = Math.floor((diff / 1000) % 60);
       
-      setCountdown(`${d}d ${h}h ${m}m ${s}s`);
+      const parts = [];
+      if (d > 0) parts.push(`${d}d`);
+      parts.push(`${h}h`, `${m}m`, `${s}s`);
+      
+      setCountdown(parts.join(' '));
     };
     
     updateTimer();
@@ -744,9 +752,9 @@ export default function Home() {
             </div>
           </div>
 
-          <div className={`border border-green-400 rounded-xl p-4 mb-8 flex flex-col items-center justify-center ${bgBox}`}>
+          <div className={`border ${isUrgent ? 'border-red-500' : 'border-green-400'} rounded-xl p-4 mb-8 flex flex-col items-center justify-center ${bgBox}`}>
             <p className={`text-[8px] sm:text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{t.timeUntil} (GW {data.next_gw})</p>
-            <p className="text-xl font-bold text-green-600">{countdown}</p>
+            <p className={`text-xl font-bold ${isUrgent ? 'text-red-500 animate-pulse' : 'text-green-600'}`}>{countdown}</p>
           </div>
 
           <div className="hidden md:flex overflow-x-auto gap-6 border-b border-gray-200 mb-6 pb-2 text-sm font-bold whitespace-nowrap scrollbar-hide">
