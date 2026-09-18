@@ -925,8 +925,8 @@ export default function Home() {
                                       <span className={textHighlight}>£{rec.cost.toFixed(1)}</span>
                                       <span className="text-emerald-500">{rec.xp.toFixed(1)} XP</span>
                                     </div>
-                                    <span className={`text-[7px] sm:text-[9px] px-1 py-0.5 rounded text-center text-white ${rec.next_gw_diff <= 2 ? 'bg-emerald-500' : rec.next_gw_diff === 3 ? 'bg-slate-400' : 'bg-rose-500'}`}>
-                                      {rec.next_gw_opponent}
+                                    <span className={`text-[7px] sm:text-[9px] px-1 py-0.5 rounded text-center text-white ${rec.fixture_diff <= 2 ? 'bg-emerald-500' : rec.fixture_diff === 3 ? 'bg-slate-400' : 'bg-rose-500'}`}>
+                                      {rec.fixture}
                                     </span>
                                   </div>
                                 </button>
