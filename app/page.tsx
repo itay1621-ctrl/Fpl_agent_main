@@ -1058,7 +1058,7 @@ export default function Home() {
                 originalData={originalData}
                 onRestorePlayer={handleRestorePlayer}
                 swapSourceId={swapSourceId} 
-                onSell={async (id: number) => {
+                onSell={async (id: number, targetGw?: number) => {
                   setTransferOutId(id);
                   const playerToSell = data.squad.find((p: any) => p.id === id);
                   if (playerToSell) {
@@ -1072,7 +1072,7 @@ export default function Home() {
                         body: JSON.stringify({
                           pos_code: playerToSell.pos_code,
                           max_budget: budget,
-                          current_squad_ids: currentSquadIds, transfer_out_id: playerToSell.id
+                          current_squad_ids: currentSquadIds, transfer_out_id: playerToSell.id, target_gw: targetGw
                         })
                       });
                       const recs = await res.json();
@@ -1416,12 +1416,12 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
                   {p.name}
                 </td>
                 <td className="px-4 py-3 text-center font-bold text-orange-500">{p.form}</td>
-                <td className="px-4 py-3 text-center font-bold text-blue-500">{p.xg}</td>
-                <td className="px-4 py-3 text-center font-bold text-purple-500">{p.xa}</td>
-                <td className="px-4 py-3 text-center font-bold text-red-500">{p.xgc}</td>
+                <td className="px-4 py-3 text-center font-bold text-blue-500">{p.expected_goals || p.xg || "0.00"}</td>
+                <td className="px-4 py-3 text-center font-bold text-purple-500">{p.expected_assists || p.xa || "0.00"}</td>
+                <td className="px-4 py-3 text-center font-bold text-red-500">{p.expected_goals_conceded || p.xgc || "0.00"}</td>
                 <td className="px-4 py-3 text-center font-bold text-emerald-500">{p.cs}</td>
                 <td className="px-4 py-3 text-center font-bold text-red-700">{p.gc}</td>
-                <td className="px-4 py-3 text-center font-bold text-blue-400">{p.defcon?.toFixed(1) || '0.0'}</td>
+                <td className="px-4 py-3 text-center font-bold text-blue-400">{p.defensive_contribution?.toFixed(1) || p.defcon?.toFixed(1) || '0.0'}</td>
               </tr>
             ))}
           </tbody>
@@ -1795,7 +1795,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
   return (
     <div className="flex flex-col w-full">
-      <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={onSwap} onCaptain={onCaptain} onVice={onVice} onSell={onSell} isEnglish={isEnglish} isDarkMode={isDarkMode} />
+      <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={onSwap} onCaptain={onCaptain} onVice={onVice} onSell={(id: number) => onSell(id, selectedGwNumber)} isEnglish={isEnglish} isDarkMode={isDarkMode} />
 
       <div className={`p-4 sm:p-6 rounded-xl shadow-sm border mb-6 ${bgBox}`}>
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">

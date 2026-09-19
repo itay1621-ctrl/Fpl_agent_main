@@ -221,7 +221,7 @@ def enrich_shared(shared_ids, squad_a, squad_b):
         if player:
             enriched.append(player)
     return enriched
-def get_fpl_context(gw_limit: int = 5):
+def get_fpl_context(gw_limit: int = 5, override_next_gw: int = None):
     """מחזיר bootstrap, teams, elements, next_gw ו-fixtures לטווח נתון — משותף לכל ה-endpoints."""
     bootstrap = fetch_bootstrap()
     events = bootstrap.get("events", [])
@@ -231,6 +231,8 @@ def get_fpl_context(gw_limit: int = 5):
         next_gw = current_gw + 1
     elif not next_gw:
         next_gw = 1
+    if override_next_gw:
+        next_gw = override_next_gw
     all_fixtures = fetch_all_fixtures()
     max_gw = 38
     gw_range = min(gw_limit, max_gw - next_gw + 1) if gw_limit else max(1, max_gw - next_gw + 1)
@@ -433,11 +435,12 @@ class TransferRequest(BaseModel):
     max_budget: float
     current_squad_ids: List[int]
     transfer_out_id: Optional[int] = None
+    target_gw: Optional[int] = None
 
 @app.post("/api/transfer-lab")
 def get_transfer_recommendations(req: TransferRequest):
     try:
-        ctx = get_fpl_context(gw_limit=5)
+        ctx = get_fpl_context(gw_limit=5, override_next_gw=req.target_gw)
         next_gw = ctx["next_gw"]
         upcoming_fixtures_raw = ctx["upcoming_fixtures_raw"]
         elements = ctx["bootstrap"].get("elements", [])
@@ -584,4 +587,34 @@ def get_budget_scenarios(team_id: int):
     except Exception as e:
         import traceback
         traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/player/{player_id}")
+def get_player_details(player_id: int):
+    try:
+        url = f"https://fantasy.premierleague.com/api/element-summary/{player_id}/"
+        r = requests.get(url, timeout=10)
+        r.raise_for_status()
+        data = r.json()
+        
+        ctx = get_fpl_context(gw_limit=5)
+        elements = ctx["elements"]
+        p = elements.get(player_id, {})
+        
+        return {
+            "id": player_id,
+            "name": p.get("web_name", "Unknown"),
+            "team_code": p.get("team_code", 1),
+            "pos_code": p.get("element_type", 1),
+            "cost": p.get("now_cost", 0) / 10,
+            "form": p.get("form", "0.0"),
+            "points": p.get("total_points", 0),
+            "xg": p.get("expected_goals", "0.0"),
+            "xa": p.get("expected_assists", "0.0"),
+            "xgc": p.get("expected_goals_conceded", "0.0"),
+            "defcon": p.get("defensive_contribution", "0.0"),
+            "history": data.get("history", [])[-5:], # last 5 GWs
+            "fixtures": data.get("fixtures", [])[:5] # next 5 GWs
+        }
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
