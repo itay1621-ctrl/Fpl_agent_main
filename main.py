@@ -62,36 +62,59 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     # 2. Expected Minutes (Realistic Model)
     total_mins = p.get("minutes", 0)
     starts = p.get("starts", 0)
+    
+    # Safe calculation for xMins
     if starts > 0:
         mins_per_app = min(90, total_mins / starts)
     elif total_mins > 0:
-        mins_per_app = 30 # sub appearances only
+        mins_per_app = 20 # sub appearances only
     else:
         mins_per_app = 0
         
     form_val = float(p.get("form", 0) or 0)
-    if form_val > 3.0 and mins_per_app < 45:
-        mins_per_app = 60 # Momentum / breaking into team
+    
+    # Only upgrade minutes if they actually have some solid playing time or starts
+    # A single goal in 10 mins shouldn't make them a starter.
+    if form_val > 3.0 and mins_per_app < 45 and starts > 0:
+        mins_per_app = min(75, mins_per_app + 15) # Momentum / breaking into team
 
     expected_minutes = mins_per_app * availability_prob
     if expected_minutes > 90: expected_minutes = 90
     
-    # 3. Base Per-90 Stats
-    xg_90 = float(p.get("expected_goals_per_90", 0) or 0) * weights["xg_weight"]
-    xa_90 = float(p.get("expected_assists_per_90", 0) or 0) * weights["xa_weight"]
-    xgc_90 = float(p.get("expected_goals_conceded_per_90", 0) or 0)
-    defcon_90 = float(p.get("defensive_contribution_per_90", 0) or 0)
+    # 3. Base Per-90 Stats with Regression to the Mean (Shrinkage)
+    raw_xg_90 = float(p.get("expected_goals_per_90", 0) or 0)
+    raw_xa_90 = float(p.get("expected_assists_per_90", 0) or 0)
+    raw_xgc_90 = float(p.get("expected_goals_conceded_per_90", 0) or 0)
+    raw_defcon_90 = float(p.get("defensive_contribution_per_90", 0) or 0)
+    
+    # Shrinkage factor based on total_mins to avoid SSS (Small Sample Size) bias
+    # If a player played 10 mins, weight is 10/450 = 0.02. We trust baseline 98%.
+    # If a player played 450+ mins, weight is 1.0. We trust their stats 100%.
+    weight = min(1.0, total_mins / 450.0) 
+    
+    baseline_xg = 0.05 if pos_code in [1, 2] else (0.15 if pos_code == 3 else 0.3)
+    baseline_xa = 0.05 if pos_code == 1 else 0.1
+    baseline_xgc = 1.5
+    baseline_defcon = 4.0 if pos_code in [1, 2] else 2.0
+    
+    xg_90 = (weight * raw_xg_90 + (1 - weight) * baseline_xg) * weights["xg_weight"]
+    xa_90 = (weight * raw_xa_90 + (1 - weight) * baseline_xa) * weights["xa_weight"]
+    xgc_90 = weight * raw_xgc_90 + (1 - weight) * baseline_xgc
+    defcon_90 = weight * raw_defcon_90 + (1 - weight) * baseline_defcon
 
     # 4. Form / Momentum Proxy
-    # Instead of adding massive raw points at the end, we scale the xG/xA base
-    form_multiplier = 1.0 + (max(0, form_val) / 20.0) # max +40% for an insane form of 8.0
+    # Cap form multiplier to avoid insane spikes from a single haul
+    form_multiplier = 1.0 + (min(6.0, max(0, form_val)) / 30.0) 
     xg_90 *= form_multiplier
     xa_90 *= form_multiplier
 
+    # FPL Rule 2024/2025: Defensive Contributions points
+    # Defenders need 10 actions, Mid/Fwd need 12 actions for +2 points.
+    import math
     defcon_threshold = 10 if pos_code == 2 else 12
     defcon_std = max(defcon_90 * 0.35, 1.0)
     z = (defcon_90 - defcon_threshold) / defcon_std
-    prob_cross_threshold = 1 / (1 + math.exp(-1.7 * z))
+    prob_cross_threshold = 1 / (1 + math.exp(-1.7 * z)) if defcon_90 > 0 else 0
     
     goal_pts = {1: 6, 2: 6, 3: 5, 4: 4}.get(pos_code, 4)
     assist_pts = 3
@@ -100,7 +123,9 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     cs_pts = {1: 4, 2: 4, 3: 1, 4: 0}.get(pos_code, 0)
     cs_prob_90 = math.exp(-xgc_90) if xgc_90 > 0 else 0.5
     xSave_90 = (float(p.get("saves_per_90", 0) or 0) / 3.0) * 1 if pos_code == 1 else 0
-    xBPS_90 = prob_cross_threshold * 2.0
+    
+    # 2 points awarded for crossing Defensive Contribution threshold
+    xDefcon_90 = prob_cross_threshold * 2.0
     
     gw_range = min(5, 38 - next_gw + 1)
     
@@ -141,46 +166,46 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
                 opp_attack_strength = opp_team.get("strength_attack_home", avg_strength)
                 home_adv = 0.95
                 
-            # If playing against a strong defence (e.g. 1300), multiplier is < 1.0 (penalty)
             att_multiplier = (avg_strength / opp_defence_strength) * home_adv if opp_defence_strength > 0 else 1.0
-            
-            # If playing against a strong attack (e.g. 1300), defensive multiplier is < 1.0 (penalty)
             def_multiplier = (avg_strength / opp_attack_strength) * home_adv if opp_attack_strength > 0 else 1.0
             
             match_xAtt = xAtt_90 * (expected_minutes / 90.0) * att_multiplier
             
             # Clean sheet
-            # Base xGC modified by opponent attack strength
             match_xgc = (xgc_90 * (expected_minutes / 90.0)) / def_multiplier
             match_cs_prob = math.exp(-match_xgc) if match_xgc > 0 else 0.5
             match_xDef = match_cs_prob * cs_pts
             
             match_xSave = xSave_90 * (expected_minutes / 90.0) * def_multiplier
-            match_xBPS = xBPS_90 * (expected_minutes / 90.0)
+            match_xDefcon = xDefcon_90 * (expected_minutes / 90.0)
             
             appearance_pts = 0
             if expected_minutes >= 60: appearance_pts = 2 * availability_prob
             elif expected_minutes > 0: appearance_pts = 1 * availability_prob
             
-            gw_proj += match_xAtt + match_xDef + match_xSave + match_xBPS + appearance_pts
+            gw_proj += match_xAtt + match_xDef + match_xSave + match_xDefcon + appearance_pts
             
         total_5gw_projection += gw_proj
         
     total_5gw_projection = max(0.0, total_5gw_projection)
     
-    # Confidence metrics based on uncertainty, not just DGW
+    # Confidence metrics based on uncertainty
     confidence = "Medium"
     if availability_prob < 0.9 or expected_minutes < 45:
         confidence = "Low (Minutes Uncertainty)"
     elif total_mins > 500 and availability_prob == 1.0 and fixtures_found >= gw_range:
-        confidence = "High"
+        confidence = "High (Nailed Starter)"
         
     reasons = []
-    reasons.append(f"Expected Minutes: {int(expected_minutes)}/match")
-    if form_val > 3.0:
+    if expected_minutes > 60:
+        reasons.append("Nailed Starter")
+    else:
+        reasons.append("Rotation Risk / Bench")
+        
+    if form_multiplier > 1.1:
         reasons.append(f"Form Momentum: +{int((form_multiplier - 1)*100)}% to expected returns")
     if xg_90 > 0.3 or xa_90 > 0.3:
-        reasons.append(f"Strong attacking threat (xG/90: {xg_90}, xA/90: {xa_90})")
+        reasons.append(f"Strong attacking threat (xG/90: {round(xg_90, 2)}, xA/90: {round(xa_90, 2)})")
     if cs_prob_90 > 0.4 and pos_code in [1, 2]:
         reasons.append(f"High Clean Sheet probability ({int(cs_prob_90*100)}%)")
         
