@@ -2334,6 +2334,139 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 function PlayerInfoModal({ playerId, onClose, isDarkMode, isEnglish, teams }: { playerId: number, onClose: () => void, isDarkMode: boolean, isEnglish: boolean, teams: any }) {
   const [playerData, setPlayerData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(false);
+    fetch(`${API_BASE_URL}/api/player/${playerId}`)
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        setPlayerData(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to load player details", err);
+        setError(true);
+        setLoading(false);
+      });
+  }, [playerId]);
+
+  if (!playerId) return null;
+
+  const bgModal = isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900';
+  const cardBg = isDarkMode ? 'bg-gray-700' : 'bg-gray-50';
+  const borderColor = isDarkMode ? 'border-gray-600' : 'border-gray-200';
+
+  return (
+    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
+      <div 
+        className={`w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-5 sm:p-6 shadow-2xl relative ${bgModal}`} 
+        onClick={e => e.stopPropagation()}
+      >
+        <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-gray-200 font-bold text-xl z-10">✕</button>
+
+        {loading ? (
+          <div className="p-10 text-center animate-pulse font-bold">{isEnglish ? 'Loading Player Stats...' : 'טוען נתוני שחקן...'} ⏳</div>
+        ) : error || !playerData ? (
+          <div className="p-10 text-center">
+            <p className="font-bold text-red-500 mb-2">{isEnglish ? 'Could not load player data.' : 'לא ניתן לטעון נתוני שחקן.'}</p>
+            <p className="text-sm text-gray-400">{isEnglish ? 'Make sure the backend is deployed and try again.' : 'ודא שהשרת עודכן ונסה שוב.'}</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-5">
+            {/* Header */}
+            <div className={`flex items-center gap-4 border-b pb-4 ${borderColor}`}>
+              <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${playerData.team_code || 1}-66.webp`} className="w-14 h-auto drop-shadow-md" />
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black">{playerData.name || 'Unknown'}</h2>
+                <div className="flex flex-wrap gap-2 text-xs sm:text-sm font-bold opacity-80 mt-1">
+                  <span className={`px-2 py-0.5 rounded ${isDarkMode ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-800'}`}>
+                    {playerData.pos_code === 1 ? 'GKP' : playerData.pos_code === 2 ? 'DEF' : playerData.pos_code === 3 ? 'MID' : 'FWD'}
+                  </span>
+                  <span>£{(playerData.cost || 0).toFixed(1)}M</span>
+                  <span className="text-emerald-500">{playerData.points || 0} pts</span>
+                  <span className="text-orange-500">🔥 {playerData.form || '0.0'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Deep Stats */}
+            <div>
+              <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-2">{isEnglish ? 'Season Stats' : 'סטטיסטיקות עונה'}</h3>
+              <div className="grid grid-cols-4 gap-2 text-center">
+                <div className={`p-2 rounded-lg ${cardBg}`}>
+                  <p className="text-[10px] text-gray-400 font-bold">xG</p>
+                  <p className="font-black text-blue-500 text-sm">{playerData.xg || '0.00'}</p>
+                </div>
+                <div className={`p-2 rounded-lg ${cardBg}`}>
+                  <p className="text-[10px] text-gray-400 font-bold">xA</p>
+                  <p className="font-black text-purple-500 text-sm">{playerData.xa || '0.00'}</p>
+                </div>
+                <div className={`p-2 rounded-lg ${cardBg}`}>
+                  <p className="text-[10px] text-gray-400 font-bold">xGC</p>
+                  <p className="font-black text-red-500 text-sm">{playerData.xgc || '0.00'}</p>
+                </div>
+                <div className={`p-2 rounded-lg ${cardBg}`}>
+                  <p className="text-[10px] text-gray-400 font-bold">DEF</p>
+                  <p className="font-black text-emerald-500 text-sm">{playerData.defcon || 0}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* GW History */}
+            {playerData.history && playerData.history.length > 0 && (
+              <div>
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-2">{isEnglish ? 'Recent GWs' : 'מחזורים אחרונים'}</h3>
+                <div className="flex gap-1.5 justify-between">
+                  {playerData.history.map((h: any, idx: number) => (
+                    <div key={h.round || idx} className={`flex-1 flex flex-col items-center p-2 rounded-lg border ${cardBg} ${borderColor}`}>
+                      <span className="text-[9px] font-bold text-gray-400">GW{h.round}</span>
+                      <span className={`font-black text-base ${(h.total_points || 0) >= 6 ? 'text-emerald-500' : (h.total_points || 0) <= 2 ? 'text-red-400' : ''}`}>{h.total_points || 0}</span>
+                      <span className="text-[8px] text-gray-400">{h.minutes || 0}'</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Upcoming Fixtures */}
+            {playerData.fixtures && playerData.fixtures.length > 0 && (
+              <div>
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-2">{isEnglish ? 'Upcoming Fixtures' : 'משחקים קרובים'}</h3>
+                <div className="flex flex-col gap-1.5">
+                  {playerData.fixtures.map((f: any, idx: number) => {
+                    const isHome = f.is_home;
+                    const diff = f.difficulty || 3;
+                    const oppId = isHome ? f.team_a : f.team_h;
+                    const oppName = teams?.[oppId]?.short_name || 'TBD';
+                    const bgFdr = diff <= 2 ? 'bg-emerald-500' : diff === 3 ? 'bg-gray-400' : diff === 4 ? 'bg-red-500' : 'bg-red-800';
+                    
+                    return (
+                      <div key={f.id || idx} className={`flex justify-between items-center p-2 px-3 rounded-lg border ${cardBg} ${borderColor}`}>
+                        <span className="text-xs font-bold text-gray-400">GW {f.event}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-black">{oppName} ({isHome ? 'H' : 'A'})</span>
+                          <span className={`text-[10px] text-white px-2 py-0.5 rounded font-bold ${bgFdr}`}>{diff}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+  const [playerData, setPlayerData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/player/${playerId}`)
