@@ -338,7 +338,11 @@ def get_dashboard_data(team_id: int):
                     "expected_goals": float(player.get("expected_goals", 0) or 0),
                     "expected_assists": float(player.get("expected_assists", 0) or 0),
                     "expected_goals_conceded": float(player.get("expected_goals_conceded", 0) or 0),
-                    "defensive_contribution": float(player.get("defensive_contribution", 0) or 0),
+                    "defensive_contribution": player.get("defensive_contribution", 0),
+                    "clean_sheets": player.get("clean_sheets", 0),
+                    "goals_conceded": player.get("goals_conceded", 0),
+                    "fixture": proj.get("fixture", ""),
+                    "fixture_diff": proj.get("fixture_diff", 3),
                     "minutes": player.get("minutes", 0)
                 })
                 

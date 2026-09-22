@@ -1396,38 +1396,40 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
         <h4 className={`text-lg font-black mb-4 flex items-center gap-2 ${textHighlight}`}>
           <span>📈</span> {isEnglish ? 'Underlying Stats (Season)' : 'נתוני עומק של השחקנים שלך (העונה)'}
         </h4>
-        <table className="w-full text-sm text-left rtl:text-right">
+        <table className="w-full text-sm text-left rtl:text-right min-w-[600px]">
           <thead className={`text-xs uppercase ${tableHeaderBg} ${textMuted}`}>
             <tr>
-              <th className="px-4 py-3">{isEnglish ? 'Player' : 'שחקן'}</th>
-              <th className="px-4 py-3 text-center">Form</th>
-              <th className="px-4 py-3 text-center" title="Expected Goals">xG</th>
-              <th className="px-4 py-3 text-center" title="Expected Assists">xA</th>
-              <th className="px-4 py-3 text-center" title="Expected Goals Conceded">xGC</th>
-              <th className="px-4 py-3 text-center" title="Clean Sheets">CS</th>
-              <th className="px-4 py-3 text-center" title="Goals Conceded">GC</th>
-              <th className="px-4 py-3 text-center" title="Defensive Contribution">DEFCON</th>
+              <th className="px-2 sm:px-4 py-2 text-xs sm:text-sm whitespace-nowrap">{isEnglish ? 'Player' : 'שחקן'}</th>
+              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm">Form</th>
+              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm" title="Expected Goals">xG</th>
+              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm" title="Expected Assists">xA</th>
+              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm" title="Expected Goals Conceded">xGC</th>
+              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm" title="Clean Sheets">CS</th>
+              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm" title="Goals Conceded">GC</th>
+              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm" title="Defensive Contribution">DEF</th>
             </tr>
           </thead>
           <tbody>
             {[...data.squad].sort((a:any, b:any) => b.form - a.form).map((p: any) => (
               <tr key={p.id} onClick={() => setSelectedPlayerModalId(p.id)} className={`cursor-pointer border-b transition-colors ${isDarkMode ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-50'}`}>
-                <td className="px-4 py-3 font-bold flex items-center gap-2">
+                <td className="px-2 sm:px-4 py-2 font-bold flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
                   <span className={`w-2 h-2 rounded-full ${p.position <= 11 ? 'bg-emerald-500' : 'bg-gray-400'}`}></span>
                   {p.name}
                 </td>
-                <td className="px-4 py-3 text-center font-bold text-orange-500">{p.form}</td>
-                <td className="px-4 py-3 text-center font-bold text-blue-500">{p.expected_goals || p.xg || "0.00"}</td>
-                <td className="px-4 py-3 text-center font-bold text-purple-500">{p.expected_assists || p.xa || "0.00"}</td>
-                <td className="px-4 py-3 text-center font-bold text-red-500">{p.expected_goals_conceded || p.xgc || "0.00"}</td>
-                <td className="px-4 py-3 text-center font-bold text-emerald-500">{p.cs}</td>
-                <td className="px-4 py-3 text-center font-bold text-red-700">{p.gc}</td>
-                <td className="px-4 py-3 text-center font-bold text-blue-400">{p.defensive_contribution?.toFixed(1) || p.defcon?.toFixed(1) || '0.0'}</td>
+                <td className="px-2 sm:px-4 py-2 text-center font-bold text-orange-500 text-xs sm:text-sm">{p.form}</td>
+                <td className="px-2 sm:px-4 py-2 text-center font-bold text-blue-500 text-xs sm:text-sm">{p.expected_goals || p.xg || "0.00"}</td>
+                <td className="px-2 sm:px-4 py-2 text-center font-bold text-purple-500 text-xs sm:text-sm">{p.expected_assists || p.xa || "0.00"}</td>
+                <td className="px-2 sm:px-4 py-2 text-center font-bold text-red-500 text-xs sm:text-sm">{p.expected_goals_conceded || p.xgc || "0.00"}</td>
+                <td className="px-2 sm:px-4 py-2 text-center font-bold text-emerald-500 text-xs sm:text-sm">{p.clean_sheets ?? p.cs ?? 0}</td>
+                <td className="px-2 sm:px-4 py-2 text-center font-bold text-red-700 text-xs sm:text-sm">{p.goals_conceded ?? p.gc ?? 0}</td>
+                <td className="px-2 sm:px-4 py-2 text-center font-bold text-blue-400 text-xs sm:text-sm">{p.defensive_contribution ?? p.defcon ?? 0}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {selectedPlayerModalId && <PlayerInfoModal playerId={selectedPlayerModalId} onClose={() => setSelectedPlayerModalId(null)} isDarkMode={isDarkMode} isEnglish={isEnglish} teams={data?.teams || {}} />}
 
     </div>
   );
@@ -1573,7 +1575,7 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
       </h4>
       <p className={`text-xs mb-4 ${textMuted}`}>{descStr}</p>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left rtl:text-right">
+        <table className="w-full text-sm text-left rtl:text-right min-w-[600px]">
           <thead className={`text-xs uppercase ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'} ${textMuted}`}>
             <tr>
               <th className="px-3 py-2">{isEnglish ? 'Player' : 'שחקן'}</th>
