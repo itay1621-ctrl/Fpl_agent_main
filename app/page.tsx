@@ -1407,6 +1407,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
               <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm" title="Clean Sheets">CS</th>
               <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm" title="Goals Conceded">GC</th>
               <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm" title="Defensive Contribution">DEF</th>
+              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm"></th>
             </tr>
           </thead>
           <tbody>
@@ -1423,6 +1424,9 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
                 <td className="px-2 sm:px-4 py-2 text-center font-bold text-emerald-500 text-xs sm:text-sm">{p.clean_sheets ?? p.cs ?? 0}</td>
                 <td className="px-2 sm:px-4 py-2 text-center font-bold text-red-700 text-xs sm:text-sm">{p.goals_conceded ?? p.gc ?? 0}</td>
                 <td className="px-2 sm:px-4 py-2 text-center font-bold text-blue-400 text-xs sm:text-sm">{p.defensive_contribution ?? p.defcon ?? 0}</td>
+                <td className="px-2 sm:px-4 py-2 text-center">
+                  <button onClick={(e) => { e.stopPropagation(); setSelectedPlayerModalId(p.id); }} className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-[10px] sm:text-xs font-black transition-colors" title={isEnglish ? 'Player Info' : 'מידע על השחקן'}>ℹ</button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -1580,22 +1584,33 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
             <tr>
               <th className="px-3 py-2">{isEnglish ? 'Player' : 'שחקן'}</th>
               <th className="px-3 py-2 text-center">{isEnglish ? 'Team' : 'קבוצה'}</th>
-              <th className="px-3 py-2 text-center">{isEnglish ? 'Cost' : 'מחיר'}</th>
+              <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : 'משחק'}</th>
               <th className="px-3 py-2 text-center">xP</th>
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : 'משחק'}</th>
               <th className="px-3 py-2 text-center">{isEnglish ? 'Form' : 'כושר'}</th>
-              <th className="px-3 py-2 text-center" title="Teams Selected By (אחוזי בעלות)">{isEnglish ? 'Ownership' : 'אחוזי בעלות'}</th>
+              <th className="px-3 py-2 text-center">{isEnglish ? 'Cost' : 'מחיר'}</th>
+              <th className="px-3 py-2 text-center">{isEnglish ? 'Own%' : 'בעלות'}</th>
+              <th className="px-3 py-2 text-center">{isEnglish ? 'Info' : 'מידע'}</th>
             </tr>
           </thead>
           <tbody>
             {players.map((p: any) => (
-              <tr key={p.id} onClick={() => setSelectedPlayerModalId2(p.id)} className={`cursor-pointer border-b transition-colors ${isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-white'}`}>
-                <td className="px-3 py-2 font-bold">{p.name}</td>
+              <tr key={p.id} className={`border-b transition-colors ${isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-white'}`}>
+                <td className="px-3 py-2 font-bold whitespace-nowrap">{p.name}</td>
                 <td className="px-3 py-2 text-center font-bold">{p.team}</td>
-                <td className="px-3 py-2 text-center text-emerald-600">£{p.cost.toFixed(1)}M</td>
+                <td className="px-3 py-2 text-center">
+                  {p.fixture ? (
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold text-white ${p.fixture_diff <= 2 ? 'bg-emerald-500' : p.fixture_diff === 3 ? 'bg-gray-400' : p.fixture_diff === 4 ? 'bg-red-500' : 'bg-red-800'}`}>
+                      {p.fixture}
+                    </span>
+                  ) : '-'}
+                </td>
                 <td className="px-3 py-2 text-center font-bold text-blue-500">{p.xp.toFixed(1)}</td>
                 <td className="px-3 py-2 text-center font-bold text-orange-500">{p.form.toFixed(1)}</td>
+                <td className="px-3 py-2 text-center text-emerald-600">£{p.cost.toFixed(1)}M</td>
                 <td className="px-3 py-2 text-center font-bold text-purple-500">{p.selected_by_percent}%</td>
+                <td className="px-3 py-2 text-center">
+                  <button onClick={() => setSelectedPlayerModalId2(p.id)} className="w-7 h-7 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xs font-black transition-colors" title={isEnglish ? 'Player Info' : 'מידע על השחקן'}>ℹ</button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -1635,6 +1650,7 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
         isEnglish ? 'DIFFERENTIALS (Hidden Gems)' : 'שחקנים דיפרנציאליים (פנינים נסתרות)', 
         isEnglish ? 'High potential players owned by less than 10% of managers. Great for jumping up the ranks.' : 'שחקנים עם פוטנציאל גבוה שאחוזי הבעלות עליהם נמוכים מ-10%. מצוינים כדי לעקוף מתחרים בליגות.'
       )}
+      {selectedPlayerModalId2 && <PlayerInfoModal playerId={selectedPlayerModalId2} onClose={() => setSelectedPlayerModalId2(null)} isDarkMode={isDarkMode} isEnglish={isEnglish} teams={{}} />}
     </div>
   );
 }
