@@ -371,7 +371,8 @@ def get_dashboard_data(team_id: int):
             "squad": enriched_picks,
             "schedule": schedule,
             "chips_used": chips_used,
-            "leagues": leagues
+        "leagues": leagues,
+        "teams": teams
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

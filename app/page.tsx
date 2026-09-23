@@ -154,6 +154,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<'pitch' | 'transfer' | 'planner' | 'analysis' | 'radar' | 'budget' | 'leagues' | 'tips'>('planner');
   const [appAlert, setAppAlert] = useState<string | null>(null);
   const [activeChip, setActiveChip] = useState<string | null>(null);
+  
   const [transferOutId, setTransferOutId] = useState<number | null>(null);
   const [transferRecs, setTransferRecs] = useState<any[]>([]);
   const [loadingRecs, setLoadingRecs] = useState(false);
@@ -1056,16 +1057,43 @@ export default function Home() {
                 onCaptain={handleCaptainClick}
                 onVice={handleViceClick}
                 onReset={handleReset}
+                onClearAll={() => {
+                  const totalCost = data.squad.reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : p.cost), 0);
+                  const newBank = data.bank + totalCost;
+                  const newSquad = data.squad.map((p: any) => ({
+                    ...p,
+                    id: p.id > 0 ? -p.id : p.id,
+                    is_empty: true,
+                    name: 'Add Player',
+                    team: 'TBD',
+                    cost: 0,
+                    xp: 0,
+                    form: 0
+                  }));
+                  setData({ ...data, bank: newBank, squad: newSquad });
+                }}
                 originalData={originalData}
                 onRestorePlayer={handleRestorePlayer}
                 swapSourceId={swapSourceId} 
-                onSell={async (id: number, targetGw?: number) => {
-                  setTransferOutId(id);
+                onSell={async (id: number, targetGw?: number, removeOnly: boolean = false) => {
                   const playerToSell = data.squad.find((p: any) => p.id === id);
+                  if (playerToSell && removeOnly) {
+                    const newBank = data.bank + playerToSell.cost;
+                    const newSquad = data.squad.map((p: any) => {
+                        if (p.id === id) {
+                            return { ...p, id: -id, is_empty: true, name: 'Add Player', team: 'TBD', cost: 0, xp: 0, form: 0 };
+                        }
+                        return p;
+                    });
+                    setData({ ...data, bank: newBank, squad: newSquad });
+                    return;
+                  }
+
+                  setTransferOutId(id);
                   if (playerToSell) {
                     setLoadingRecs(true);
                     const budget = data.bank + playerToSell.cost;
-                    const currentSquadIds = data.squad.map((p: any) => p.id);
+                    const currentSquadIds = data.squad.filter((p: any) => !p.is_empty).map((p: any) => p.id > 0 ? p.id : -p.id);
                     try {
                       const res = await fetch(`${API_BASE_URL}/api/transfer-lab`, {
                         method: 'POST',
@@ -1073,7 +1101,7 @@ export default function Home() {
                         body: JSON.stringify({
                           pos_code: playerToSell.pos_code,
                           max_budget: budget,
-                          current_squad_ids: currentSquadIds, transfer_out_id: playerToSell.id, target_gw: targetGw
+                          current_squad_ids: currentSquadIds, transfer_out_id: playerToSell.is_empty ? null : playerToSell.id, target_gw: targetGw
                         })
                       });
                       const recs = await res.json();
@@ -1761,12 +1789,12 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
   );
 }
 
-function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onSwap, swapSourceId, onSell, onCaptain, onVice, onReset, originalData, onRestorePlayer }: any) {
+function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onSwap, swapSourceId, onSell, onCaptain, onVice, onReset, onClearAll, originalData, onRestorePlayer, activeChip, setActiveChip }: any) {
   const [infoPlayerId, setInfoPlayerId] = useState<number | null>(null);
   const [selectedGwOffset, setSelectedGwOffset] = useState(0);
   const [actionPlayer, setActionPlayer] = useState<any>(null);
   const [ftAvailable, setFtAvailable] = useState(1);
-  const [activeChip, setActiveChip] = useState<string | null>(null);
+  
 
   const isChipAvailable = (chipId: string) => {
     const usedCount = (data.chips_used || []).filter((c: string) => c === chipId).length;
@@ -1835,6 +1863,12 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
               className="bg-gray-500 hover:bg-gray-600 text-white font-black py-2.5 px-4 rounded-lg shadow-sm text-sm transition-colors w-full sm:w-auto"
             >
               {isEnglish ? 'Reset Squad' : 'אפס סגל'}
+            </button>
+            <button 
+              onClick={onClearAll}
+              className="bg-red-600 hover:bg-red-700 text-white font-black py-2.5 px-4 rounded-lg shadow-sm text-sm transition-colors w-full sm:w-auto"
+            >
+              {isEnglish ? 'Clear Squad (WC)' : 'נקה סגל (WC)'}
             </button>
             <div className="flex gap-2">
               {[
@@ -2433,14 +2467,20 @@ function PlayerInfoModal({ playerId, onClose, isDarkMode, isEnglish, teams }: { 
               <div>
                 <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-2">{isEnglish ? 'Recent GWs' : 'מחזורים אחרונים'}</h3>
                 <div className="flex gap-1.5 justify-between">
-                  {playerData.history.map((h: any, idx: number) => (
-                    <div key={h.round || idx} className={`flex-1 flex flex-col items-center p-2 rounded-lg border ${cardBg} ${borderColor}`}>
-                      <span className="text-[9px] font-bold text-gray-400">GW{h.round}</span>
-                      <span className={`font-black text-base ${(h.total_points || 0) >= 6 ? 'text-emerald-500' : (h.total_points || 0) <= 2 ? 'text-red-400' : ''}`}>{h.total_points || 0}</span>
-                      <span className="text-[8px] text-gray-400">{h.minutes || 0}'</span>
+                {playerData.history.map((h: any, idx: number) => {
+                  const oppId = h.opponent_team;
+                  const oppName = teams?.[oppId]?.short_name || 'TBD';
+                  const isHome = h.was_home;
+                  return (
+                    <div key={h.round || idx} className={`flex-1 flex flex-col items-center p-1.5 rounded-lg border ${cardBg} ${borderColor}`}>
+                      <span className="text-[9px] font-bold text-gray-400 mb-0.5">GW{h.round}</span>
+                      <span className="text-[9px] font-bold mb-0.5" style={{ color: isDarkMode ? '#aaa' : '#666' }}>{oppName} ({isHome ? 'H' : 'A'})</span>
+                      <span className={`font-black text-sm ${(h.total_points || 0) >= 6 ? 'text-emerald-500' : (h.total_points || 0) <= 2 ? 'text-red-400' : ''}`}>{h.total_points || 0} pts</span>
+                      <span className="text-[8px] text-gray-400 mt-0.5">{h.minutes || 0}'</span>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
+              </div>
               </div>
             )}
 
