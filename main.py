@@ -7,9 +7,33 @@ import math
 import requests
 import os
 import json
+import logging
+import traceback
+import time
+from fastapi import Request
 import datetime
 
 app = FastAPI(title="FPL Elite Scout API")
+
+# Setup Error Monitoring Logger
+os.makedirs("logs", exist_ok=True)
+logging.basicConfig(
+    filename='logs/error_log.txt', 
+    level=logging.ERROR, 
+    format='%(asctime)s | %(levelname)s | %(message)s'
+)
+
+@app.middleware("http")
+async def monitor_requests(request: Request, call_next):
+    start_time = time.time()
+    try:
+        response = await call_next(request)
+        if response.status_code >= 500:
+            logging.error(f"{request.method} {request.url.path} | Status: {response.status_code} | Time: {time.time() - start_time:.3f}s")
+        return response
+    except Exception as e:
+        logging.error(f"FATAL {request.method} {request.url.path} | Exception: {str(e)}\n{traceback.format_exc()}")
+        raise
 
 app.add_middleware(
     CORSMiddleware,
