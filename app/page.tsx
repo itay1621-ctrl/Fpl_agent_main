@@ -753,7 +753,7 @@ export default function Home() {
             </div>
             <div className={`border-2 border-blue-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
               <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.xp}</p>
-              <p className="text-lg sm:text-2xl font-black">{totalXP.toFixed(1)} <span className="text-xs text-gray-500 font-normal">5GW xP</span></p>
+              <p className="text-lg sm:text-2xl font-black">{totalXP.toFixed(1)} <span className="text-xs text-gray-500 font-normal">xP (5 GWs)</span></p>
             </div>
             <div title={isEnglish ? "Based on projected points (xP), form, fixture difficulty, and squad risk over the next 5 GWs." : "מבוסס על נקודות צפויות (xP), כושר, קושי משחקים וסיכון רוטציה לאורך 5 המחזורים הקרובים."} className={`border-2 border-green-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
               <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.squadScore}</p>
@@ -926,7 +926,7 @@ export default function Home() {
                                   <div className={`w-full text-[8px] sm:text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded flex flex-col gap-1 ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
                                     <div className="flex justify-between w-full">
                                       <span className={textHighlight}>£{rec.cost.toFixed(1)}</span>
-                                      <span className="text-emerald-500">{rec.xp.toFixed(1)} 5GW xP</span>
+                                      <span className="text-emerald-500">{rec.xp.toFixed(1)} xP (5 GWs)</span>
                                     </div>
                                     <span className={`text-[7px] sm:text-[9px] px-1 py-0.5 rounded text-center text-white ${rec.fixture_diff <= 2 ? 'bg-emerald-500' : rec.fixture_diff === 3 ? 'bg-slate-400' : 'bg-rose-500'}`}>
                                       {rec.fixture}
@@ -1175,7 +1175,7 @@ export default function Home() {
                                   <div className={`w-full text-[8px] sm:text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded flex flex-col gap-1 ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
                                       <div className="flex justify-between w-full">
                                         <span className={textHighlight}>£{rec.cost.toFixed(1)}</span>
-                                        <span className="text-emerald-500">{rec.xp.toFixed(1)} 5GW xP</span>
+                                        <span className="text-emerald-500">{rec.xp.toFixed(1)} xP (5 GWs)</span>
                                       </div>
                                       <span className={`text-[7px] sm:text-[9px] px-1 py-0.5 rounded text-center text-white ${rec.fixture_diff <= 2 ? 'bg-emerald-500' : rec.fixture_diff === 3 ? 'bg-slate-400' : 'bg-rose-500'}`}>
                                         {rec.fixture}
