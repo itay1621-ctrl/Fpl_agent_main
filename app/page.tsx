@@ -1074,6 +1074,8 @@ export default function Home() {
                 }}
                 originalData={originalData}
                 onRestorePlayer={handleRestorePlayer}
+                activeChip={activeChip}
+                setActiveChip={setActiveChip}
                 swapSourceId={swapSourceId} 
                 onSell={async (id: number, targetGw?: number, removeOnly: boolean = false) => {
                   const playerToSell = data.squad.find((p: any) => p.id === id);
@@ -1508,11 +1510,13 @@ function ActionModal({ player, onClose, onSwap, onCaptain, onVice, onSell, onSho
           {onSell && (
             <>
             <button onClick={() => { onSell(player.id, false); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-red-900/50 hover:bg-red-900/70 text-red-200' : 'bg-red-100 hover:bg-red-200 text-red-700'}`}>
-              <span>❌</span> {isEnglish ? 'Transfer Out (Sell)' : 'העבר שחקן (מכור)'}
+                  <span>{player.is_empty ? '➕' : '❌'}</span> {player.is_empty ? (isEnglish ? 'Add Player' : 'הוסף שחקן') : (isEnglish ? 'Replace Player' : 'החלף שחקן')}
             </button>
+                {!player.is_empty && (
           <button onClick={() => { onSell(player.id, true); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex justify-between items-center ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
             <span>{isEnglish ? 'Remove (Empty Slot)' : 'הסר (פינוי מקום)'}</span> <span>🗑️</span>
           </button>
+                )}
             </>
           )}
         </div>
