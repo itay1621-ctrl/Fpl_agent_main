@@ -711,6 +711,20 @@ export default function Home() {
                 >
                   {loading ? t.loading : (isEnglish ? 'Start Managing' : 'התחבר לקבוצה')}
                 </button>
+
+                <div className="flex items-center w-full my-3">
+                  <div className="flex-1 h-px bg-gray-200"></div>
+                  <span className="px-3 text-xs font-bold text-gray-400">{isEnglish ? 'OR' : 'או'}</span>
+                  <div className="flex-1 h-px bg-gray-200"></div>
+                </div>
+                
+                <button 
+                  onClick={() => { setTeamId('3450961'); setTimeout(() => fetchTeam('3450961'), 100); }} 
+                  disabled={loading} 
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold shadow-sm transition-all disabled:opacity-50 active:scale-95 text-sm"
+                >
+                  {isEnglish ? 'Explore Demo Team (No ID required)' : 'חקור קבוצת הדגמה (ללא ID)'}
+                </button>
               </div>
               {error && <p className="text-red-400 mt-4 text-center font-bold bg-red-900/40 p-2 rounded-lg">{error}</p>}
             </div>
@@ -737,6 +751,15 @@ export default function Home() {
       {data && (
         <div className="max-w-6xl mx-auto p-4 sm:p-6 pb-20">
           
+
+          {data.team_id?.toString() === '3450961' && (
+             <div className="bg-purple-600 text-white p-3 rounded-lg mb-4 text-center text-sm font-bold shadow-md flex items-center justify-between">
+               <span>👀 {isEnglish ? 'You are viewing a Demo Team. Connect your own team to unlock personalized analysis.' : 'אתה צופה בקבוצת הדגמה. הזן את ה-ID שלך למעבר לניתוח אישי.'}</span>
+               <button onClick={() => { setData(null); setTeamId(''); localStorage.removeItem('fpl_team_id'); }} className="bg-white text-purple-600 px-3 py-1 rounded text-xs ml-4">
+                 {isEnglish ? 'Connect Team' : 'חבר קבוצה'}
+               </button>
+             </div>
+          )}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div className="flex gap-2 w-full md:w-auto">
               <button onClick={() => { setData(null); localStorage.removeItem('fpl_team_id'); }} className={`flex-1 md:flex-none px-6 py-2 border rounded-md text-sm font-medium hover:opacity-80 transition-opacity ${bgCard}`}>{t.changeTeam}</button>
