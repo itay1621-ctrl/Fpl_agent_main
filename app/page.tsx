@@ -153,6 +153,7 @@ export default function Home() {
   const [actionPlayer, setActionPlayer] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'pitch' | 'transfer' | 'planner' | 'analysis' | 'radar' | 'budget' | 'leagues' | 'tips'>('planner');
   const [appAlert, setAppAlert] = useState<string | null>(null);
+  const [activeChip, setActiveChip] = useState<string | null>(null);
   const [transferOutId, setTransferOutId] = useState<number | null>(null);
   const [transferRecs, setTransferRecs] = useState<any[]>([]);
   const [loadingRecs, setLoadingRecs] = useState(false);
@@ -1439,7 +1440,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
   );
 }
 
-function ActionModal({ player, onClose, onSwap, onCaptain, onVice, onSell, isEnglish, isDarkMode }: any) {
+function ActionModal({ player, onClose, onSwap, onCaptain, onVice, onSell, onShowInfo, isEnglish, isDarkMode }: any) {
   if (!player) return null;
   return (
     <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/60 sm:p-4 pb-0" onClick={onClose}>
@@ -1452,7 +1453,10 @@ function ActionModal({ player, onClose, onSwap, onCaptain, onVice, onSell, isEng
               <p className={`text-sm font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{player.team} • {player.pos_name || (player.pos_code === 1 ? 'GKP' : player.pos_code === 2 ? 'DEF' : player.pos_code === 3 ? 'MID' : 'FWD')}</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-2">✕</button>
+          <div className="flex items-center gap-2">
+            <button onClick={(e) => { e.stopPropagation(); onShowInfo(player.id); }} className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-black transition-colors flex items-center justify-center" title="Player Info">i</button>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-2 text-xl font-bold">✕</button>
+          </div>
         </div>
         
         <div className="flex flex-col gap-2 mt-2">
@@ -1469,9 +1473,12 @@ function ActionModal({ player, onClose, onSwap, onCaptain, onVice, onSell, isEng
           </button>
           
           {onSell && (
-            <button onClick={() => { onSell(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-red-900/50 hover:bg-red-900/70 text-red-200' : 'bg-red-100 hover:bg-red-200 text-red-700'}`}>
+            <button onClick={() => { onSell(player.id, false); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-red-900/50 hover:bg-red-900/70 text-red-200' : 'bg-red-100 hover:bg-red-200 text-red-700'}`}>
               <span>❌</span> {isEnglish ? 'Transfer Out (Sell)' : 'העבר שחקן (מכור)'}
             </button>
+          <button onClick={() => { onSell(player.id, true); onClose(); }} className="w-full text-left p-4 rounded-xl font-bold flex justify-between items-center">
+            <span>{isEnglish ? 'Remove (Empty Slot)' : 'הסר (פינוי מקום)'}</span> <span>🗑️</span>
+          </button>
           )}
         </div>
       </div>
@@ -1753,6 +1760,7 @@ function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHigh
 }
 
 function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onSwap, swapSourceId, onSell, onCaptain, onVice, onReset, originalData, onRestorePlayer }: any) {
+  const [infoPlayerId, setInfoPlayerId] = useState<number | null>(null);
   const [selectedGwOffset, setSelectedGwOffset] = useState(0);
   const [actionPlayer, setActionPlayer] = useState<any>(null);
   const [ftAvailable, setFtAvailable] = useState(1);
@@ -1814,7 +1822,8 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
   return (
     <div className="flex flex-col w-full">
-      <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={onSwap} onCaptain={onCaptain} onVice={onVice} onSell={(id: number) => onSell(id, selectedGwNumber)} isEnglish={isEnglish} isDarkMode={isDarkMode} />
+      <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={onSwap} onCaptain={onCaptain} onVice={onVice} onSell={(id: number, removeOnly: boolean) => onSell(id, selectedGwNumber, removeOnly)} onShowInfo={(id: number) => setInfoPlayerId(id)} isEnglish={isEnglish} isDarkMode={isDarkMode} />
+      {infoPlayerId && <PlayerInfoModal playerId={infoPlayerId} onClose={() => setInfoPlayerId(null)} isDarkMode={isDarkMode} isEnglish={isEnglish} teams={originalData?.teams || {}} />}
 
       <div className={`p-4 sm:p-6 rounded-xl shadow-sm border mb-6 ${bgBox}`}>
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
