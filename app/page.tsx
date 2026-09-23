@@ -769,8 +769,8 @@ export default function Home() {
             <div className={`w-full md:w-auto text-start flex items-center gap-4`}>
               <img src="/logo.jpg" alt="Logo" className="w-12 h-12 rounded-full border-2 border-[#37003c] drop-shadow-md hidden sm:block" />
               <div>
-                <h2 className={`text-2xl font-black ${textHighlight}`}>{data.team_name}</h2>
-                <p className={`text-sm ${textMuted}`}>{t.engineFor} {data.next_gw} | {t.teamWord} {data.team_id}</p>
+                <h2 className={`text-2xl font-black ${textHighlight}`}>{data.team_id?.toString() === '3450961' ? (isEnglish ? 'Demo Squad' : 'קבוצת הדגמה (Demo)') : data.team_name}</h2>
+                <p className={`text-sm ${textMuted}`}>{t.engineFor} {data.next_gw} | {data.team_id?.toString() === '3450961' ? (isEnglish ? 'Guest Mode' : 'מצב אורח') : `${t.teamWord} ${data.team_id}`}</p>
               </div>
             </div>
           </div>
