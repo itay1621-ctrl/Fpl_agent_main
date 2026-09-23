@@ -539,7 +539,7 @@ export default function Home() {
     return acc;
   }, 0);
 
-  const rawScore = (totalXP * 1.35) + (avgForm * 2.5) + ((3.0 - avgFDR) * 10) - injuryPenalty;
+  const rawScore = (totalXP * 1.45) + (avgForm * 3.0) + ((3.0 - avgFDR) * 12) - injuryPenalty;
   const calculatedSquadScore = Math.min(99, Math.max(10, Math.round(rawScore)));
   
   const currentCaptain = data?.squad.find((p: any) => p.is_captain);
