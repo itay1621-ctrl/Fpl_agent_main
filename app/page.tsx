@@ -1473,12 +1473,14 @@ function ActionModal({ player, onClose, onSwap, onCaptain, onVice, onSell, onSho
           </button>
           
           {onSell && (
+            <>
             <button onClick={() => { onSell(player.id, false); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-red-900/50 hover:bg-red-900/70 text-red-200' : 'bg-red-100 hover:bg-red-200 text-red-700'}`}>
               <span>❌</span> {isEnglish ? 'Transfer Out (Sell)' : 'העבר שחקן (מכור)'}
             </button>
-          <button onClick={() => { onSell(player.id, true); onClose(); }} className="w-full text-left p-4 rounded-xl font-bold flex justify-between items-center">
+          <button onClick={() => { onSell(player.id, true); onClose(); }} className={w-full text-left p-4 rounded-xl font-bold flex justify-between items-center }>
             <span>{isEnglish ? 'Remove (Empty Slot)' : 'הסר (פינוי מקום)'}</span> <span>🗑️</span>
           </button>
+            </>
           )}
         </div>
       </div>
