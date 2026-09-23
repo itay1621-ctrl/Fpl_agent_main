@@ -1121,9 +1121,14 @@ export default function Home() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                   <div className={`w-full max-w-4xl max-h-[90vh] overflow-hidden p-6 rounded-2xl shadow-2xl flex flex-col ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className={`text-2xl font-black flex items-center gap-2 ${textHighlight}`}>
+                <div className="flex flex-col-reverse sm:flex-row justify-between items-start sm:items-center w-full mb-4">
+                  <div className={`text-base sm:text-lg font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'} bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 mt-2 sm:mt-0`}>
+                    {isEnglish ? 'Available Budget:' : 'תקציב פנוי:'} £{((data?.bank || 0) + (data?.squad?.find((p: any) => p.id === transferOutId)?.cost || 0)).toFixed(1)}M
+                  </div>
+                  <h2 className={`text-xl sm:text-3xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'} text-right flex items-center justify-end gap-2`}>
                         <span>🧪</span> {isEnglish ? 'Transfer Lab (Planner Mode)' : 'מעבדת העברות (מצב מתכנן)'}
-                      </h3>
+                      </h2>
+                </div>
                       <button 
                         onClick={() => { setTransferOutId(null); setTransferRecs([]); setSearchQuery(''); }}
                         className={`text-gray-500 hover:text-gray-800 ${isDarkMode ? 'hover:text-white' : ''}`}
@@ -1553,26 +1558,31 @@ function PlayerCard({
     <button onClick={() => onActionClick(player.id)} className={`relative flex flex-col items-center w-[46px] min-[400px]:w-[52px] sm:w-[95px] transition-all duration-300 cursor-pointer ${isBench && !isActionMode ? 'opacity-90 hover:opacity-100' : 'hover:scale-105'} ${isSelected ? 'scale-110 z-30 brightness-110' : ''}`}>
       
       <div className="relative">
-        <img src={shirtImg} alt={player.name} className={`w-7 sm:w-14 h-auto drop-shadow-md transition-transform ${isSelected ? 'brightness-110 drop-shadow-xl' : ''}`} />
+        {player.is_empty ? (
+           <div className="w-7 h-[35px] sm:w-14 sm:h-[70px] bg-gray-300 rounded-t-xl mx-auto drop-shadow-md flex justify-center items-center opacity-60">
+              <span className="text-gray-500 font-bold text-lg sm:text-3xl">+</span>
+           </div>
+        ) : (
+          <img src={shirtImg} alt={player.name} className={`w-7 sm:w-14 h-auto drop-shadow-md transition-transform ${isSelected ? 'brightness-110 drop-shadow-xl' : ''}`} />
+        )}
       </div>
       
-      <div 
-        className={`text-white text-[9px] min-[400px]:text-[10px] sm:text-sm font-bold px-0.5 sm:px-2 py-0 rounded shadow w-full text-center truncate mt-[-4px] z-10 
-        ${isSelected ? 'bg-blue-600' : 
-          (player.chance_of_playing === 0 ? 'bg-red-600' : 
-          (player.chance_of_playing !== null && player.chance_of_playing !== undefined && player.chance_of_playing < 100 ? 'bg-orange-500' : 'bg-[#2c3e50]'))}`}
+      <div
+        className={`text-white text-[9px] min-[400px]:text-[10px] sm:text-sm font-bold px-0.5 sm:px-2 py-0 rounded shadow w-full text-center truncate mt-[-4px] z-10 ${player.is_empty ? 'bg-gray-400 opacity-60' : (isSelected ? 'bg-blue-600' : (player.prob === 0 ? 'bg-red-600' : (player.prob !== null && player.prob !== undefined && player.prob < 1 ? 'bg-orange-500' : 'bg-[#2c3e50]')))}`}
         title={player.news || ''}
         dir="ltr"
       >
-        {player.name}
+        {player.is_empty ? ' ' : player.name}
       </div>
       
+      {!player.is_empty && (
       <div className={`w-full text-center text-[7px] min-[400px]:text-[9px] sm:text-xs font-bold py-0 shadow-sm ${getDiffColor(player.fixture_diff)}`}>
         {player.fixture || 'Blank'}
       </div>
+      )}
 
-      <div className="bg-white text-gray-900 text-[7px] min-[400px]:text-[9px] sm:text-xs font-bold px-0.5 w-full text-center rounded-b shadow-sm flex justify-center items-center border-b border-x border-gray-200">
-        <span>£{player.cost.toFixed(1)}</span>
+      <div className={`bg-white text-gray-900 text-[7px] min-[400px]:text-[9px] sm:text-xs font-bold px-0.5 w-full text-center rounded-b shadow-sm flex justify-center items-center border-b border-x border-gray-200 ${player.is_empty ? 'opacity-60' : ''}`}>
+        <span>£{player.is_empty ? '0.0' : player.cost.toFixed(1)}</span>
       </div>
 
       {player.is_captain && !isSelected && (

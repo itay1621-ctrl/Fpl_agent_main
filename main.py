@@ -228,6 +228,7 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         "confidence": confidence,
         "reason": reason_str,
         "prob": availability_prob,
+        "news": p.get("news", ""),
         "xg": float(p.get("expected_goals", 0) or 0),
         "xa": float(p.get("expected_assists", 0) or 0)
     }
