@@ -534,12 +534,12 @@ export default function Home() {
   const avgForm = starters.reduce((acc: number, p: any) => acc + (p.form || 0), 0) / (starters.length || 1);
   
   const injuryPenalty = starters.reduce((acc: number, p: any) => {
-    if (p.chance_of_playing === 0) return acc + 6;
-    if (p.chance_of_playing !== null && p.chance_of_playing !== undefined && p.chance_of_playing < 100) return acc + 3;
+    if (p.prob === 0) return acc + 6;
+    if (p.prob !== null && p.prob !== undefined && p.prob < 1) return acc + 3;
     return acc;
   }, 0);
 
-  const rawScore = 20 + Math.max(0, totalXP - 30) + (avgForm * 3) + ((3.0 - avgFDR) * 10) - injuryPenalty;
+  const rawScore = (totalXP * 1.35) + (avgForm * 2.5) + ((3.0 - avgFDR) * 10) - injuryPenalty;
   const calculatedSquadScore = Math.min(99, Math.max(10, Math.round(rawScore)));
   
   const currentCaptain = data?.squad.find((p: any) => p.is_captain);
