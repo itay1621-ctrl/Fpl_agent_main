@@ -608,6 +608,16 @@ export default function Home() {
         const tempPos = p1.position;
         p1.position = p2.position;
         p2.position = tempPos;
+
+        // Auto-transfer captaincy if benched
+        if (p1.position > 11) {
+          if (p1.is_captain) { p1.is_captain = false; p2.is_captain = true; }
+          if (p1.is_vice_captain) { p1.is_vice_captain = false; p2.is_vice_captain = true; }
+        }
+        if (p2.position > 11) {
+          if (p2.is_captain) { p2.is_captain = false; p1.is_captain = true; }
+          if (p2.is_vice_captain) { p2.is_vice_captain = false; p1.is_vice_captain = true; }
+        }
       }
       setData({ ...data, squad: newSquad });
       setSwapSourceId(null);
