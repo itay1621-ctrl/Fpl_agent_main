@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict
 from fpl_api import fetch_bootstrap, fetch_user_team, fetch_fixtures, fetch_all_fixtures
 import math
+import requests
 
 app = FastAPI(title="FPL Elite Scout API")
 
