@@ -5,6 +5,9 @@ from typing import List, Optional, Dict
 from fpl_api import fetch_bootstrap, fetch_user_team, fetch_fixtures, fetch_all_fixtures
 import math
 import requests
+import os
+import json
+import datetime
 
 app = FastAPI(title="FPL Elite Scout API")
 
@@ -25,6 +28,15 @@ DEFAULT_WEIGHTS = {
     "fdr_scale": 1.0,
     "opportunity_cost": 2.0
 }
+
+# --- DECISION ENGINE LAYER ---
+def decision_engine_score(c):
+    score = c["xp"]
+    if "Rotation Risk / Bench" in c.get("reasons", []):
+        score *= 0.75
+    if "Low (Minutes Uncertainty)" in c.get("confidence", ""):
+        score *= 0.60
+    return score
 
 import datetime
 import os
@@ -281,7 +293,6 @@ def get_fpl_context(gw_limit: int = 5, override_next_gw: int = None):
 
 
 @app.get("/api/dashboard/{team_id}")
-@app.get("/api/dashboard/{team_id}")
 def get_dashboard_data(team_id: int):
     try:
         ctx = get_fpl_context(gw_limit=None)
@@ -498,7 +509,7 @@ def get_transfer_recommendations(req: TransferRequest):
                         c = calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams)
                         candidates.append(c)
                     
-        candidates = sorted(candidates, key=lambda x: x["xp"], reverse=True)
+        candidates = sorted(candidates, key=decision_engine_score, reverse=True)
         best_candidate = candidates[0] if candidates else None
         
         recommendation = "TRANSFER"

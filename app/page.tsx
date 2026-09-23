@@ -755,7 +755,7 @@ export default function Home() {
               <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.xp}</p>
               <p className="text-lg sm:text-2xl font-black">{totalXP.toFixed(1)}</p>
             </div>
-            <div className={`border-2 border-green-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
+            <div title={isEnglish ? "Based on projected points (xP), form, fixture difficulty, and squad risk over the next 5 GWs." : "מבוסס על נקודות צפויות (xP), כושר, קושי משחקים וסיכון רוטציה לאורך 5 המחזורים הקרובים."} className={`border-2 border-green-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
               <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.squadScore}</p>
               <p className="text-lg sm:text-2xl font-black" dir="ltr">{calculatedSquadScore || 0} <span className={`text-sm ${textMuted}`}>/ 100</span></p>
             </div>
