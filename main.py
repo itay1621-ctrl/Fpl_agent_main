@@ -91,8 +91,11 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     if form_val > 3.0 and mins_per_app < 45 and starts > 0:
         mins_per_app = min(75, mins_per_app + 15) # Momentum / breaking into team
 
-    expected_minutes = mins_per_app * availability_prob
-    if expected_minutes > 90: expected_minutes = 90
+
+    base_expected_minutes = mins_per_app
+    if base_expected_minutes > 90: base_expected_minutes = 90
+    base_cop = availability_prob
+    expected_minutes = base_expected_minutes * base_cop # Store for confidence metric
     
     # 3. Base Per-90 Stats with Regression to the Mean (Shrinkage)
     raw_xg_90 = float(p.get("expected_goals_per_90", 0) or 0)
@@ -149,6 +152,10 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     total_5gw_projection = 0.0
     
     for gw_inc in range(gw_range):
+
+        # Dynamic Expected Minutes & Injury Recovery Model
+        current_cop = min(1.0, base_cop + (gw_inc * 0.25))
+        dyn_expected_minutes = base_expected_minutes * current_cop
         target_gw = next_gw + gw_inc
         gw_fixs = [f for f in upcoming_fixtures_raw if f.get("event") == target_gw]
         player_fixs = [f for f in gw_fixs if f["team_h"] == team_id_fpl or f["team_a"] == team_id_fpl]
@@ -182,19 +189,19 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
             att_multiplier = (avg_strength / opp_defence_strength) * home_adv if opp_defence_strength > 0 else 1.0
             def_multiplier = (avg_strength / opp_attack_strength) * home_adv if opp_attack_strength > 0 else 1.0
             
-            match_xAtt = xAtt_90 * (expected_minutes / 90.0) * att_multiplier
+            match_xAtt = xAtt_90 * (dyn_expected_minutes / 90.0) * att_multiplier
             
             # Clean sheet
-            match_xgc = (xgc_90 * (expected_minutes / 90.0)) / def_multiplier
+            match_xgc = (xgc_90 * (dyn_expected_minutes / 90.0)) / def_multiplier
             match_cs_prob = math.exp(-match_xgc) if match_xgc > 0 else 0.5
             match_xDef = match_cs_prob * cs_pts
             
-            match_xSave = xSave_90 * (expected_minutes / 90.0) * def_multiplier
-            match_xDefcon = xDefcon_90 * (expected_minutes / 90.0)
+            match_xSave = xSave_90 * (dyn_expected_minutes / 90.0) * def_multiplier
+            match_xDefcon = xDefcon_90 * (dyn_expected_minutes / 90.0)
             
             appearance_pts = 0
-            if expected_minutes >= 60: appearance_pts = 2 * availability_prob
-            elif expected_minutes > 0: appearance_pts = 1 * availability_prob
+            if dyn_expected_minutes >= 60: appearance_pts = 2 * current_cop
+            elif dyn_expected_minutes > 0: appearance_pts = 1 * current_cop
             
             gw_proj += match_xAtt + match_xDef + match_xSave + match_xDefcon + appearance_pts
             
@@ -616,7 +623,7 @@ def get_budget_scenarios(team_id: int):
                 budget = bank + sp["cost"]
                 candidates = [p for p in all_players if p["pos_code"] == sp["pos_code"] and p["id"] not in current_squad_ids and p["cost"] <= budget]
                 
-                candidates = sorted(candidates, key=lambda x: x["xp"], reverse=True)
+                candidates = sorted(candidates, key=decision_engine_score, reverse=True)
                 top_candidates = candidates[:3]
                 
                 if top_candidates:
