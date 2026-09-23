@@ -526,10 +526,10 @@ export default function Home() {
     }
   };
 
-  const starters = data?.squad.filter((p: any) => p.position <= 11) || [];
+  const starters = data?.squad.filter((p: any) => activeChip === 'bboost' ? true : p.position <= 11) || [];
   const bench = data?.squad.filter((p: any) => p.position > 11) || [];
 
-  const totalXP = starters.reduce((acc: number, p: any) => acc + (p.xp * (p.multiplier || 1)), 0);
+  const totalXP = starters.reduce((acc: number, p: any) => { let mult = p.multiplier || 1; if (activeChip === '3xc' && p.is_captain) mult = 3; return acc + (p.xp * mult); }, 0);
   const avgFDR = starters.reduce((acc: number, p: any) => acc + (p.fixture_diff || 3), 0) / (starters.length || 1);
   const avgForm = starters.reduce((acc: number, p: any) => acc + (p.form || 0), 0) / (starters.length || 1);
   
@@ -1833,9 +1833,9 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
     return 'bg-red-900 text-white';
   };
 
-  const starters = data.squad.filter((p: any) => p.position <= 11);
+  const starters = data.squad.filter((p: any) => activeChip === 'bboost' ? true : p.position <= 11);
   const bench = data.squad.filter((p: any) => p.position > 11).sort((a: any, b: any) => a.position - b.position);
-  const totalXP = starters.reduce((acc: number, p: any) => acc + (p.xp * (p.multiplier || 1)), 0);
+  const totalXP = starters.reduce((acc: number, p: any) => { let mult = p.multiplier || 1; if (activeChip === '3xc' && p.is_captain) mult = 3; return acc + (p.xp * mult); }, 0);
 
   const selectedGwNumber = data.next_gw + selectedGwOffset;
   const scheduleForGw = data.schedule?.[selectedGwNumber] || [];
