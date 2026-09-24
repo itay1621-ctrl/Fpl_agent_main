@@ -971,7 +971,6 @@ export default function Home() {
                       <PlayerCard key={p.id} player={p} isBench activeId={transferOutId} onActionClick={handlePlayerClick} transferMode />
                     ))}
                   </div>
-                  </div>
                 </div>
 
                 {transferOutId ? (
