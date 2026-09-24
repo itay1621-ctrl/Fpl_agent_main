@@ -163,15 +163,16 @@ export default function Home() {
 
   // חדש: מצב כהה ושפות
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [appMode, setAppMode] = useState<'welcome' | 'team' | 'demo' | 'guest'>('welcome');
   const [isEnglish, setIsEnglish] = useState(true);
   const [countdown, setCountdown] = useState("Calculating...");
   const [isUrgent, setIsUrgent] = useState(false);
 
   useEffect(() => {
-    if (!data || !data.schedule || !data.schedule[data.next_gw] || data.schedule[data.next_gw].length === 0) return;
+    if (!data || !data.schedule || !data.schedule[data?.next_gw] || data.schedule[data?.next_gw].length === 0) return;
     
     // Sort matches to find the earliest kickoff
-    const matches = [...data.schedule[data.next_gw]].sort((a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime());
+    const matches = [...data.schedule[data?.next_gw]].sort((a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime());
     const firstMatchTime = new Date(matches[0].time);
     
     if (isNaN(firstMatchTime.getTime())) {
@@ -319,7 +320,7 @@ export default function Home() {
       }
 
       setOriginalData(JSON.parse(JSON.stringify(result)));
-      localStorage.setItem('fpl_team_id', idToFetch);
+      if (idToFetch !== '3450961') localStorage.setItem('fpl_team_id', idToFetch);
       
       const savedPlanStr = localStorage.getItem(`fpl_plan_${idToFetch}`);
       if (savedPlanStr) {
@@ -382,7 +383,7 @@ export default function Home() {
 
   useEffect(() => {
     if (data && data.team_id) {
-      localStorage.setItem(`fpl_plan_${data.team_id}`, JSON.stringify(data));
+      localStorage.setItem(`fpl_plan_${data?.team_id}`, JSON.stringify(data));
     }
   }, [data]);
 
@@ -415,8 +416,8 @@ export default function Home() {
     const newBank = data.bank + oldPlayer.cost - newPlayer.cost;
     
     const upcoming_fixtures = [];
-    for (let offset = 0; offset <= 38 - data.next_gw; offset++) {
-      const gw = data.next_gw + offset;
+    for (let offset = 0; offset <= 38 - data?.next_gw; offset++) {
+      const gw = data?.next_gw + offset;
       const gwFixtures = data.schedule[gw] || [];
       let found = false;
       for (const match of gwFixtures) {
@@ -462,8 +463,8 @@ export default function Home() {
     const newSquad = data.squad.filter((p: any) => p.id !== oldPlayer.id);
 
     const upcoming_fixtures = [];
-    for (let offset = 0; offset <= 38 - data.next_gw; offset++) {
-      const gw = data.next_gw + offset;
+    for (let offset = 0; offset <= 38 - data?.next_gw; offset++) {
+      const gw = data?.next_gw + offset;
       const gwFixtures = data.schedule[gw] || [];
       let found = false;
       for (const match of gwFixtures) {
@@ -675,7 +676,7 @@ export default function Home() {
     <main className={`min-h-screen font-sans pb-24 md:pb-0 transition-colors duration-300 ${bgMain}`} dir={isEnglish ? "ltr" : "rtl"}>
       <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={(id:number) => { handleSwapClick(id); setActionPlayer(null); }} onCaptain={(id:number) => { handleSetCaptain(id); setActionPlayer(null); }} onVice={(id:number) => { handleSetViceCaptain(id); setActionPlayer(null); }} isEnglish={isEnglish} isDarkMode={isDarkMode} />
       
-      {!data && !initLoading && (
+      {appMode === 'welcome' && (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#37003c] text-white relative">
           <button 
             onClick={() => setIsEnglish(!isEnglish)} 
@@ -742,40 +743,46 @@ export default function Home() {
         </div>
       )}
       
-      {!data && initLoading && (
+      {appMode !== 'welcome' && initLoading && (
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-green-900">
            <div className="animate-pulse text-white font-bold text-xl">{isEnglish ? 'Loading your squad...' : 'טוען את הקבוצה שלך...'}</div>
         </div>
       )}
 
-      {data && (
+      {(data || appMode === 'guest') && (
         <div className="max-w-6xl mx-auto p-4 sm:p-6 pb-20">
           
 
-          {data.team_id?.toString() === '3450961' && (
+          {appMode === 'demo' && (
              <div className="bg-purple-600 text-white p-3 rounded-lg mb-4 text-center text-sm font-bold shadow-md flex items-center justify-between">
                <span>👀 {isEnglish ? 'You are viewing a Demo Team. Connect your own team to unlock personalized analysis.' : 'אתה צופה בקבוצת הדגמה. הזן את ה-ID שלך למעבר לניתוח אישי.'}</span>
-               <button onClick={() => { setData(null); setTeamId(''); localStorage.removeItem('fpl_team_id'); }} className="bg-white text-purple-600 px-3 py-1 rounded text-xs ml-4">
+               <button onClick={() => { setData(null); setTeamId(''); localStorage.removeItem('fpl_team_id'); setAppMode('welcome'); }} className="bg-white text-purple-600 px-3 py-1 rounded text-xs ml-4 min-w-[90px]">
                  {isEnglish ? 'Connect Team' : 'חבר קבוצה'}
                </button>
              </div>
           )}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div className="flex gap-2 w-full md:w-auto">
-              <button onClick={() => { setData(null); localStorage.removeItem('fpl_team_id'); }} className={`flex-1 md:flex-none px-6 py-2 border rounded-md text-sm font-medium hover:opacity-80 transition-opacity ${bgCard}`}>{t.changeTeam}</button>
+              <button onClick={() => { setData(null); localStorage.removeItem('fpl_team_id'); setAppMode('welcome'); setTeamId(''); }} className={`flex-1 md:flex-none px-6 py-2 border rounded-md text-sm font-medium hover:opacity-80 transition-opacity ${bgCard}`}>{t.changeTeam}</button>
               <button onClick={() => setIsEnglish(!isEnglish)} className={`flex-1 md:flex-none px-6 py-2 border rounded-md text-sm font-medium hover:opacity-80 transition-opacity ${bgCard}`}>{isEnglish ? 'עברית' : 'English'}</button>
               <button onClick={() => setIsDarkMode(!isDarkMode)} className={`flex-1 md:flex-none px-6 py-2 border rounded-md text-sm font-medium hover:opacity-80 transition-opacity ${bgCard}`}>{isDarkMode ? t.lightMode : t.darkMode}</button>
             </div>
             <div className={`w-full md:w-auto text-start flex items-center gap-4`}>
-              <img src="/logo.jpg" alt="Logo" className="w-12 h-12 rounded-full border-2 border-[#37003c] drop-shadow-md hidden sm:block" />
+                            <img src="/logo.jpg" alt="Logo" className="w-12 h-12 rounded-full border-2 border-[#37003c] drop-shadow-md hidden sm:block" />
               <div>
-                <h2 className={`text-2xl font-black ${textHighlight}`}>{data.team_id?.toString() === '3450961' ? (isEnglish ? 'Demo Squad' : 'קבוצת הדגמה (Demo)') : data.team_name}</h2>
-                <p className={`text-sm ${textMuted}`}>{t.engineFor} {data.next_gw} | {data.team_id?.toString() === '3450961' ? (isEnglish ? 'Guest Mode' : 'מצב אורח') : `${t.teamWord} ${data.team_id}`}</p>
+                <h2 className={`text-2xl font-black ${textHighlight}`}>
+                  {appMode === 'guest' ? (isEnglish ? 'Guest Explorer' : 'סייר אורח') : 
+                   appMode === 'demo' ? (isEnglish ? 'Demo Squad' : 'קבוצת הדגמה (Demo)') : 
+                   data?.team_name}
+                </h2>
+                {appMode !== 'guest' && (
+                  <p className={`text-sm ${textMuted}`}>{t.engineFor} {data?.next_gw} | {appMode === 'demo' ? (isEnglish ? 'Demo Mode' : 'מצב הדגמה') : `${t.teamWord} ${data?.team_id}`}</p>
+                )}
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {appMode !== 'guest' && <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className={`border-2 border-red-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
               <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.overallRank}</p>
               <p className="text-lg sm:text-2xl font-black">{data.rank.toLocaleString()}</p>
@@ -792,10 +799,10 @@ export default function Home() {
               <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.squadScore}</p>
               <p className="text-lg sm:text-2xl font-black" dir="ltr">{calculatedSquadScore || 0} <span className={`text-sm ${textMuted}`}>/ 100</span></p>
             </div>
-          </div>
+          </div>}
 
           <div className={`border ${isUrgent ? 'border-red-500' : 'border-green-400'} rounded-xl p-4 mb-8 flex flex-col items-center justify-center ${bgBox}`}>
-            <p className={`text-[8px] sm:text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{t.timeUntil} (GW {data.next_gw})</p>
+            <p className={`text-[8px] sm:text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{t.timeUntil} (GW {data?.next_gw})</p>
             <p className={`text-xl font-bold ${isUrgent ? 'text-red-500 animate-pulse' : 'text-green-600'}`}>{countdown}</p>
           </div>
 
@@ -864,7 +871,7 @@ export default function Home() {
             </div>
           )}
 
-          {activeTab === 'transfer' && (
+          {appMode !== 'guest' && activeTab === 'transfer' && (
             <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${bgCard}`}>
               
               <div className="flex flex-col lg:flex-row gap-8">
@@ -1072,11 +1079,26 @@ export default function Home() {
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
                 <span>💰</span> {isEnglish ? 'Budget Scenarios' : 'תרחישי תקציב (המלצות מבוססות AI)'}
               </h3>
-              <BudgetScenariosTab teamId={data.team_id} isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} onTransfer={executeVirtualTransfer} />
+              <BudgetScenariosTab teamId={data?.team_id} isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} onTransfer={executeVirtualTransfer} />
             </div>
           )}
 
-          {activeTab === 'planner' && (
+          
+          {appMode === 'guest' && (activeTab === 'planner' || activeTab === 'transfer' || activeTab === 'leagues' || activeTab === 'budget') && (
+            <div className={`mt-8 p-12 text-center rounded-2xl border border-dashed border-gray-300 ${bgCard}`}>
+              <div className="text-5xl mb-4">🔒</div>
+              <h2 className="text-2xl font-black mb-2">{isEnglish ? 'Personalized Feature' : 'פיצ׳ר מותאם אישית'}</h2>
+              <p className={`mb-6 ${textMuted}`}>{isEnglish ? 'Connect your FPL Team to unlock this feature and get personalized insights.' : 'התחבר לקבוצת ה-FPL שלך כדי לפתוח פיצ׳ר זה ולקבל תובנות אישיות.'}</p>
+              <button 
+                onClick={() => { setAppMode('welcome'); setTeamId(''); }}
+                className="bg-[#01fc7a] text-[#37003c] font-black px-8 py-3 rounded-xl hover:bg-[#00e36d] transition-colors"
+              >
+                {isEnglish ? 'Connect Team' : 'התחבר לקבוצה'}
+              </button>
+            </div>
+          )}
+
+          {appMode !== 'guest' && activeTab === 'planner' && (
             <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${bgCard} relative`}>
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
                 <span>🗓️</span> {isEnglish ? 'Gameweek Planner' : 'מתכנן מחזורים'}
@@ -1331,7 +1353,7 @@ export default function Home() {
         </div>
       )}
 
-      {data && (
+      {(data || appMode === 'guest') && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#37003c] z-[100] flex overflow-x-auto scrollbar-hide shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.3)]">
           {[
             { id: 'pitch', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="12" x2="22" y2="12"></line><circle cx="12" cy="12" r="3"></circle></svg>, nameEn: 'Pitch', nameHe: 'מגרש' },
@@ -1848,7 +1870,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
   const isChipAvailable = (chipId: string) => {
     const usedCount = (data.chips_used || []).filter((c: string) => c === chipId).length;
     if (chipId === 'wildcard') {
-      if (data.next_gw < 20) return usedCount === 0;
+      if (data?.next_gw < 20) return usedCount === 0;
       return usedCount < 2;
     }
     return usedCount === 0;
@@ -1872,7 +1894,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
   const bench = data.squad.filter((p: any) => p.position > 11).sort((a: any, b: any) => a.position - b.position);
   const totalXP = starters.reduce((acc: number, p: any) => { let mult = p.multiplier || 1; if (activeChip === '3xc' && p.is_captain) mult = 3; return acc + (p.xp * mult); }, 0);
 
-  const selectedGwNumber = data.next_gw + selectedGwOffset;
+  const selectedGwNumber = data?.next_gw + selectedGwOffset;
   const scheduleForGw = data.schedule?.[selectedGwNumber] || [];
 
   const originalSquadIds = originalData?.squad.map((p: any) => p.id) || [];
@@ -1962,14 +1984,14 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
                 onChange={(e) => setSelectedGwOffset(Number(e.target.value))}
                 className={`border rounded-lg px-3 py-1.5 text-sm font-black shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               >
-                {Array.from({length: Math.max(1, 38 - data.next_gw + 1)}, (_, i) => i).map(offset => (
-                  <option key={offset} value={offset}>GW {data.next_gw + offset} {offset === 0 ? (isEnglish ? '(Current)' : '(נוכחי)') : ''}</option>
+                {Array.from({length: Math.max(1, 38 - data?.next_gw + 1)}, (_, i) => i).map(offset => (
+                  <option key={offset} value={offset}>GW {data?.next_gw + offset} {offset === 0 ? (isEnglish ? '(Current)' : '(נוכחי)') : ''}</option>
                 ))}
               </select>
               <button 
-                onClick={() => setSelectedGwOffset(Math.min(38 - data.next_gw, selectedGwOffset + 1))}
-                disabled={selectedGwOffset === Math.max(0, 38 - data.next_gw)}
-                className={`w-8 h-8 flex items-center justify-center rounded-lg border font-bold text-lg shadow-sm transition-colors ${selectedGwOffset === Math.max(0, 38 - data.next_gw) ? (isDarkMode ? 'opacity-50 cursor-not-allowed bg-gray-800 text-gray-500 border-gray-700' : 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200') : (isDarkMode ? 'hover:bg-gray-600 bg-gray-700 text-white border-gray-600' : 'hover:bg-purple-100 hover:text-purple-700 bg-white border-gray-300 text-gray-800')}`}
+                onClick={() => setSelectedGwOffset(Math.min(38 - data?.next_gw, selectedGwOffset + 1))}
+                disabled={selectedGwOffset === Math.max(0, 38 - data?.next_gw)}
+                className={`w-8 h-8 flex items-center justify-center rounded-lg border font-bold text-lg shadow-sm transition-colors ${selectedGwOffset === Math.max(0, 38 - data?.next_gw) ? (isDarkMode ? 'opacity-50 cursor-not-allowed bg-gray-800 text-gray-500 border-gray-700' : 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200') : (isDarkMode ? 'hover:bg-gray-600 bg-gray-700 text-white border-gray-600' : 'hover:bg-purple-100 hover:text-purple-700 bg-white border-gray-300 text-gray-800')}`}
               >
                 &gt;
               </button>
@@ -2113,7 +2135,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
     setCompareError("");
     setCompareData(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/compare/${data.team_id}/${rivalId}?gw=${Math.max(1, data.next_gw - 1)}`);
+      const res = await fetch(`${API_BASE_URL}/api/compare/${data?.team_id}/${rivalId}?gw=${Math.max(1, data?.next_gw - 1)}`);
       if (!res.ok) throw new Error(isEnglish ? "Could not fetch rival team." : "לא הצלחתי למשוך את קבוצת היריב.");
       const json = await res.json();
       
