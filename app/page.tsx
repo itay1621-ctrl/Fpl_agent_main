@@ -158,6 +158,7 @@ export default function Home() {
   const [transferOutId, setTransferOutId] = useState<number | null>(null);
   const [transferRecs, setTransferRecs] = useState<any[]>([]);
   const [transferDecision, setTransferDecision] = useState<any>(null);
+  const [infoPopupPlayer, setInfoPopupPlayer] = useState<any>(null);
   const [loadingRecs, setLoadingRecs] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [transferError, setTransferError] = useState('');
@@ -677,8 +678,67 @@ export default function Home() {
     p.team.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+
+  const renderInfoPopup = () => {
+    if (!infoPopupPlayer) return null;
+    const p = infoPopupPlayer;
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setInfoPopupPlayer(null)}>
+        <div className={`relative w-full max-w-sm rounded-2xl shadow-xl overflow-hidden p-5 ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-100'}`} onClick={e => e.stopPropagation()}>
+          <button onClick={() => setInfoPopupPlayer(null)} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" aria-label="Close">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+          
+          <div className="flex items-center gap-4 mb-4">
+            <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${p.team_code}-66.webp`} className="w-12 h-auto" alt="Shirt" />
+            <div>
+              <h3 className={`font-black text-xl ${textHighlight}`}>{p.name}</h3>
+              <p className={`text-sm font-bold ${textMuted}`}>{p.team} • £{p.cost.toFixed(1)}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+              <span className={`block text-[10px] uppercase font-bold ${textMuted}`}>Projected xP / GW</span>
+              <span className="font-black text-emerald-500 text-lg">{p.xp.toFixed(1)}</span>
+            </div>
+            <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+              <span className={`block text-[10px] uppercase font-bold ${textMuted}`}>Expected Mins</span>
+              <span className={`font-black text-lg ${textHighlight}`}>{p.expected_minutes ? p.expected_minutes.toFixed(0) : 'N/A'}</span>
+            </div>
+            <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+              <span className={`block text-[10px] uppercase font-bold ${textMuted}`}>Start Prob</span>
+              <span className={`font-black text-lg ${textHighlight}`}>{p.prob ? `${(p.prob * 100).toFixed(0)}%` : 'N/A'}</span>
+            </div>
+            <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+              <span className={`block text-[10px] uppercase font-bold ${textMuted}`}>Fixture Outlook</span>
+              <span className={`font-black text-lg ${p.fixture_diff <= 2 ? 'text-emerald-500' : p.fixture_diff >= 4 ? 'text-rose-500' : textHighlight}`}>{p.fixture || 'Blank'}</span>
+            </div>
+          </div>
+
+          {p.reason && (
+            <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-purple-900/20 border-purple-800/30' : 'bg-purple-50/50 border-purple-100'}`}>
+              <h4 className="font-bold text-[10px] uppercase text-purple-600 dark:text-purple-400 mb-1">Why recommended:</h4>
+              <p className={`text-xs font-medium ${textHighlight}`}>
+                {p.reason.split('\n').map((r: string, i: number) => <span key={i} className="block mb-0.5">• {r}</span>)}
+              </p>
+            </div>
+          )}
+          
+          <button 
+            className="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-bold text-sm transition-colors"
+            onClick={() => { setInfoPopupPlayer(null); executeTransfer(p); setActiveTab('planner'); }}
+          >
+            Select for Transfer
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <main className={`min-h-screen font-sans pb-24 md:pb-0 transition-colors duration-300 ${bgMain}`} dir={isEnglish ? "ltr" : "rtl"}>
+      {renderInfoPopup()}
       <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={(id:number) => { handleSwapClick(id); setActionPlayer(null); }} onCaptain={(id:number) => { handleSetCaptain(id); setActionPlayer(null); }} onVice={(id:number) => { handleSetViceCaptain(id); setActionPlayer(null); }} isEnglish={isEnglish} isDarkMode={isDarkMode} />
       
       {appMode === 'welcome' && !initLoading && (
@@ -974,14 +1034,24 @@ export default function Home() {
                                     {idx + 1}
                                   </div>
                                   <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${rec.team_code}-66.webp`} className="w-7 sm:w-10" />
-                                  <div className="w-full">
-                                    <p className={`font-black text-[9px] sm:text-sm truncate ${textHighlight}`}>{rec.name}</p>
+                                  <div className="w-full relative">
+                                    <div className="flex items-center justify-center gap-1">
+                                      <p className={`font-black text-[9px] sm:text-sm truncate ${textHighlight}`}>{rec.name}</p>
+                                      <button 
+                                        className="text-gray-400 hover:text-purple-500 cursor-pointer flex-shrink-0"
+                                        onClick={(e) => { e.stopPropagation(); setInfoPopupPlayer(rec); }}
+                                        aria-label="Player Info"
+                                        title="View player stats"
+                                      >
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                      </button>
+                                    </div>
                                     <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{rec.team}</p>
                                   </div>
                                   <div className={`w-full text-[8px] sm:text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded flex flex-col gap-1 ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
                                     <div className="flex justify-between w-full">
                                       <span className={textHighlight}>£{rec.cost.toFixed(1)}</span>
-                                      <span className="text-emerald-500">{rec.xp.toFixed(1)} xP (5 GWs)</span>
+                                      <span className="text-emerald-500">{rec.xp.toFixed(1)} xP/GW</span>
                                     </div>
                                     <span className={`text-[7px] sm:text-[9px] px-1 py-0.5 rounded text-center text-white ${rec.fixture_diff <= 2 ? 'bg-emerald-500' : rec.fixture_diff === 3 ? 'bg-slate-400' : 'bg-rose-500'}`}>
                                       {rec.fixture}
@@ -1032,11 +1102,18 @@ export default function Home() {
                                       {rec.fixture || 'Blank'}
                                     </div>
                                   </td>
-                                  <td className="px-3 py-2 text-center">
+                                  <td className="px-1 md:px-3 py-2 text-center whitespace-nowrap">
                                     <button 
-                                      onClick={() => executeTransfer(rec)}
-                                  title={`Security: ${rec.confidence || 'N/A'} \nReasons: ${rec.reason || 'None'}`} 
-                                      className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs font-bold transition-colors"
+                                      onClick={(e) => { e.stopPropagation(); setInfoPopupPlayer(rec); }} 
+                                      aria-label="Player Info" 
+                                      title="View player stats"
+                                      className="text-gray-400 hover:text-purple-500 p-1 mr-1 md:mr-2 align-middle inline-block"
+                                    >
+                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                    </button>
+                                    <button
+                                      onClick={() => { executeTransfer(rec); setActiveTab('planner'); }}
+                                      className="bg-purple-600 hover:bg-purple-700 text-white px-2 md:px-3 py-1 rounded text-xs font-bold transition-colors align-middle inline-block"
                                     >
                                       {isEnglish ? 'Select' : 'בחר'}
                                     </button>
@@ -1238,14 +1315,24 @@ export default function Home() {
                                     {idx + 1}
                                   </div>
                                   <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${rec.team_code}-66.webp`} className="w-7 sm:w-10" />
-                                  <div className="w-full">
-                                    <p className={`font-black text-[9px] sm:text-sm truncate ${textHighlight}`}>{rec.name}</p>
+                                  <div className="w-full relative">
+                                    <div className="flex items-center justify-center gap-1">
+                                      <p className={`font-black text-[9px] sm:text-sm truncate ${textHighlight}`}>{rec.name}</p>
+                                      <button 
+                                        className="text-gray-400 hover:text-purple-500 cursor-pointer flex-shrink-0"
+                                        onClick={(e) => { e.stopPropagation(); setInfoPopupPlayer(rec); }}
+                                        aria-label="Player Info"
+                                        title="View player stats"
+                                      >
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                      </button>
+                                    </div>
                                     <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{rec.team}</p>
                                   </div>
                                   <div className={`w-full text-[8px] sm:text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded flex flex-col gap-1 ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
                                       <div className="flex justify-between w-full">
                                         <span className={textHighlight}>£{rec.cost.toFixed(1)}</span>
-                                        <span className="text-emerald-500">{rec.xp.toFixed(1)} xP (5 GWs)</span>
+                                        <span className="text-emerald-500">{rec.xp.toFixed(1)} xP/GW</span>
                                       </div>
                                       <span className={`text-[7px] sm:text-[9px] px-1 py-0.5 rounded text-center text-white ${rec.fixture_diff <= 2 ? 'bg-emerald-500' : rec.fixture_diff === 3 ? 'bg-slate-400' : 'bg-rose-500'}`}>
                                         {rec.fixture}
@@ -1296,10 +1383,18 @@ export default function Home() {
                                       {rec.fixture || 'Blank'}
                                     </div>
                                   </td>
-                                  <td className="px-3 py-2 text-center">
+                                  <td className="px-1 md:px-3 py-2 text-center whitespace-nowrap">
                                     <button 
-                                      onClick={() => { executeTransfer(rec); setActiveTab('planner'); }} 
-                                      className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs font-bold transition-colors"
+                                      onClick={(e) => { e.stopPropagation(); setInfoPopupPlayer(rec); }} 
+                                      aria-label="Player Info" 
+                                      title="View player stats"
+                                      className="text-gray-400 hover:text-purple-500 p-1 mr-1 md:mr-2 align-middle inline-block"
+                                    >
+                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                    </button>
+                                    <button
+                                      onClick={() => { executeTransfer(rec); setActiveTab('planner'); }}
+                                      className="bg-purple-600 hover:bg-purple-700 text-white px-2 md:px-3 py-1 rounded text-xs font-bold transition-colors align-middle inline-block"
                                     >
                                       {isEnglish ? 'Select' : 'בחר'}
                                     </button>
