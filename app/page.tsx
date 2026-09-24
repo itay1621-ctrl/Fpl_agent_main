@@ -681,59 +681,7 @@ export default function Home() {
 
   const renderInfoPopup = () => {
     if (!infoPopupPlayer) return null;
-    const p = infoPopupPlayer;
-    return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setInfoPopupPlayer(null)}>
-        <div className={`relative w-full max-w-sm rounded-2xl shadow-xl overflow-hidden p-5 ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-100'}`} onClick={e => e.stopPropagation()}>
-          <button onClick={() => setInfoPopupPlayer(null)} className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" aria-label="Close">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
-          
-          <div className="flex items-center gap-4 mb-4">
-            <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${p.team_code}-66.webp`} className="w-12 h-auto" alt="Shirt" />
-            <div>
-              <h3 className={`font-black text-xl ${textHighlight}`}>{p.name}</h3>
-              <p className={`text-sm font-bold ${textMuted}`}>{p.team} • £{p.cost.toFixed(1)}</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-              <span className={`block text-[10px] uppercase font-bold ${textMuted}`}>Projected xP / GW</span>
-              <span className="font-black text-emerald-500 text-lg">{p.xp.toFixed(1)}</span>
-            </div>
-            <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-              <span className={`block text-[10px] uppercase font-bold ${textMuted}`}>Expected Mins</span>
-              <span className={`font-black text-lg ${textHighlight}`}>{p.expected_minutes ? p.expected_minutes.toFixed(0) : 'N/A'}</span>
-            </div>
-            <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-              <span className={`block text-[10px] uppercase font-bold ${textMuted}`}>Fitness</span>
-              <span className={`font-black text-lg ${textHighlight}`}>{p.prob ? `${(p.prob * 100).toFixed(0)}%` : 'N/A'}</span>
-            </div>
-            <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-              <span className={`block text-[10px] uppercase font-bold ${textMuted}`}>Fixture Outlook</span>
-              <span className={`font-black text-lg ${p.fixture_diff <= 2 ? 'text-emerald-500' : p.fixture_diff >= 4 ? 'text-rose-500' : textHighlight}`}>{p.fixture || 'Blank'}</span>
-            </div>
-          </div>
-
-          {p.reason && (
-            <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-purple-900/20 border-purple-800/30' : 'bg-purple-50/50 border-purple-100'}`}>
-              <h4 className="font-bold text-[10px] uppercase text-purple-600 dark:text-purple-400 mb-1">Model Notes:</h4>
-              <p className={`text-xs font-medium ${textHighlight}`}>
-                {p.reason.split('\n').map((r: string, i: number) => <span key={i} className="block mb-0.5">• {r}</span>)}
-              </p>
-            </div>
-          )}
-          
-          <button 
-            className="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-bold text-sm transition-colors"
-            onClick={() => { setInfoPopupPlayer(null); executeTransfer(p); setActiveTab('planner'); }}
-          >
-            Select for Transfer
-          </button>
-        </div>
-      </div>
-    );
+    return <PlayerInfoModal playerId={infoPopupPlayer.id} preloadedPlayer={infoPopupPlayer} onClose={() => setInfoPopupPlayer(null)} onTransferAction={(p:any) => { executeTransfer(p); setActiveTab('planner'); }} isDarkMode={isDarkMode} isEnglish={isEnglish} teams={data?.teams || {}} />;
   };
 
   return (
@@ -2557,7 +2505,7 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
 }
 
 
-function PlayerInfoModal({ playerId, onClose, isDarkMode, isEnglish, teams }: { playerId: number, onClose: () => void, isDarkMode: boolean, isEnglish: boolean, teams: any }) {
+function PlayerInfoModal({ playerId, preloadedPlayer, onClose, onTransferAction, isDarkMode, isEnglish, teams }: { playerId: number, preloadedPlayer?: any, onClose: () => void, onTransferAction?: (p:any)=>void, isDarkMode: boolean, isEnglish: boolean, teams: any }) {
   const [playerData, setPlayerData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -2620,6 +2568,29 @@ function PlayerInfoModal({ playerId, onClose, isDarkMode, isEnglish, teams }: { 
               </div>
             </div>
 
+                        {/* Preloaded AI Engine Stats */}
+            {preloadedPlayer && (
+              <div className="mb-2">
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <div className={`p-2 rounded-lg ${cardBg}`}>
+                    <span className="block text-[10px] uppercase font-bold text-gray-400">Projected xP / GW</span>
+                    <span className="font-black text-emerald-500 text-sm">{(preloadedPlayer.xp || 0).toFixed(1)}</span>
+                  </div>
+                  <div className={`p-2 rounded-lg ${cardBg}`}>
+                    <span className="block text-[10px] uppercase font-bold text-gray-400">Fitness</span>
+                    <span className={`font-black text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{preloadedPlayer.prob ? `${(preloadedPlayer.prob * 100).toFixed(0)}%` : 'N/A'}</span>
+                  </div>
+                </div>
+                {preloadedPlayer.reason && (
+                  <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-purple-900/20 border-purple-800/30' : 'bg-purple-50/50 border-purple-100'} mb-4`}>
+                    <h4 className="font-bold text-[10px] uppercase text-purple-600 dark:text-purple-400 mb-1">Model Notes:</h4>
+                    <p className={`text-xs font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                      {preloadedPlayer.reason.split('\n').map((r: string, i: number) => <span key={i} className="block mb-0.5">• {r}</span>)}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
             {/* Deep Stats */}
             <div>
               <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-2">{isEnglish ? 'Season Stats' : 'סטטיסטיקות עונה'}</h3>
@@ -2689,6 +2660,15 @@ function PlayerInfoModal({ playerId, onClose, isDarkMode, isEnglish, teams }: { 
                   })}
                 </div>
               </div>
+            )}
+
+            {onTransferAction && preloadedPlayer && (
+              <button
+                className="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold transition-colors"
+                onClick={() => { onTransferAction(preloadedPlayer); onClose(); }}
+              >
+                Select for Transfer
+              </button>
             )}
 
           </div>
