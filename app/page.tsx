@@ -278,7 +278,7 @@ export default function Home() {
   const textMuted = isDarkMode ? "text-gray-400" : "text-gray-500";
   const textHighlight = isDarkMode ? "text-gray-200" : "text-[#1a202c]";
 
-  const fetchTeam = async (overrideId?: string) => {
+  const fetchTeam = async (overrideId?: string, targetMode: 'team' | 'demo' = 'team') => {
     const idToFetch = (overrideId || teamId)?.toString().trim();
     if (!idToFetch) return;
     setLoading(true);
@@ -353,14 +353,18 @@ export default function Home() {
               }
             }
             setData(savedPlan);
+            setAppMode(targetMode);
             return;
           }
         } catch (e) {}
       }
       setData(JSON.parse(JSON.stringify(result)));
+      setAppMode(targetMode);
     } catch (err: any) {
       setError(err.message);
       if (overrideId) localStorage.removeItem('fpl_team_id');
+      setAppMode('welcome');
+      setData(null);
     } finally {
       setLoading(false);
     }
@@ -676,7 +680,7 @@ export default function Home() {
     <main className={`min-h-screen font-sans pb-24 md:pb-0 transition-colors duration-300 ${bgMain}`} dir={isEnglish ? "ltr" : "rtl"}>
       <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={(id:number) => { handleSwapClick(id); setActionPlayer(null); }} onCaptain={(id:number) => { handleSetCaptain(id); setActionPlayer(null); }} onVice={(id:number) => { handleSetViceCaptain(id); setActionPlayer(null); }} isEnglish={isEnglish} isDarkMode={isDarkMode} />
       
-      {appMode === 'welcome' && (
+      {appMode === 'welcome' && !initLoading && (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#37003c] text-white relative">
           <button 
             onClick={() => setIsEnglish(!isEnglish)} 
@@ -703,10 +707,10 @@ export default function Home() {
                   onChange={(e) => setTeamId(e.target.value)} 
                   placeholder={t.placeholder} 
                   className="w-full bg-gray-50 border border-gray-300 rounded-xl p-4 text-center text-2xl font-black focus:outline-none focus:ring-2 focus:ring-[#01fc7a] transition-all placeholder:text-gray-400 placeholder:text-lg placeholder:font-medium" 
-                  onKeyDown={(e) => { if (e.key === 'Enter') { setAppMode('team'); fetchTeam(); } }} 
+                  onKeyDown={(e) => { if (e.key === 'Enter') fetchTeam(undefined, 'team'); }} 
                 />
                 <button 
-                  onClick={() => { setAppMode('team'); fetchTeam(); }} 
+                  onClick={() => { fetchTeam(undefined, 'team'); }} 
                   disabled={loading || !teamId} 
                   className="w-full bg-[#01fc7a] hover:bg-[#00e36d] text-[#37003c] px-6 py-4 rounded-xl font-black text-lg shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                 >
@@ -720,7 +724,7 @@ export default function Home() {
                 </div>
                 
                 <button 
-                  onClick={() => { setTeamId('3450961'); setAppMode('demo'); setTimeout(() => fetchTeam('3450961'), 100); }} 
+                  onClick={() => { setTeamId('3450961'); setTimeout(() => fetchTeam('3450961', 'demo'), 100); }} 
                   disabled={loading} 
                   className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 px-6 py-3 rounded-xl font-bold shadow-sm transition-all disabled:opacity-50 active:scale-95 text-sm mb-2 border border-blue-200"
                 >
@@ -751,7 +755,7 @@ export default function Home() {
         </div>
       )}
       
-      {appMode !== 'welcome' && initLoading && (
+      {initLoading && (
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-green-900">
            <div className="animate-pulse text-white font-bold text-xl">{isEnglish ? 'Loading your squad...' : 'טוען את הקבוצה שלך...'}</div>
         </div>
@@ -809,10 +813,12 @@ export default function Home() {
             </div>
           </div>}
 
+          {appMode !== 'guest' && (
           <div className={`border ${isUrgent ? 'border-red-500' : 'border-green-400'} rounded-xl p-4 mb-8 flex flex-col items-center justify-center ${bgBox}`}>
             <p className={`text-[8px] sm:text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{t.timeUntil} (GW {data?.next_gw})</p>
             <p className={`text-xl font-bold ${isUrgent ? 'text-red-500 animate-pulse' : 'text-green-600'}`}>{countdown}</p>
           </div>
+          )}
 
           <div className="hidden md:flex overflow-x-auto gap-6 border-b border-gray-200 mb-6 pb-2 text-sm font-bold whitespace-nowrap scrollbar-hide">
             <button onClick={() => setActiveTab('pitch')} className={`${activeTab === 'pitch' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.pitchTab}</button>
