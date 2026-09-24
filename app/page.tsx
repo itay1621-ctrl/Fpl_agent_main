@@ -354,12 +354,16 @@ export default function Home() {
                 }));
               }
             }
+            const savedChip = localStorage.getItem(`fpl_active_chip_${idToFetch}`);
+            if (savedChip) setActiveChip(savedChip);
             setData(savedPlan);
             setAppMode(targetMode);
             return;
           }
         } catch (e) {}
       }
+            const savedChip = localStorage.getItem(`fpl_active_chip_${idToFetch}`);
+            if (savedChip) setActiveChip(savedChip);
       setData(JSON.parse(JSON.stringify(result)));
       setAppMode(targetMode);
     } catch (err: any) {
@@ -393,11 +397,23 @@ export default function Home() {
     }
   }, [data]);
 
+  useEffect(() => {
+    if (data && data.team_id) {
+      if (activeChip) {
+        localStorage.setItem(`fpl_active_chip_${data.team_id}`, activeChip);
+      } else {
+        localStorage.removeItem(`fpl_active_chip_${data.team_id}`);
+      }
+    }
+  }, [activeChip, data]);
+
   const handleReset = () => {
     if (originalData) {
       setData(JSON.parse(JSON.stringify(originalData)));
       setSwapSourceId(null);
       setTransferOutId(null);
+      setActiveChip(null);
+      localStorage.removeItem(`fpl_active_chip_${originalData.team_id}`);
       localStorage.removeItem(`fpl_plan_${originalData.team_id}`);
     }
   };
@@ -913,13 +929,21 @@ export default function Home() {
                     )}
                   </div>
 
-                  <div className="bg-[#126b3f] rounded-t-lg p-2 sm:p-4 relative shadow-inner min-h-[550px] sm:min-h-[400px] flex flex-col justify-around border-4 border-b-0 border-purple-500/50 overflow-hidden">
-                    <div className="absolute inset-0 opacity-20 pointer-events-none">
+<div className="bg-[#126b3f] rounded-t-lg p-1 md:p-4 relative shadow-md overflow-hidden min-h-[380px] md:min-h-[500px] flex flex-col justify-around">
+                    <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
                       <div className="absolute top-1/2 left-0 right-0 h-1 bg-white"></div>
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 border-4 border-white rounded-full"></div>
-                      <div className="absolute top-0 left-1/4 right-1/4 h-24 border-4 border-t-0 border-white"></div>
-                      <div className="absolute bottom-0 left-1/4 right-1/4 h-24 border-4 border-b-0 border-white"></div>
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-4 border-white rounded-full"></div>
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full"></div>
+                      
+                      <div className="absolute top-0 left-1/4 right-1/4 h-32 border-4 border-t-0 border-white"></div>
+                      <div className="absolute top-0 left-[35%] right-[35%] h-12 border-4 border-t-0 border-white"></div>
+                      <div className="absolute top-[8rem] left-1/2 -translate-x-1/2 w-20 h-10 border-4 border-transparent border-b-white rounded-full"></div>
+                      
+                      <div className="absolute bottom-0 left-1/4 right-1/4 h-32 border-4 border-b-0 border-white"></div>
+                      <div className="absolute bottom-0 left-[35%] right-[35%] h-12 border-4 border-b-0 border-white"></div>
+                      <div className="absolute bottom-[8rem] left-1/2 -translate-x-1/2 w-20 h-10 border-4 border-transparent border-t-white rounded-full"></div>
                     </div>
+                    
                     <div className="flex justify-around w-full px-1 sm:px-4 z-10">
                       {starters.filter((p: any) => p.pos_code === 1).map((p: any) => (
                         <PlayerCard key={p.id} player={p} activeId={transferOutId} onActionClick={handlePlayerClick} transferMode />
@@ -941,10 +965,12 @@ export default function Home() {
                       ))}
                     </div>
                   </div>
-                  <div className={`mt-0 w-full p-1 md:p-4 flex justify-around shadow-inner z-20 relative border-4 border-t-0 border-purple-500/50 rounded-b-lg ${isDarkMode ? 'bg-gray-800' : 'bg-[#e0e0e0]'}`}>
+                  
+                  <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
                     {bench.sort((a: any, b: any) => a.position - b.position).map((p: any) => (
                       <PlayerCard key={p.id} player={p} isBench activeId={transferOutId} onActionClick={handlePlayerClick} transferMode />
                     ))}
+                  </div>
                   </div>
                 </div>
 
@@ -2120,7 +2146,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
             </div>
           </div>
           
-          <div className={`mt-0 w-full p-2 sm:p-4 flex justify-around shadow-inner z-20 ${isDarkMode ? 'bg-gray-800 border-t-2 border-gray-700' : 'bg-[#e0e0e0] border-t-4 border-[#b0b0b0]'}`}>
+          <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
             {bench.map((p: any) => renderPlayer(p, true))}
           </div>
         </div>

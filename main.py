@@ -17,10 +17,14 @@ app = FastAPI(title="FPL Elite Scout API")
 
 # Setup Error Monitoring Logger
 os.makedirs("logs", exist_ok=True)
+import sys
 logging.basicConfig(
-    filename='logs/error_log.txt', 
     level=logging.ERROR, 
-    format='%(asctime)s | %(levelname)s | %(message)s'
+    format='%(asctime)s | %(levelname)s | %(message)s',
+    handlers=[
+        logging.FileHandler('logs/error_log.txt'),
+        logging.StreamHandler(sys.stdout)
+    ]
 )
 
 @app.middleware("http")
