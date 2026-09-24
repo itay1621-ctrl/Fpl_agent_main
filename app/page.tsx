@@ -707,7 +707,7 @@ export default function Home() {
               <span className={`font-black text-lg ${textHighlight}`}>{p.expected_minutes ? p.expected_minutes.toFixed(0) : 'N/A'}</span>
             </div>
             <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-              <span className={`block text-[10px] uppercase font-bold ${textMuted}`}>Start Prob</span>
+              <span className={`block text-[10px] uppercase font-bold ${textMuted}`}>Fitness</span>
               <span className={`font-black text-lg ${textHighlight}`}>{p.prob ? `${(p.prob * 100).toFixed(0)}%` : 'N/A'}</span>
             </div>
             <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -718,7 +718,7 @@ export default function Home() {
 
           {p.reason && (
             <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-purple-900/20 border-purple-800/30' : 'bg-purple-50/50 border-purple-100'}`}>
-              <h4 className="font-bold text-[10px] uppercase text-purple-600 dark:text-purple-400 mb-1">Why recommended:</h4>
+              <h4 className="font-bold text-[10px] uppercase text-purple-600 dark:text-purple-400 mb-1">Model Notes:</h4>
               <p className={`text-xs font-medium ${textHighlight}`}>
                 {p.reason.split('\n').map((r: string, i: number) => <span key={i} className="block mb-0.5">• {r}</span>)}
               </p>
