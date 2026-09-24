@@ -738,11 +738,32 @@ export default function Home() {
             useCORS: true, 
             backgroundColor: isDarkMode ? '#111827' : '#f9fafb'
         });
-        const image = canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.href = image;
-        link.download = `fpl_${title}.png`;
-        link.click();
+        
+        canvas.toBlob(async (blob) => {
+            if (!blob) return;
+            const file = new File([blob], `fpl_${title}.png`, { type: 'image/png' });
+            
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'FPL AI Agent Squad',
+                        text: 'Check out my FPL squad from FPL AI Agent!'
+                    });
+                } catch (err) {
+                    console.log('Share canceled', err);
+                }
+            } else {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `fpl_${title}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+        }, 'image/png');
     } catch (e) {
         console.error('Failed to generate image', e);
     } finally {
@@ -2017,11 +2038,32 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
             useCORS: true, 
             backgroundColor: isDarkMode ? '#111827' : '#f9fafb'
         });
-        const image = canvas.toDataURL("image/png");
-        const link = document.createElement("a");
-        link.href = image;
-        link.download = `fpl_${title}.png`;
-        link.click();
+        
+        canvas.toBlob(async (blob) => {
+            if (!blob) return;
+            const file = new File([blob], `fpl_${title}.png`, { type: 'image/png' });
+            
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'FPL AI Agent Squad',
+                        text: 'Check out my FPL squad from FPL AI Agent!'
+                    });
+                } catch (err) {
+                    console.log('Share canceled', err);
+                }
+            } else {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `fpl_${title}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+        }, 'image/png');
     } catch (e) {
         console.error('Failed to generate image', e);
     } finally {
