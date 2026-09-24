@@ -1098,7 +1098,7 @@ export default function Home() {
           )}
 
           
-          {appMode === 'guest' && (activeTab === 'pitch' || activeTab === 'transfer' || activeTab === 'leagues' || activeTab === 'budget' || activeTab === 'analysis' || activeTab === 'tips') && (
+          {appMode === 'guest' && (activeTab === 'pitch' || activeTab === 'transfer' || activeTab === 'leagues' || activeTab === 'budget' || activeTab === 'analysis') && (
             <div className={`mt-8 p-12 text-center rounded-2xl border border-dashed border-gray-300 ${bgCard}`}>
               <div className="text-5xl mb-4">🔒</div>
               <h2 className="text-2xl font-black mb-2">{isEnglish ? 'Personalized Feature' : 'פיצ׳ר מותאם אישית'}</h2>
@@ -1355,7 +1355,7 @@ export default function Home() {
         </div>
       )}
 
-      {appMode !== 'guest' && activeTab === 'tips' && (
+      {activeTab === 'tips' && (
         <div className={`mt-4 relative`}>
           <TipsTab 
             isEnglish={isEnglish} 
