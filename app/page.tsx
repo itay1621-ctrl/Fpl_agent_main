@@ -1203,8 +1203,8 @@ export default function Home() {
                 textHighlight={textHighlight} 
                 bgBox={bgBox} 
                 onSwap={handleSwapClick}
-                onCaptain={handleCaptainClick}
-                onVice={handleViceClick}
+                onCaptain={handleSetCaptain}
+                onVice={handleSetViceCaptain}
                 onReset={handleReset}
                 onClearAll={() => {
                   const totalCost = data.squad.reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : p.cost), 0);
