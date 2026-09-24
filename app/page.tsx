@@ -703,14 +703,14 @@ export default function Home() {
                   onChange={(e) => setTeamId(e.target.value)} 
                   placeholder={t.placeholder} 
                   className="w-full bg-gray-50 border border-gray-300 rounded-xl p-4 text-center text-2xl font-black focus:outline-none focus:ring-2 focus:ring-[#01fc7a] transition-all placeholder:text-gray-400 placeholder:text-lg placeholder:font-medium" 
-                  onKeyDown={(e) => e.key === 'Enter' && fetchTeam()} 
+                  onKeyDown={(e) => { if (e.key === 'Enter') { setAppMode('team'); fetchTeam(); } }} 
                 />
                 <button 
-                  onClick={() => fetchTeam()} 
+                  onClick={() => { setAppMode('team'); fetchTeam(); }} 
                   disabled={loading || !teamId} 
                   className="w-full bg-[#01fc7a] hover:bg-[#00e36d] text-[#37003c] px-6 py-4 rounded-xl font-black text-lg shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                 >
-                  {loading ? t.loading : (isEnglish ? 'Start Managing' : 'התחבר לקבוצה')}
+                  {loading ? t.loading : (isEnglish ? 'Analyze My Team' : 'נתח את הקבוצה שלי')}
                 </button>
 
                 <div className="flex items-center w-full my-3">
@@ -720,11 +720,19 @@ export default function Home() {
                 </div>
                 
                 <button 
-                  onClick={() => { setTeamId('3450961'); setTimeout(() => fetchTeam('3450961'), 100); }} 
+                  onClick={() => { setTeamId('3450961'); setAppMode('demo'); setTimeout(() => fetchTeam('3450961'), 100); }} 
+                  disabled={loading} 
+                  className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 px-6 py-3 rounded-xl font-bold shadow-sm transition-all disabled:opacity-50 active:scale-95 text-sm mb-2 border border-blue-200"
+                >
+                  {isEnglish ? 'Try Demo Team' : 'נסה קבוצת הדגמה'}
+                </button>
+                
+                <button 
+                  onClick={() => { setAppMode('guest'); setActiveTab('radar'); setData(null); }} 
                   disabled={loading} 
                   className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold shadow-sm transition-all disabled:opacity-50 active:scale-95 text-sm"
                 >
-                  {isEnglish ? 'Explore Demo Team (No ID required)' : 'חקור קבוצת הדגמה (ללא ID)'}
+                  {isEnglish ? 'Explore Without a Team' : 'היכנס כאורח ללא קבוצה'}
                 </button>
               </div>
               {error && <p className="text-red-400 mt-4 text-center font-bold bg-red-900/40 p-2 rounded-lg">{error}</p>}
@@ -817,14 +825,14 @@ export default function Home() {
             <button onClick={() => setActiveTab('tips')} className={`${activeTab === 'tips' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.tipsTab}</button>
           </div>
 
-          {activeTab === 'pitch' && (
+          {appMode !== 'guest' && activeTab === 'pitch' && (
             <div className="flex justify-end mb-4">
               <button onClick={handleReset} className={`px-4 py-1.5 border rounded text-xs font-bold hover:opacity-80 transition-opacity text-white bg-red-600 border-red-700 shadow-sm`}>
                 {isEnglish ? 'Reset Virtual Changes' : 'איפוס שינויים וירטואליים'}
               </button>
             </div>
           )}
-          {activeTab === 'pitch' && (
+          {appMode !== 'guest' && activeTab === 'pitch' && (
             <div className="max-w-4xl mx-auto">
               <div className="bg-[#126b3f] rounded-t-lg p-1 md:p-4 relative shadow-md overflow-hidden min-h-[380px] md:min-h-[500px] flex flex-col justify-around">
                 <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
@@ -1056,7 +1064,7 @@ export default function Home() {
             </div>
           )}
 
-          {activeTab === 'analysis' && (
+          {appMode !== 'guest' && activeTab === 'analysis' && (
             <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${bgCard}`}>
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
                 <span>📊</span> {isEnglish ? 'Squad Analysis & AI Insights' : 'ניתוח סגל ותובנות AI'}
@@ -1074,7 +1082,7 @@ export default function Home() {
               <EliteRadarTab isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} />
             </div>
           )}
-          {activeTab === 'budget' && (
+          {appMode !== 'guest' && activeTab === 'budget' && (
             <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${bgCard}`}>
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
                 <span>💰</span> {isEnglish ? 'Budget Scenarios' : 'תרחישי תקציב (המלצות מבוססות AI)'}
@@ -1084,7 +1092,7 @@ export default function Home() {
           )}
 
           
-          {appMode === 'guest' && (activeTab === 'planner' || activeTab === 'transfer' || activeTab === 'leagues' || activeTab === 'budget') && (
+          {appMode === 'guest' && (activeTab === 'pitch' || activeTab === 'transfer' || activeTab === 'leagues' || activeTab === 'budget' || activeTab === 'analysis' || activeTab === 'tips') && (
             <div className={`mt-8 p-12 text-center rounded-2xl border border-dashed border-gray-300 ${bgCard}`}>
               <div className="text-5xl mb-4">🔒</div>
               <h2 className="text-2xl font-black mb-2">{isEnglish ? 'Personalized Feature' : 'פיצ׳ר מותאם אישית'}</h2>
@@ -1325,7 +1333,7 @@ export default function Home() {
         </div>
       )}
 
-      {activeTab === 'leagues' && (
+      {appMode !== 'guest' && activeTab === 'leagues' && (
         <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${bgCard} relative`}>
           <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
             <span>🏆</span> {isEnglish ? 'Mini-Leagues & H2H' : 'מיני-ליגות והשוואת ראש בראש'}
@@ -1341,7 +1349,7 @@ export default function Home() {
         </div>
       )}
 
-      {activeTab === 'tips' && (
+      {appMode !== 'guest' && activeTab === 'tips' && (
         <div className={`mt-4 relative`}>
           <TipsTab 
             isEnglish={isEnglish} 
