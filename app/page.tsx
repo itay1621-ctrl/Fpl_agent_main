@@ -703,7 +703,7 @@ export default function Home() {
   return (
     <main className={`min-h-screen font-sans pb-24 md:pb-0 transition-colors duration-300 ${bgMain}`} dir={isEnglish ? "ltr" : "rtl"}>
       {renderInfoPopup()}
-      <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={(id:number) => { handleSwapClick(id); setActionPlayer(null); }} onCaptain={(id:number) => { handleSetCaptain(id); setActionPlayer(null); }} onVice={(id:number) => { handleSetViceCaptain(id); setActionPlayer(null); }} isEnglish={isEnglish} isDarkMode={isDarkMode} />
+      <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={(id:number) => { handleSwapClick(id); setActionPlayer(null); }} onCaptain={(id:number) => { handleSetCaptain(id); setActionPlayer(null); }} onVice={(id:number) => { handleSetViceCaptain(id); setActionPlayer(null); }} onShowInfo={(id:number) => { const p = data?.squad?.find((x:any) => x.id === id) || originalData?.squad?.find((x:any) => x.id === id); if(p) { setInfoPopupPlayer(p); } setActionPlayer(null); }} isEnglish={isEnglish} isDarkMode={isDarkMode} />
       
       {appMode === 'welcome' && !initLoading && (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#37003c] text-white relative">
@@ -2007,7 +2007,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
   return (
     <div className="flex flex-col w-full">
       <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={onSwap} onCaptain={onCaptain} onVice={onVice} onSell={(id: number, removeOnly: boolean) => onSell(id, selectedGwNumber, removeOnly)} onShowInfo={(id: number) => setInfoPlayerId(id)} isEnglish={isEnglish} isDarkMode={isDarkMode} />
-      {infoPlayerId && <PlayerInfoModal playerId={infoPlayerId} onClose={() => setInfoPlayerId(null)} isDarkMode={isDarkMode} isEnglish={isEnglish} teams={originalData?.teams || {}} />}
+      {infoPlayerId && <PlayerInfoModal playerId={infoPlayerId} preloadedPlayer={data?.squad?.find((p:any) => p.id === infoPlayerId) || originalData?.squad?.find((p:any) => p.id === infoPlayerId)} onClose={() => setInfoPlayerId(null)} isDarkMode={isDarkMode} isEnglish={isEnglish} teams={originalData?.teams || {}} />}
 
       <div className={`p-4 sm:p-6 rounded-xl shadow-sm border mb-6 ${bgBox}`}>
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
