@@ -168,6 +168,7 @@ export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [appMode, setAppMode] = useState<'welcome' | 'team' | 'demo' | 'guest'>('welcome');
   const [isEnglish, setIsEnglish] = useState(true);
+  const [showFeedback, setShowFeedback] = useState(true);
   const [countdown, setCountdown] = useState("Calculating...");
   const [isUrgent, setIsUrgent] = useState(false);
 
@@ -697,16 +698,28 @@ export default function Home() {
 
 
   
-  const renderFeedbackButton = () => (
-    <a
-      href="mailto:itayas@mobileye.com?subject=FPL%20Agent%20Feedback"
-      className="fixed bottom-6 right-6 z-50 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-full shadow-lg transition-transform hover:scale-110 flex items-center gap-2 border-2 border-white/20"
-      title={isEnglish ? 'Send Feedback' : 'שלח פידבק'}
-    >
-      <span className="text-xl">💬</span>
-      <span className="hidden sm:inline">{isEnglish ? 'Feedback' : 'פידבק'}</span>
-    </a>
-  );
+  const renderFeedbackButton = () => {
+    if (!showFeedback) return null;
+    return (
+      <div className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-[100] flex items-center animate-slide-up relative">
+        <a
+          href="mailto:itayas@mobileye.com?subject=FPL%20Agent%20Feedback"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-full shadow-lg transition-transform hover:scale-105 flex items-center gap-2 border-2 border-white/20"
+          title={isEnglish ? 'Send Feedback' : 'שלח פידבק'}
+        >
+          <span className="text-xl">💬</span>
+          <span className="hidden sm:inline">{isEnglish ? 'Feedback' : 'פידבק'}</span>
+        </a>
+        <button 
+          onClick={() => setShowFeedback(false)}
+          className="bg-gray-800/80 hover:bg-gray-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md transition-colors border border-white/40 absolute -top-1 -left-2 md:-left-2"
+          title={isEnglish ? 'Dismiss' : 'הסתר'}
+        >
+          ✕
+        </button>
+      </div>
+    );
+  };
 
   
   const handleSharePitch = async (elementId: string, title: string) => {
