@@ -701,7 +701,7 @@ export default function Home() {
   const renderFeedbackButton = () => {
     if (!showFeedback) return null;
     return (
-      <div className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-[100] flex items-center animate-slide-up relative">
+      <div className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-[100] flex items-center animate-slide-up">
         <a
           href="mailto:itayas@mobileye.com?subject=FPL%20Agent%20Feedback"
           className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-full shadow-lg transition-transform hover:scale-105 flex items-center gap-2 border-2 border-white/20"
@@ -2202,8 +2202,8 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
         <div className="w-full flex justify-end mb-2">
-            <button onClick={() => handleSharePitch('planner-pitch-container', 'planner')} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-1 px-3 rounded-lg text-sm transition-colors shadow-sm flex items-center gap-1" title={isEnglish ? 'Share Plan' : 'שתף תכנון'}>
-              <span>📸</span> <span className="hidden sm:inline">{isEnglish ? 'Share' : 'שתף'}</span>
+            <button onClick={() => handleSharePitch('planner-pitch-container', 'planner')} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-1 px-3 rounded-lg text-sm transition-colors shadow-sm flex items-center gap-1" title={isEnglish ? 'Save Plan Image' : 'שמור כתמונה'}>
+              <span>📸</span> <span className="hidden sm:inline">{isEnglish ? 'Save Image' : 'שמור תמונה'}</span>
             </button>
         </div>
         <div id="planner-pitch-container" className={`relative w-full max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl mt-4 sm:mt-8 border-4 sm:border-8 border-white ${isDarkMode ? 'opacity-90' : ''}`}>
