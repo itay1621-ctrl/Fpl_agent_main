@@ -692,10 +692,10 @@ export default function Home() {
           <div className="z-10 flex flex-col items-center w-full max-w-md px-4">
             <div className="mb-8 text-center">
               <div className="w-40 h-40 sm:w-56 sm:h-56 mb-8 drop-shadow-2xl hover:scale-105 transition-transform duration-300 rounded-full overflow-hidden border-8 border-[#37003c] bg-white mx-auto flex items-center justify-center">
-                <img src="/logo.jpg" alt="FPL Elite Scout Logo" className="w-full h-full object-cover" />
+                <img src="/logo.jpg" alt="FPL Strategy Engine Logo" className="w-full h-full object-cover" />
               </div>
-              <h1 className="text-5xl md:text-6xl font-black mb-2 text-[#01fc7a] tracking-tight">FPL Elite Scout</h1>
-              <p className="text-purple-200 font-medium text-lg">{isEnglish ? 'Next-Gen AI Squad Planner' : 'מערכת תכנון סגל מבוססת AI'}</p>
+              <h1 className="text-5xl md:text-6xl font-black mb-2 text-[#01fc7a] tracking-tight">FPL Strategy Engine</h1>
+              <p className="text-purple-200 font-medium text-lg">{isEnglish ? 'AI-powered FPL decision making' : 'קבלת החלטות FPL מבוססת בינה מלאכותית'}</p>
             </div>
 
             <div className="bg-white p-8 rounded-2xl shadow-xl w-full text-[#37003c]" dir={isEnglish ? "ltr" : "rtl"}>

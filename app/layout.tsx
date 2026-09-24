@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FPL Elite Scout | AI Planner",
-  description: "The ultimate AI-powered Fantasy Premier League squad planner and transfer analyzer.",
+  title: "FPL Strategy Engine",
+  description: "AI-powered FPL decision making",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
