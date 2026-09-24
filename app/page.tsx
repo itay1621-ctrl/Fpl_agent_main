@@ -288,7 +288,7 @@ export default function Home() {
     setTransferRecs([]);
     try {
       const res = await fetch(`${API_BASE_URL}/api/dashboard/${idToFetch}`);
-      if (!res.ok) throw new Error(`[Debug] HTTP ${res.status} from ${res.url} | ID: '${idToFetch}'`);
+      if (!res.ok) throw new Error(isEnglish ? 'Team ID not found or FPL API is currently down. Please verify your ID.' : 'מזהה הקבוצה לא נמצא, או ששרתי FPL למטה. אנא ודא שה-ID נכון.');
       const result = await res.json();
       
       // Fix missing position property by using the array index (FPL API returns them in order)
