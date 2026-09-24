@@ -157,6 +157,7 @@ export default function Home() {
   
   const [transferOutId, setTransferOutId] = useState<number | null>(null);
   const [transferRecs, setTransferRecs] = useState<any[]>([]);
+  const [transferDecision, setTransferDecision] = useState<any>(null);
   const [loadingRecs, setLoadingRecs] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [transferError, setTransferError] = useState('');
@@ -286,7 +287,7 @@ export default function Home() {
     setTransferError('');
     setSwapSourceId(null);
     setTransferOutId(null);
-    setTransferRecs([]);
+    setTransferRecs([]); setTransferDecision(null);
     try {
       const res = await fetch(`${API_BASE_URL}/api/dashboard/${idToFetch}`);
       if (!res.ok) throw new Error(isEnglish ? 'Team ID not found or FPL API is currently down. Please verify your ID.' : 'מזהה הקבוצה לא נמצא, או ששרתי FPL למטה. אנא ודא שה-ID נכון.');
@@ -455,7 +456,7 @@ export default function Home() {
 
     setData({ ...data, squad: newSquad, bank: newBank });
     setTransferOutId(null);
-    setTransferRecs([]);
+    setTransferRecs([]); setTransferDecision(null);
     setSearchQuery('');
     setActiveTab('pitch');
   };
@@ -896,7 +897,7 @@ export default function Home() {
                     </h4>
                     {transferOutId && (
                       <button 
-                        onClick={() => { setTransferOutId(null); setTransferRecs([]); setSearchQuery(''); }} 
+                        onClick={() => { setTransferOutId(null); setTransferRecs([]); setTransferDecision(null); setSearchQuery(''); }} 
                         className={`px-4 py-2 border rounded-md text-sm font-bold hover:opacity-80 ${bgCard}`}
                       >
                         {isEnglish ? 'Cancel' : 'ביטול'}
@@ -1182,7 +1183,7 @@ export default function Home() {
                     } catch (err) {
                       console.error("Failed to fetch recs", err);
                       setTransferError(isEnglish ? 'Failed to fetch recommendations.' : 'שגיאה בטעינת המלצות.');
-                      setTransferRecs([]);
+                      setTransferRecs([]); setTransferDecision(null);
                     } finally {
                       setLoadingRecs(false);
                     }
@@ -1203,7 +1204,7 @@ export default function Home() {
                       </h2>
                 </div>
                       <button 
-                        onClick={() => { setTransferOutId(null); setTransferRecs([]); setSearchQuery(''); }}
+                        onClick={() => { setTransferOutId(null); setTransferRecs([]); setTransferDecision(null); setSearchQuery(''); }}
                         className={`text-gray-500 hover:text-gray-800 ${isDarkMode ? 'hover:text-white' : ''}`}
                       >
                         ✕

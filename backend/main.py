@@ -17,10 +17,14 @@ app = FastAPI(title="FPL Elite Scout API")
 
 # Setup Error Monitoring Logger
 os.makedirs("logs", exist_ok=True)
+import sys
 logging.basicConfig(
-    filename='logs/error_log.txt', 
     level=logging.ERROR, 
-    format='%(asctime)s | %(levelname)s | %(message)s'
+    format='%(asctime)s | %(levelname)s | %(message)s',
+    handlers=[
+        logging.FileHandler('logs/error_log.txt'),
+        logging.StreamHandler(sys.stdout)
+    ]
 )
 
 @app.middleware("http")
@@ -56,7 +60,7 @@ DEFAULT_WEIGHTS = {
 # --- DECISION ENGINE LAYER ---
 def decision_engine_score(c):
     score = c["xp"]
-    if "Rotation Risk / Bench" in c.get("reasons", []):
+    if "Rotation Risk / Bench" in c.get("reason", ""):
         score *= 0.75
     if "Low (Minutes Uncertainty)" in c.get("confidence", ""):
         score *= 0.60
@@ -64,9 +68,21 @@ def decision_engine_score(c):
 
 import datetime
 import os
+import json
 
-def log_prediction(player_id, player_name, gw, xp, context, recommendation=""):
+_prediction_cache = set()
+_transfer_cache = set()
+
+def log_prediction(player_data, gw, context=""):
     try:
+        today = str(datetime.date.today())
+        player_id = player_data["id"]
+        cache_key = (player_id, gw, today)
+        if cache_key in _prediction_cache:
+            return
+            
+        _prediction_cache.add(cache_key)
+        
         log_dir = os.path.join(os.path.dirname(__file__), "logs")
         os.makedirs(log_dir, exist_ok=True)
         log_file = os.path.join(log_dir, "predictions_log.jsonl")
@@ -75,15 +91,53 @@ def log_prediction(player_id, player_name, gw, xp, context, recommendation=""):
             "timestamp": datetime.datetime.now().isoformat(),
             "gw": gw,
             "player_id": player_id,
-            "player_name": player_name,
-            "xp": round(xp, 2),
-            "context": context,
-            "recommendation": recommendation
+            "player_name": player_data["name"],
+            "team": player_data["team"],
+            "position": player_data["pos_code"],
+            "price": player_data["cost"],
+            "xp": player_data["xp"],
+            "expected_minutes": player_data.get("expected_minutes", 0),
+            "rotation_risk": "Rotation Risk / Bench" in player_data.get("reason", ""),
+            "start_probability": player_data.get("prob", 1.0),
+            "fixture_diff": player_data.get("fixture_diff", 0),
+            "confidence": player_data.get("confidence", ""),
+            "decision_score": decision_engine_score(player_data),
+            "context": context
         }
         with open(log_file, "a", encoding="utf-8") as f:
             f.write(json.dumps(entry) + "\n")
     except Exception as e:
         print(f"Failed to log prediction: {e}")
+
+def log_transfer_decision(gw, player_sold, player_bought, net_gain, recommendation):
+    try:
+        today = str(datetime.date.today())
+        cache_key = (player_sold["id"] if player_sold else 0, player_bought["id"] if player_bought else 0, gw, today)
+        if cache_key in _transfer_cache:
+            return
+            
+        _transfer_cache.add(cache_key)
+        
+        log_dir = os.path.join(os.path.dirname(__file__), "logs")
+        os.makedirs(log_dir, exist_ok=True)
+        log_file = os.path.join(log_dir, "transfers_log.jsonl")
+        
+        entry = {
+            "timestamp": datetime.datetime.now().isoformat(),
+            "gw": gw,
+            "player_sold": player_sold["name"] if player_sold else None,
+            "player_sold_id": player_sold["id"] if player_sold else None,
+            "player_bought": player_bought["name"] if player_bought else None,
+            "player_bought_id": player_bought["id"] if player_bought else None,
+            "predicted_5gw_gain": round(net_gain, 2),
+            "decision_score_sold": decision_engine_score(player_sold) if player_sold else 0,
+            "decision_score_bought": decision_engine_score(player_bought) if player_bought else 0,
+            "recommendation": recommendation
+        }
+        with open(log_file, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
+    except Exception as e:
+        print(f"Failed to log transfer: {e}")
 
 def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weights=None):
     if weights is None:
@@ -255,7 +309,7 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         
     reason_str = "\n".join(reasons)
     
-    return {
+    proj_result = {
         "id": p["id"],
         "name": p["web_name"],
         "team": teams.get(p["team"], {}).get("short_name", "UNK"),
@@ -273,8 +327,14 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         "prob": availability_prob,
         "news": p.get("news", ""),
         "xg": float(p.get("expected_goals", 0) or 0),
-        "xa": float(p.get("expected_assists", 0) or 0)
+        "xa": float(p.get("expected_assists", 0) or 0),
+        "expected_minutes": round(expected_minutes, 1)
     }
+    
+    # Global Logging Hook
+    log_prediction(proj_result, next_gw, "Model Evaluation")
+    
+    return proj_result
 
 def enrich_picks(picks_ids, squad):
     enriched = []
@@ -559,9 +619,12 @@ def get_transfer_recommendations(req: TransferRequest):
                 recommendation = "HOLD"
                 
         if current_player:
-            log_prediction(current_player["id"], current_player["name"], next_gw, current_player["xp"], "Transfer Lab - Current", "HOLD" if recommendation == "HOLD" else "SELL")
+            log_prediction(current_player, next_gw, "Transfer Lab - Current")
         if best_candidate:
-            log_prediction(best_candidate["id"], best_candidate["name"], next_gw, best_candidate["xp"], "Transfer Lab - Candidate", recommendation)
+            log_prediction(best_candidate, next_gw, "Transfer Lab - Candidate")
+            
+        if current_player and best_candidate:
+            log_transfer_decision(next_gw, current_player, best_candidate, delta, recommendation)
 
         return {
             "recommendation": recommendation,
