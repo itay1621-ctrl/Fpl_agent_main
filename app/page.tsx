@@ -163,7 +163,7 @@ export default function Home() {
 
   // חדש: מצב כהה ושפות
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isEnglish, setIsEnglish] = useState(false);
+  const [isEnglish, setIsEnglish] = useState(true);
   const [countdown, setCountdown] = useState("Calculating...");
   const [isUrgent, setIsUrgent] = useState(false);
 
