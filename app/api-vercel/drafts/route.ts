@@ -129,12 +129,12 @@ export async function GET() {
     const diffDraft = buildSquad(differentialPlayers, []);
 
     return NextResponse.json({
-      drafts: [
-        { id: 1, name: "Premium Heavies (׳›׳•׳›׳‘׳™׳  ׳™׳§׳¨׳™׳ )", description: "׳”׳¨׳›׳‘ ׳ž׳‘׳•׳¡׳¡ ׳¢׳œ ׳©׳—׳§׳ ׳™ ׳₪׳¨׳™׳ž׳™׳•׳  ׳—׳–׳§׳™׳  ׳™׳—׳“ ׳¢׳  ׳©׳—׳§׳ ׳™׳  ׳–׳•׳œ׳™׳  ׳ž׳©׳œ׳™׳ž׳™׳ .", data: premiumDraft },
-        { id: 2, name: "Balanced Spread (׳”׳¨׳›׳‘ ׳ž׳ ׳•׳–׳Ÿ)", description: "׳œ׳œ׳  ׳©׳—׳§׳ ׳™׳  ׳™׳§׳¨׳™׳  ׳ž׳“׳™, ׳ž׳ ׳₪׳©׳¨ ׳¢׳•׳ž׳§ ׳—׳–׳§ ׳ž׳ ׳•׳“ ׳‘׳›׳œ ׳”׳¢׳ž׳“׳•׳× ׳‘׳ž׳’׳¨׳©.", data: balancedDraft },
-        { id: 3, name: "Differentials (׳₪׳ ׳™׳ ׳™׳  ׳ ׳¡׳×׳¨׳•׳×)", description: "׳©׳—׳§׳ ׳™׳  ׳‘׳›׳•׳©׳¨ ׳©׳™׳  ׳©׳ ׳—׳•׳–׳™ ׳”׳‘׳—׳™׳¨׳” ׳©׳œ׳”׳  ׳ ׳ž׳•׳›׳™׳ , ׳›׳“׳™ ׳œ׳¢׳§׳•׳£ ׳ž׳×׳—׳¨׳™׳ .", data: diffDraft }
-      ]
-    });
+    drafts: [
+      { id: 1, name: "Premium Heavies (כוכבים יקרים)", description: "הרכב מבוסס על שחקני פרימיום חזקים יחד עם שחקנים זולים משלימים.", data: premiumDraft },
+      { id: 2, name: "Balanced Spread (הרכב מאוזן)", description: "ללא שחקנים יקרים מדי, מאפשר עומק חזק מאוד בכל העמדות במגרש.", data: balancedDraft },
+      { id: 3, name: "Differentials (פנינים נסתרות)", description: "שחקנים בכושר שיא שאחוזי הבחירה שלהם נמוכים, כדי לעקוף מתחרים.", data: diffDraft }
+    ]
+  });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
