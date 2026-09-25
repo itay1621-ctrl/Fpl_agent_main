@@ -50,16 +50,52 @@ export async function GET() {
     const res = await fetch('https://fantasy.premierleague.com/api/bootstrap-static/', { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error("Failed to fetch FPL data");
     const data = await res.json();
+
+    const fixRes = await fetch('https://fantasy.premierleague.com/api/fixtures/', { next: { revalidate: 3600 } });
+    if (!fixRes.ok) throw new Error("Failed to fetch fixtures");
+    const fixtures = await fixRes.json();
+    
+    const events = data.events;
+    const nextGwObj = events.find((e: any) => e.is_next) || events.find((e: any) => !e.finished);
+    const nextGw = nextGwObj ? nextGwObj.id : 1;
+    const endGw = Math.min(38, nextGw + 4); // 5 GWs total
+    
+    const teamNext5Fdr: Record<number, number[]> = {};
+    data.teams.forEach((t: any) => { teamNext5Fdr[t.id] = []; });
+    
+    for (const f of fixtures) {
+      if (f.event >= nextGw && f.event <= endGw) {
+        if (teamNext5Fdr[f.team_h]) teamNext5Fdr[f.team_h].push(f.team_h_difficulty);
+        if (teamNext5Fdr[f.team_a]) teamNext5Fdr[f.team_a].push(f.team_a_difficulty);
+      }
+    }
     
     const elements = data.elements.filter((p: any) => p.status !== 'u' && p.status !== 'i' && p.status !== 's');
-    const teamsArray = data.teams;
     const teams: Record<number, any> = {};
-    teamsArray.forEach((t: any) => { teams[t.id] = t; });
+    data.teams.forEach((t: any) => { teams[t.id] = t; });
 
     const enriched = elements.map((p: any) => {
       const ep_next = parseFloat(p.ep_next) || 0;
       const form = parseFloat(p.form) || 0;
-      const xp = ep_next;
+      
+      const fdrs = teamNext5Fdr[p.team] || [];
+      let xp5 = 0;
+      
+      const basePoints = (ep_next * 0.7) + (form * 0.3);
+      
+      for (const diff of fdrs) {
+         let mult = 1.0;
+         if (diff === 1) mult = 1.3;
+         else if (diff === 2) mult = 1.1;
+         else if (diff === 3) mult = 1.0;
+         else if (diff === 4) mult = 0.8;
+         else if (diff >= 5) mult = 0.6;
+         xp5 += basePoints * mult;
+      }
+      
+      const avgXp = fdrs.length > 0 ? (xp5 / fdrs.length) : basePoints;
+      const xp = parseFloat(avgXp.toFixed(2));
+      
       return {
         id: p.id,
         name: p.web_name,
@@ -82,7 +118,7 @@ export async function GET() {
     const othersForPremium = [...enriched].sort((a, b) => (b.xp / b.now_cost) - (a.xp / a.now_cost));
     const premiumDraft = buildSquad(othersForPremium, premiums);
 
-    const balancedPlayers = [...enriched].filter(p => p.now_cost <= 95).sort((a, b) => (b.xp * 0.6 + b.form * 0.4) - (a.xp * 0.6 + a.form * 0.4));
+    const balancedPlayers = [...enriched].filter(p => p.now_cost <= 95).sort((a, b) => b.xp - a.xp);
     const balancedDraft = buildSquad(balancedPlayers, []);
 
     const differentialPlayers = [...enriched].sort((a, b) => {
@@ -94,9 +130,9 @@ export async function GET() {
 
     return NextResponse.json({
       drafts: [
-        { id: 1, name: "Premium Heavies (כוכבים יקרים)", description: "הרכב מבוסס על שחקני פרימיום חזקים יחד עם שחקנים זולים משלימים.", data: premiumDraft },
-        { id: 2, name: "Balanced Spread (הרכב מאוזן)", description: "ללא שחקנים יקרים מדי, מאפשר עומק חזק מאוד בכל העמדות במגרש.", data: balancedDraft },
-        { id: 3, name: "Differentials (פנינים נסתרות)", description: "שחקנים בכושר שיא שאחוזי הבחירה שלהם נמוכים, כדי לעקוף מתחרים.", data: diffDraft }
+        { id: 1, name: "Premium Heavies (׳›׳•׳›׳‘׳™׳  ׳™׳§׳¨׳™׳ )", description: "׳”׳¨׳›׳‘ ׳ž׳‘׳•׳¡׳¡ ׳¢׳œ ׳©׳—׳§׳ ׳™ ׳₪׳¨׳™׳ž׳™׳•׳  ׳—׳–׳§׳™׳  ׳™׳—׳“ ׳¢׳  ׳©׳—׳§׳ ׳™׳  ׳–׳•׳œ׳™׳  ׳ž׳©׳œ׳™׳ž׳™׳ .", data: premiumDraft },
+        { id: 2, name: "Balanced Spread (׳”׳¨׳›׳‘ ׳ž׳ ׳•׳–׳Ÿ)", description: "׳œ׳œ׳  ׳©׳—׳§׳ ׳™׳  ׳™׳§׳¨׳™׳  ׳ž׳“׳™, ׳ž׳ ׳₪׳©׳¨ ׳¢׳•׳ž׳§ ׳—׳–׳§ ׳ž׳ ׳•׳“ ׳‘׳›׳œ ׳”׳¢׳ž׳“׳•׳× ׳‘׳ž׳’׳¨׳©.", data: balancedDraft },
+        { id: 3, name: "Differentials (׳₪׳ ׳™׳ ׳™׳  ׳ ׳¡׳×׳¨׳•׳×)", description: "׳©׳—׳§׳ ׳™׳  ׳‘׳›׳•׳©׳¨ ׳©׳™׳  ׳©׳ ׳—׳•׳–׳™ ׳”׳‘׳—׳™׳¨׳” ׳©׳œ׳”׳  ׳ ׳ž׳•׳›׳™׳ , ׳›׳“׳™ ׳œ׳¢׳§׳•׳£ ׳ž׳×׳—׳¨׳™׳ .", data: diffDraft }
       ]
     });
   } catch (err: any) {
