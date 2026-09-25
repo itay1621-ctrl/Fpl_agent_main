@@ -2079,34 +2079,77 @@ function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, te
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/budget-scenarios`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        squad: data.squad,
-        bank: data.bank,
-        next_gw: data.next_gw
-      })
-    })
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then(data => {
-        if (Array.isArray(data)) {
-          data.forEach(scenario => {
-            if (scenario.sell && scenario.sell.team_code === undefined && scenario.sell.team) {
-              scenario.sell.team_code = getTeamCode(scenario.sell.team);
-            }
-          });
+    async function fetchScenarios() {
+      try {
+        if (!data || !data.squad) {
+          setLoading(false);
+          return;
         }
-        setScenarios(data);
+
+        const currentSquadIds = data.squad.map((p: any) => p.id);
+        const newScenarios: any[] = [];
+        const promises = [];
+
+        for (const sp of data.squad) {
+          if (sp.is_empty) continue;
+          let reason = null;
+          if (sp.chance_of_playing !== undefined && sp.chance_of_playing !== null && sp.chance_of_playing < 75) {
+            reason = "Injury / Doubtful";
+          } else if ((sp.form || 0) < 2.0 && (sp.xp || 0) < 3.0) {
+            reason = "Poor Output (Low Form & Projection)";
+          } else if ((sp.xp || 0) < 3.0) {
+            reason = "Tough Upcoming Run (Low 5GW Projection)";
+          }
+
+          if (reason) {
+            const budget = data.bank + (sp.cost || 0);
+            
+            const promise = fetch(`${API_BASE_URL}/api/transfer-lab`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                pos_code: sp.pos_code,
+                max_budget: budget,
+                current_squad_ids: currentSquadIds,
+                transfer_out_id: sp.id,
+                target_gw: data.next_gw
+              })
+            })
+            .then(res => res.ok ? res.json() : null)
+            .then(resData => {
+              if (resData && resData.candidates && resData.candidates.length > 0) {
+                const topCandidates = resData.candidates.slice(0, 3);
+                newScenarios.push({
+                  sell: sp,
+                  reason: reason,
+                  buys: topCandidates
+                });
+              }
+            }).catch(e => console.error("transfer lab err", e));
+
+            promises.push(promise);
+          }
+        }
+
+        await Promise.all(promises);
+        
+        newScenarios.forEach(scenario => {
+          if (scenario.sell && scenario.sell.team_code === undefined && scenario.sell.team) {
+            scenario.sell.team_code = getTeamCode(scenario.sell.team);
+          }
+        });
+        
+        setScenarios(newScenarios);
         setLoading(false);
-      })
-      .catch(err => {
+      } catch (err) {
+        console.error(err);
         setError(isEnglish ? "Failed to load budget scenarios." : "שגיאה בטעינת תרחישי התקציב.");
         setLoading(false);
-      });
+      }
+    }
+    
+    setLoading(true);
+    fetchScenarios();
   }, [teamId]);
 
   if (loading) return <div className="text-center p-10 font-bold">{isEnglish ? 'Analyzing weak links and calculating replacements...' : 'מנתח חוליות חלשות ומחשב חלופות אידיאליות...'}</div>;
