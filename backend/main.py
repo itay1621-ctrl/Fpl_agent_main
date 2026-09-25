@@ -862,6 +862,17 @@ def get_player_details(player_id: int):
         elements = ctx["elements"]
         p = elements.get(player_id, {})
         
+        
+        # Calculate projection just to get all the rich stats
+        from fpl_api import fetch_all_fixtures
+        all_fixtures = fetch_all_fixtures()
+        events = ctx["bootstrap"].get("events", [])
+        next_gw = next((e["id"] for e in events if e["is_next"]), 1)
+        gw_range = min(5, 38 - next_gw + 1)
+        upcoming_fixtures_raw = [f for f in all_fixtures if f.get("event") and next_gw <= f["event"] <= next_gw + gw_range - 1]
+        
+        proj = calculate_player_projection(p, next_gw, upcoming_fixtures_raw, ctx["teams"])
+        
         return {
             "id": player_id,
             "name": p.get("web_name", "Unknown"),
@@ -875,7 +886,14 @@ def get_player_details(player_id: int):
             "xgc": p.get("expected_goals_conceded", "0.0"),
             "defcon": p.get("defensive_contribution_per_90", 0.0),
             "history": data.get("history", [])[-5:], # last 5 GWs
-            "fixtures": data.get("fixtures", [])[:5] # next 5 GWs
+            "fixtures": data.get("fixtures", [])[:5], # next 5 GWs
+            "expected_goals": proj["expected_goals"],
+            "expected_assists": proj["expected_assists"],
+            "expected_goals_conceded": proj["expected_goals_conceded"],
+            "defensive_contribution": proj["defensive_contribution"],
+            "clean_sheets": proj["clean_sheets"],
+            "goals_conceded": proj["goals_conceded"],
+            "xp": proj["xp"]
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
