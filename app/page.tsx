@@ -152,7 +152,7 @@ export default function Home() {
   
   const [swapSourceId, setSwapSourceId] = useState<number | null>(null);
   const [actionPlayer, setActionPlayer] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'pitch' | 'transfer' | 'planner' | 'analysis' | 'radar' | 'budget' | 'leagues' | 'tips'>('planner');
+  const [activeTab, setActiveTab] = useState<'pitch' | 'transfer' | 'planner' | 'analysis' | 'radar' | 'budget' | 'drafts' | 'leagues' | 'tips'>('planner');
   const [appAlert, setAppAlert] = useState<string | null>(null);
   const [activeChip, setActiveChip] = useState<string | null>(null);
   
@@ -929,6 +929,7 @@ export default function Home() {
             <button onClick={() => setActiveTab('analysis')} className={`${activeTab === 'analysis' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.analysisTab}</button>
             <button onClick={() => setActiveTab('radar')} className={`${activeTab === 'radar' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.radarTab}</button>
             <button onClick={() => setActiveTab('budget')} className={`${activeTab === 'budget' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.budgetTab}</button>
+            <button onClick={() => setActiveTab('drafts')} className={`${activeTab === 'drafts' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{isEnglish ? "Drafts" : "הרכבים"}</button>
             <button onClick={() => setActiveTab('planner')} className={`${activeTab === 'planner' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.plannerTab}</button>
             <button onClick={() => setActiveTab('leagues')} className={`${activeTab === 'leagues' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.leaguesTab}</button>
             <button onClick={() => setActiveTab('tips')} className={`${activeTab === 'tips' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.tipsTab}</button>
@@ -1301,7 +1302,16 @@ export default function Home() {
           )}
 
           
-          {appMode === 'guest' && (activeTab === 'pitch' || activeTab === 'planner' || activeTab === 'transfer' || activeTab === 'leagues' || activeTab === 'budget' || activeTab === 'analysis') && (
+          {appMode !== 'guest' && activeTab === 'drafts' && (
+            <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${bgCard}`}>
+              <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
+                <span>📋</span> {isEnglish ? 'Recommended Drafts' : 'הרכבים מומלצים'}
+              </h3>
+              <DraftsTab isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} />
+            </div>
+          )}
+
+          {appMode === 'guest' && (activeTab === 'pitch' || activeTab === 'planner' || activeTab === 'transfer' || activeTab === 'leagues' || activeTab === 'budget' || activeTab === 'analysis' || activeTab === 'drafts') && (
             <div className={`mt-8 p-12 text-center rounded-2xl border border-dashed border-gray-300 ${bgCard}`}>
               <div className="text-5xl mb-4">🔒</div>
               <h2 className="text-2xl font-black mb-2">{isEnglish ? 'Personalized Feature' : 'פיצ׳ר מותאם אישית'}</h2>
@@ -3032,3 +3042,56 @@ function PlayerInfoModal({ playerId, preloadedPlayer, onClose, onTransferAction,
   );
 }
 
+
+
+function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any) {
+  const [drafts, setDrafts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetch('/api-vercel/drafts')
+      .then(res => res.json())
+      .then(data => {
+        if (data.drafts) setDrafts(data.drafts);
+        setLoading(false);
+      }).catch(err => {
+        setError(isEnglish ? 'Error loading drafts' : 'שגיאה בטעינת הרכבים');
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div className="text-center p-10 font-bold">{isEnglish ? 'Loading...' : 'טוען...'}</div>;
+  if (error) return <div className="text-center p-10 font-bold text-red-500">{error}</div>;
+
+  return (
+    <div className="flex flex-col gap-8">
+      {drafts.map((draft, idx) => (
+        <div key={idx} className={`p-4 md:p-6 rounded-xl border ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-4 mb-4">
+            <div>
+              <h4 className={`text-xl font-bold ${textHighlight}`}>{draft.name}</h4>
+              <p className={`text-sm mt-1 ${textMuted}`}>{draft.description}</p>
+            </div>
+            <div className="mt-4 md:mt-0 text-right">
+              <div className="text-2xl font-black text-[#01fc7a]">£{(draft.data.cost / 10).toFixed(1)}m</div>
+              <div className={`text-xs font-bold ${textMuted}`}>{isEnglish ? 'Total Cost' : 'עלות כוללת'}</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-4">
+            {draft.data.squad.map((p: any, i: number) => (
+              <div key={i} className={`p-2 rounded-lg text-center shadow-sm relative ${bgBox}`}>
+                <div className="absolute top-1 right-1 text-xs font-bold text-gray-400">{p.element_type === 1 ? 'GKP' : p.element_type === 2 ? 'DEF' : p.element_type === 3 ? 'MID' : 'FWD'}</div>
+                <img src={`https://resources.premierleague.com/premierleague/photos/players/110x140/p${p.team_code}.png`} alt={p.name} className="w-12 h-12 object-cover rounded-full mx-auto mb-1 border-2 border-white shadow-sm" onError={(e) => { e.currentTarget.src = 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_0-66.webp'; }} />
+                <div className="font-bold text-sm truncate">{p.name}</div>
+                <div className="text-[10px] uppercase font-black text-[#01fc7a] mb-1">{p.team_name}</div>
+                <div className="text-xs font-bold text-gray-500 mb-1">XP: {p.xp.toFixed(1)}</div>
+                <div className="text-xs">£{(p.now_cost / 10).toFixed(1)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
