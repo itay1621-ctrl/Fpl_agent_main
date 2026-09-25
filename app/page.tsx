@@ -1868,7 +1868,7 @@ function ActionModal({ player, onClose, onSwap, onCaptain, onVice, onSell, onSho
           </div>
           <div className="flex items-center gap-2">
             <button onClick={(e) => { e.stopPropagation(); onShowInfo(player.id); }} className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-black transition-colors flex items-center justify-center" title="Player Info">i</button>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-2 text-xl font-bold">✕</button>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-full w-12 h-12 flex items-center justify-center text-2xl font-black ml-2 shadow-sm">✕</button>
           </div>
         </div>
         
