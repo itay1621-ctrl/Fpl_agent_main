@@ -3046,12 +3046,12 @@ function PlayerInfoModal({ playerId, preloadedPlayer, onClose, onTransferAction,
 
 
 function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any) {
-  const [drafts, setDrafts] = React.useState<any[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState("");
-  const [currentDraftIndex, setCurrentDraftIndex] = React.useState(0);
+  const [drafts, setDrafts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [currentDraftIndex, setCurrentDraftIndex] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     fetch('/api-vercel/drafts')
       .then(res => res.json())
       .then(data => {
