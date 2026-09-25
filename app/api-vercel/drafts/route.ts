@@ -127,6 +127,7 @@ function buildSquad(players: any[], forcedPlayers: any[] = []) {
 
   const minCosts: Record<number, number> = { 1: 40, 2: 40, 3: 45, 4: 45 };
 
+  // 1. Initial Greedy Pick
   for (const p of players) {
     if (squad.length === 15) break;
     if (squad.find(x => x.id === p.id)) continue;
@@ -152,6 +153,54 @@ function buildSquad(players: any[], forcedPlayers: any[] = []) {
       cost += p.now_cost;
       teamCounts[p.team] = (teamCounts[p.team] || 0) + 1;
       posCounts[p.element_type]++;
+    }
+  }
+
+  // 2. Upgrade Loop to utilize remaining budget
+  // We want to replace existing squad members with higher XP available players if we have budget.
+  let upgraded = true;
+  const availablePlayers = players.filter(p => !squad.find(x => x.id === p.id)).sort((a, b) => b.xp - a.xp);
+  
+  while (upgraded && cost < 1000) {
+    upgraded = false;
+    
+    // Sort squad so we try to upgrade our LOWEST XP players first
+    const upgradeCandidates = squad.map((p, index) => ({ p, index }))
+                                   .filter(item => !forcedPlayers.find(x => x.id === item.p.id))
+                                   .sort((a, b) => a.p.xp - b.p.xp);
+                                   
+    for (const { p: current, index } of upgradeCandidates) {
+      const pos = current.element_type;
+      const currentTeam = current.team;
+      
+      // Find a better player in the same position
+      for (const candidate of availablePlayers) {
+        if (squad.find(x => x.id === candidate.id)) continue; // Already upgraded into squad
+        if (candidate.element_type !== pos) continue;
+        if (candidate.xp <= current.xp) continue; // must be an upgrade
+        
+        const costDiff = candidate.now_cost - current.now_cost;
+        if (costDiff <= 0 && candidate.xp > current.xp) {
+           // Free upgrade
+        } else if (costDiff > 0 && cost + costDiff <= 1000) {
+           // Affordable upgrade
+        } else {
+           continue; // Cannot afford
+        }
+        
+        // Check team limits
+        if (candidate.team !== currentTeam) {
+           if ((teamCounts[candidate.team] || 0) >= 3) continue;
+           teamCounts[currentTeam]--;
+           teamCounts[candidate.team] = (teamCounts[candidate.team] || 0) + 1;
+        }
+        
+        cost += costDiff;
+        squad[index] = candidate;
+        upgraded = true;
+        break; // Break the candidate loop, restart squad loop
+      }
+      if (upgraded) break;
     }
   }
 
