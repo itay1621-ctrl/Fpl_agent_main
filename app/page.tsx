@@ -3046,11 +3046,12 @@ function PlayerInfoModal({ playerId, preloadedPlayer, onClose, onTransferAction,
 
 
 function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any) {
-  const [drafts, setDrafts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [drafts, setDrafts] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState("");
+  const [currentDraftIndex, setCurrentDraftIndex] = React.useState(0);
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetch('/api-vercel/drafts')
       .then(res => res.json())
       .then(data => {
@@ -3060,39 +3061,121 @@ function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: a
         setError(isEnglish ? 'Error loading drafts' : 'שגיאה בטעינת הרכבים');
         setLoading(false);
       });
-  }, []);
+  }, [isEnglish]);
 
   if (loading) return <div className="text-center p-10 font-bold">{isEnglish ? 'Loading...' : 'טוען...'}</div>;
   if (error) return <div className="text-center p-10 font-bold text-red-500">{error}</div>;
+  if (!drafts || drafts.length === 0) return null;
+
+  const draft = drafts[currentDraftIndex];
+
+  const organizeDraftSquad = (squad: any[]) => {
+    const sortedSquad = [...squad].sort((a, b) => b.xp - a.xp);
+    const starters: any[] = [];
+    const bench: any[] = [];
+    const posCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const mins = { 1: 1, 2: 3, 3: 2, 4: 1 };
+    
+    for (let pos = 1; pos <= 4; pos++) {
+       let needed = (mins as any)[pos];
+       const playersInPos = sortedSquad.filter(p => p.element_type === pos);
+       for (let i = 0; i < needed; i++) {
+          if (playersInPos[i]) {
+            starters.push(playersInPos[i]);
+            (posCounts as any)[pos]++;
+            const idx = sortedSquad.findIndex(p => p.id === playersInPos[i].id);
+            sortedSquad.splice(idx, 1);
+          }
+       }
+    }
+    const maxs = { 1: 1, 2: 5, 3: 5, 4: 3 };
+    for (const p of sortedSquad) {
+       if (starters.length < 11 && (posCounts as any)[p.element_type] < (maxs as any)[p.element_type]) {
+          starters.push(p);
+          (posCounts as any)[p.element_type]++;
+       } else {
+          bench.push(p);
+       }
+    }
+    const benchGkp = bench.filter(p => p.element_type === 1);
+    const benchOutfield = bench.filter(p => p.element_type !== 1).sort((a,b) => b.now_cost - a.now_cost);
+    return { starters, bench: [...benchGkp, ...benchOutfield] };
+  };
+
+  const { starters, bench } = organizeDraftSquad(draft.data.squad);
+
+  const renderDraftPlayer = (p: any, isBench: boolean = false) => {
+    return (
+      <div key={p.id} className="relative flex flex-col items-center justify-center w-14 sm:w-20 z-10">
+         <div className="relative">
+           <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${p.team_code}-66.webp`} alt={p.name} className={`w-8 h-10 sm:w-10 sm:h-12 object-contain drop-shadow-lg ${isBench ? 'opacity-70' : ''}`} onError={(e) => { e.currentTarget.src = 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_0-66.webp'; }} />
+         </div>
+         <div className={`mt-1 bg-white text-[#37003c] text-[9px] sm:text-[11px] font-bold px-1 sm:px-2 py-0.5 rounded shadow-sm whitespace-nowrap overflow-hidden text-ellipsis max-w-[56px] sm:max-w-[72px] ${isBench ? 'opacity-70' : ''}`}>
+           {p.name}
+         </div>
+         <div className={`mt-0.5 flex flex-col items-center leading-tight`}>
+           <div className={`text-[9px] sm:text-[10px] font-black ${isBench ? 'text-gray-400' : 'text-white drop-shadow-md'}`}>
+             £{(p.now_cost / 10).toFixed(1)}
+           </div>
+           <div className={`text-[9px] sm:text-[10px] font-bold text-[#01fc7a] drop-shadow-md`}>
+             XP: {p.xp.toFixed(1)}
+           </div>
+         </div>
+      </div>
+    );
+  };
 
   return (
-    <div className="flex flex-col gap-8">
-      {drafts.map((draft, idx) => (
-        <div key={idx} className={`p-4 md:p-6 rounded-xl border ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-50'}`}>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-4 mb-4">
-            <div>
-              <h4 className={`text-xl font-bold ${textHighlight}`}>{draft.name}</h4>
-              <p className={`text-sm mt-1 ${textMuted}`}>{draft.description}</p>
-            </div>
-            <div className="mt-4 md:mt-0 text-right">
-              <div className="text-2xl font-black text-[#01fc7a]">£{(draft.data.cost / 10).toFixed(1)}m</div>
-              <div className={`text-xs font-bold ${textMuted}`}>{isEnglish ? 'Total Cost' : 'עלות כוללת'}</div>
-            </div>
+    <div className="flex flex-col gap-6">
+      <div className="flex justify-between items-center bg-purple-900 text-white rounded-xl p-4 shadow-sm relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-800 to-indigo-900 opacity-50"></div>
+        <button onClick={() => setCurrentDraftIndex(prev => prev > 0 ? prev - 1 : drafts.length - 1)} className="z-10 p-2 hover:bg-white/20 rounded-full transition-colors flex items-center gap-1">
+          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        </button>
+        <div className="text-center z-10 px-2 flex-1">
+          <div className="text-[10px] font-bold text-purple-200 uppercase tracking-widest mb-1">{isEnglish ? `Draft ${currentDraftIndex + 1} of ${drafts.length}` : `דראפט ${currentDraftIndex + 1} מתוך ${drafts.length}`}</div>
+          <h4 className="text-lg sm:text-2xl font-black text-[#01fc7a]">{draft.name}</h4>
+          <p className="text-[10px] sm:text-xs mt-1 text-purple-100 max-w-[250px] sm:max-w-md mx-auto">{draft.description}</p>
+        </div>
+        <button onClick={() => setCurrentDraftIndex(prev => prev < drafts.length - 1 ? prev + 1 : 0)} className="z-10 p-2 hover:bg-white/20 rounded-full transition-colors flex items-center gap-1">
+          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+        </button>
+      </div>
+
+      <div className="text-center -mt-2">
+        <span className="text-xl sm:text-2xl font-black text-[#01fc7a]">£{(draft.data.cost / 10).toFixed(1)}m</span>
+        <div className={`text-xs font-bold ${textMuted}`}>{isEnglish ? 'Total Cost' : 'עלות כוללת'}</div>
+      </div>
+
+      <div className={`relative rounded-xl overflow-hidden shadow-sm mx-auto w-full max-w-3xl ${isDarkMode ? 'border border-gray-700' : 'border border-gray-200'}`}>
+        <div className="bg-[#02894e] p-2 md:p-6 flex flex-col items-center justify-between min-h-[400px] md:min-h-[500px] rounded-t-xl relative overflow-hidden">
+          <div className="absolute top-0 left-1/4 right-1/4 h-32 border-4 border-t-0 border-white/30"></div>
+          <div className="absolute top-0 left-[35%] right-[35%] h-12 border-4 border-t-0 border-white/30"></div>
+          <div className="absolute top-[8rem] left-1/2 -translate-x-1/2 w-20 h-10 border-4 border-transparent border-b-white/30 rounded-full"></div>
+          <div className="absolute top-1/2 left-0 right-0 h-0 border-t-2 border-white/30"></div>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 border-2 border-white/30 rounded-full"></div>
+          <div className="absolute bottom-0 left-1/4 right-1/4 h-32 border-4 border-b-0 border-white/30"></div>
+          <div className="absolute bottom-0 left-[35%] right-[35%] h-12 border-4 border-b-0 border-white/30"></div>
+          <div className="absolute bottom-[8rem] left-1/2 -translate-x-1/2 w-20 h-10 border-4 border-transparent border-t-white/30 rounded-full"></div>
+          
+          <div className="flex justify-around w-full px-1 sm:px-4 z-10">
+            {starters.filter((p: any) => p.element_type === 1).map((p: any) => renderDraftPlayer(p, false))}
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-4">
-            {draft.data.squad.map((p: any, i: number) => (
-              <div key={i} className={`p-2 rounded-lg text-center shadow-sm relative ${bgBox}`}>
-                <div className="absolute top-1 right-1 text-xs font-bold text-gray-400">{p.element_type === 1 ? 'GKP' : p.element_type === 2 ? 'DEF' : p.element_type === 3 ? 'MID' : 'FWD'}</div>
-                <img src={`https://resources.premierleague.com/premierleague/photos/players/110x140/p${p.team_code}.png`} alt={p.name} className="w-12 h-12 object-cover rounded-full mx-auto mb-1 border-2 border-white shadow-sm" onError={(e) => { e.currentTarget.src = 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_0-66.webp'; }} />
-                <div className="font-bold text-sm truncate">{p.name}</div>
-                <div className="text-[10px] uppercase font-black text-[#01fc7a] mb-1">{p.team_name}</div>
-                <div className="text-xs font-bold text-gray-500 mb-1">XP: {p.xp.toFixed(1)}</div>
-                <div className="text-xs">£{(p.now_cost / 10).toFixed(1)}</div>
-              </div>
-            ))}
+          <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-1 sm:mt-6">
+            {starters.filter((p: any) => p.element_type === 2).map((p: any) => renderDraftPlayer(p, false))}
+          </div>
+          <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-1 sm:mt-6">
+            {starters.filter((p: any) => p.element_type === 3).map((p: any) => renderDraftPlayer(p, false))}
+          </div>
+          <div className="flex justify-around w-full px-1 sm:px-4 z-10 mt-1 sm:mt-6">
+            {starters.filter((p: any) => p.element_type === 4).map((p: any) => renderDraftPlayer(p, false))}
           </div>
         </div>
-      ))}
+        
+        <div className="bg-[#0e5230] rounded-b-lg p-2 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
+          {bench.map((p: any) => renderDraftPlayer(p, true))}
+        </div>
+      </div>
     </div>
   );
 }
