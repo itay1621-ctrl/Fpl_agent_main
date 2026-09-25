@@ -926,7 +926,6 @@ export default function Home() {
 
           <div className="hidden md:flex overflow-x-auto gap-6 border-b border-gray-200 mb-6 pb-2 text-sm font-bold whitespace-nowrap scrollbar-hide">
             <button onClick={() => setActiveTab('pitch')} className={`${activeTab === 'pitch' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.pitchTab}</button>
-            <button onClick={() => setActiveTab('transfer')} className={`${activeTab === 'transfer' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.transferTab}</button>
             <button onClick={() => setActiveTab('analysis')} className={`${activeTab === 'analysis' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.analysisTab}</button>
             <button onClick={() => setActiveTab('radar')} className={`${activeTab === 'radar' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.radarTab}</button>
             <button onClick={() => setActiveTab('budget')} className={`${activeTab === 'budget' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.budgetTab}</button>
@@ -1485,6 +1484,7 @@ export default function Home() {
                                 <span className={`px-3 py-1 rounded-full text-xs font-black ${
                                   transferDecision.recommendation === 'TRANSFER' ? 'bg-green-100 text-green-700' : 
                                   transferDecision.recommendation === 'HOLD' ? 'bg-yellow-100 text-yellow-700' : 
+                                  transferDecision.recommendation === 'CONSIDER' ? 'bg-blue-100 text-blue-700' : 
                                   'bg-gray-100 text-gray-700'
                                 }`}>
                                   {transferDecision.recommendation}
@@ -1668,7 +1668,6 @@ export default function Home() {
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#37003c] z-[100] flex overflow-x-auto scrollbar-hide shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.3)]">
           {[
             { id: 'pitch', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="12" x2="22" y2="12"></line><circle cx="12" cy="12" r="3"></circle></svg>, nameEn: 'Pitch', nameHe: 'מגרש' },
-            { id: 'transfer', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>, nameEn: 'Transfers', nameHe: 'העברות' },
             { id: 'planner', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>, nameEn: 'Planner', nameHe: 'תכנון' },
             { id: 'analysis', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>, nameEn: 'Analysis', nameHe: 'ניתוח' },
             { id: 'radar', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>, nameEn: 'Radar', nameHe: 'ראדאר' },
@@ -1690,8 +1689,8 @@ export default function Home() {
 
 function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any) {
   const [selectedPlayerModalId, setSelectedPlayerModalId] = useState<number | null>(null);
-  const _starters = data.squad.filter((p: any) => p.position <= 11);
-  const _bench = data.squad.filter((p: any) => p.position > 11);
+  const _starters = data.squad.filter((p: any) => p.position <= 11 && !p.is_empty);
+  const _bench = data.squad.filter((p: any) => p.position > 11 && !p.is_empty);
   
   const hardFixtures = _starters.filter((p: any) => p.fixture_diff >= 4);
   const lowXp = _starters.filter((p: any) => p.xp < 2.5);
@@ -1815,7 +1814,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
             </tr>
           </thead>
           <tbody>
-            {[...data.squad].sort((a:any, b:any) => b.form - a.form).map((p: any) => (
+            {[...data.squad].filter((p: any) => !p.is_empty).sort((a:any, b:any) => b.form - a.form).map((p: any) => (
               <tr key={p.id} onClick={() => setSelectedPlayerModalId(p.id)} className={`cursor-pointer border-b transition-colors ${isDarkMode ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-50'}`}>
                 <td className="px-2 sm:px-4 py-2 font-bold flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
                   <span className={`w-2 h-2 rounded-full ${p.position <= 11 ? 'bg-emerald-500' : 'bg-gray-400'}`}></span>

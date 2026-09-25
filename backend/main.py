@@ -328,7 +328,14 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         "news": p.get("news", ""),
         "xg": float(p.get("expected_goals", 0) or 0),
         "xa": float(p.get("expected_assists", 0) or 0),
-        "expected_minutes": round(expected_minutes, 1)
+        "expected_minutes": round(expected_minutes, 1),
+        "expected_goals": float(p.get("expected_goals", 0) or 0),
+        "expected_assists": float(p.get("expected_assists", 0) or 0),
+        "expected_goals_conceded": float(p.get("expected_goals_conceded", 0) or 0),
+        "defensive_contribution": p.get("defensive_contribution_per_90", 0.0),
+        "clean_sheets": p.get("clean_sheets", 0),
+        "goals_conceded": p.get("goals_conceded", 0),
+        "minutes": p.get("minutes", 0)
     }
     
     # Global Logging Hook
@@ -603,20 +610,27 @@ def get_transfer_recommendations(req: TransferRequest):
         candidates = sorted(candidates, key=decision_engine_score, reverse=True)
         best_candidate = candidates[0] if candidates else None
         
-        recommendation = "TRANSFER"
+        recommendation = "HOLD"
         delta = 0.0
-        
-        transfer_cost = 0.0
-        opportunity_cost = DEFAULT_WEIGHTS["opportunity_cost"]
-        threshold = transfer_cost + opportunity_cost
+        threshold = DEFAULT_WEIGHTS["opportunity_cost"]
+        explanation = ""
         
         if current_player and best_candidate:
             raw_gain = round(best_candidate["xp"] - current_player["xp"], 2)
             delta = raw_gain
-            net_gain = raw_gain - threshold
             
-            if net_gain <= 0:
+            if raw_gain <= 0:
                 recommendation = "HOLD"
+                explanation = "השחקן הנוכחי צפוי להביא יותר או אותו מספר נקודות מאשר האלטרנטיבות, כך שאין צורך בחילוף."
+            elif raw_gain <= 1.0:
+                recommendation = "HOLD"
+                explanation = f"המחליף ({best_candidate['name']}) צפוי להביא רק {raw_gain} נקודות יותר למחזור בממוצע. פער כה קטן לא מצדיק שריפת חילוף, אלא אם כן השחקן שלך פצוע."
+            elif raw_gain <= 2.0:
+                recommendation = "CONSIDER"
+                explanation = f"שדרוג סביר. {best_candidate['name']} צפוי להביא {raw_gain} נקודות יותר. מומלץ לבצע את החילוף רק אם יש לך חילופים חינמיים עודפים ואין בעיות דחופות יותר."
+            else:
+                recommendation = "TRANSFER"
+                explanation = f"חילוף מצוין! {best_candidate['name']} משדרג אותך משמעותית עם פער של {raw_gain} נקודות צפויות למחזור (פיצוי מהיר על עלות החילוף). מומלץ מאוד."
                 
         if current_player:
             log_prediction(current_player, next_gw, "Transfer Lab - Current")
@@ -630,6 +644,7 @@ def get_transfer_recommendations(req: TransferRequest):
             "recommendation": recommendation,
             "delta": delta,
             "threshold": threshold,
+            "explanation": explanation,
             "current_player": current_player,
             "best_transfer": best_candidate,
             "candidates": candidates
