@@ -2392,11 +2392,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
-        <div className="w-full flex justify-end mb-2">
-            <button onClick={() => handleSharePitch('planner-pitch-container', 'planner')} className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-1 px-3 rounded-lg text-sm transition-colors shadow-sm flex items-center gap-1" title={isEnglish ? 'Save Plan Image' : 'שמור כתמונה'}>
-              <span>📸</span> <span className="hidden sm:inline">{isEnglish ? 'Save Image' : 'שמור תמונה'}</span>
-            </button>
-        </div>
+
         <div id="planner-pitch-container" className={`relative w-full max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl mt-4 sm:mt-8 border-4 sm:border-8 border-white ${isDarkMode ? 'opacity-90' : ''}`}>
           <div className="bg-[#126b3f] rounded-t-lg p-1 md:p-4 relative shadow-md overflow-hidden min-h-[380px] md:min-h-[500px] flex flex-col justify-around">
             <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
