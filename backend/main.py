@@ -687,13 +687,17 @@ def get_radar():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/budget-scenarios/{team_id}")
-def get_budget_scenarios(team_id: int):
+class BudgetScenariosRequest(BaseModel):
+    squad: list
+    bank: float
+    next_gw: int
+
+@app.post("/api/budget-scenarios")
+def get_budget_scenarios(req: BudgetScenariosRequest):
     try:
-        dashboard_data = get_dashboard_data(team_id)
-        squad = dashboard_data["squad"]
-        bank = dashboard_data["bank"]
-        next_gw = dashboard_data["next_gw"]
+        squad = req.squad
+        bank = req.bank
+        next_gw = req.next_gw
         
         bootstrap = fetch_bootstrap()
         all_fixtures = fetch_all_fixtures()

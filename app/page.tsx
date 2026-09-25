@@ -1296,7 +1296,7 @@ export default function Home() {
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
                 <span>💰</span> {isEnglish ? 'Budget Scenarios' : 'תרחישי תקציב (המלצות מבוססות AI)'}
               </h3>
-              <BudgetScenariosTab teamId={data?.team_id} isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} onTransfer={executeVirtualTransfer} />
+              <BudgetScenariosTab data={data} teamId={data?.team_id} isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} onTransfer={executeVirtualTransfer} />
             </div>
           )}
 
@@ -2073,13 +2073,21 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
   );
 }
 
-function BudgetScenariosTab({ teamId, isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onTransfer }: any) {
+function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onTransfer }: any) {
   const [scenarios, setScenarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/budget-scenarios/${teamId}`)
+    fetch(`${API_BASE_URL}/api/budget-scenarios`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        squad: data.squad,
+        bank: data.bank,
+        next_gw: data.next_gw
+      })
+    })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -2844,7 +2852,7 @@ function PlayerInfoModal({ playerId, preloadedPlayer, onClose, onTransferAction,
         className={`w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-5 sm:p-6 shadow-2xl relative ${bgModal}`} 
         onClick={e => e.stopPropagation()}
       >
-        <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-gray-200 font-bold text-xl z-10">✕</button>
+        <button onClick={onClose} className="absolute top-3 right-3 w-10 h-10 flex items-center justify-center rounded-full bg-gray-200/50 hover:bg-gray-200 dark:bg-gray-700/50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xl transition-colors z-[400]">✕</button>
 
         {loading ? (
           <div className="p-10 text-center animate-pulse font-bold">{isEnglish ? 'Loading Player Stats...' : 'טוען נתוני שחקן...'} ⏳</div>
