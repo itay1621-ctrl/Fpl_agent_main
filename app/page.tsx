@@ -1424,10 +1424,10 @@ export default function Home() {
                     {loadingRecs ? (
                       <p className={`font-bold animate-pulse ${textMuted}`}>{isEnglish ? 'Calculating smart alternatives...' : 'מחשב אלטרנטיבות חכמות...'}</p>
                     ) : (
-                      <div className="flex flex-col h-full overflow-hidden">
+                      <div className="flex flex-col h-full overflow-y-auto pr-1">
                         
                         {searchQuery === '' && transferDecision && transferDecision.current_player && (
-                          <div className={`mb-6 p-4 rounded-xl border ${isDarkMode ? 'bg-gray-800/80 border-gray-700' : 'bg-white border-gray-200'} shadow-sm`}>
+                          <div className={`mb-6 p-4 rounded-xl border shrink-0 ${isDarkMode ? 'bg-gray-800/80 border-gray-700' : 'bg-white border-gray-200'} shadow-sm`}>
                             <h3 className={`text-sm font-black mb-4 flex items-center gap-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                               <svg className="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                               {isEnglish ? 'TRANSFER DECISION' : 'החלטת העברה'}
@@ -1555,7 +1555,7 @@ export default function Home() {
                           />
                         </div>
 
-                        <div className={`flex-1 overflow-y-auto rounded-lg border min-h-[200px] ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                        <div className={`shrink-0 rounded-lg border pb-2 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                           <table className={`w-full text-sm text-start`}>
                             <thead className={`sticky top-0 z-10 text-xs uppercase font-bold ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
                               <tr>
