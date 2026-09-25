@@ -652,6 +652,111 @@ def get_transfer_recommendations(req: TransferRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+def build_squad(players, forced_players=[]):
+    squad = list(forced_players)
+    cost = sum(p['cost'] for p in squad)
+    team_counts = {}
+    pos_counts = {1: 0, 2: 0, 3: 0, 4: 0}
+    
+    for p in squad:
+        team_counts[p['team']] = team_counts.get(p['team'], 0) + 1
+        pos_counts[p['pos_code']] += 1
+        
+    min_costs = {1: 4.0, 2: 4.0, 3: 4.5, 4: 4.5}
+    
+    for p in players:
+        if len(squad) == 15:
+            break
+        if any(x['id'] == p['id'] for x in squad):
+            continue
+            
+        needed = False
+        if p['pos_code'] == 1 and pos_counts[1] < 2: needed = True
+        if p['pos_code'] == 2 and pos_counts[2] < 5: needed = True
+        if p['pos_code'] == 3 and pos_counts[3] < 5: needed = True
+        if p['pos_code'] == 4 and pos_counts[4] < 3: needed = True
+        
+        if not needed:
+            continue
+        if team_counts.get(p['team'], 0) >= 3:
+            continue
+            
+        rem_slots_budget = 0
+        for t in range(1, 5):
+            needed_count = (2 if t == 1 else 5 if t == 2 else 5 if t == 3 else 3) - pos_counts[t]
+            if t == p['pos_code']:
+                needed_count -= 1
+            if needed_count > 0:
+                rem_slots_budget += needed_count * min_costs[t]
+                
+        if cost + p['cost'] + rem_slots_budget <= 100.0:
+            squad.append(p)
+            cost += p['cost']
+            team_counts[p['team']] = team_counts.get(p['team'], 0) + 1
+            pos_counts[p['pos_code']] += 1
+            
+    squad.sort(key=lambda x: (x['pos_code'], -x['cost']))
+    
+    # map to frontend format
+    formatted = []
+    for p in squad:
+        formatted.append({
+            "id": p["id"],
+            "name": p["name"],
+            "team_code": p.get("team_code", p.get("team")),
+            "element_type": p["pos_code"],
+            "now_cost": int(p["cost"] * 10),
+            "xp": p["xp"]
+        })
+    return {"squad": formatted, "cost": int(cost * 10)}
+
+@app.get("/api/drafts")
+def get_drafts():
+    try:
+        bootstrap = fetch_bootstrap()
+        elements = bootstrap.get("elements", [])
+        teams = {t["id"]: t for t in bootstrap.get("teams", [])}
+        
+        events = bootstrap.get("events", [])
+        next_gw = next((e["id"] for e in events if e["is_next"]), 1)
+        all_fixtures = fetch_all_fixtures()
+        
+        gw_range = min(5, 38 - next_gw + 1)
+        upcoming_fixtures_raw = [f for f in all_fixtures if f.get("event") and next_gw <= f["event"] <= next_gw + gw_range - 1]
+        
+        all_players = []
+        for p in elements:
+            if p["status"] not in ["u", "i", "s"]:
+                proj = calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams)
+                # Ensure we have team_code for shirt image
+                proj["team_code"] = p.get("team_code")
+                all_players.append(proj)
+                
+        premiums = sorted([p for p in all_players if p["cost"] >= 10.0], key=lambda x: x["xp"], reverse=True)[:2]
+        others_for_premium = sorted(all_players, key=lambda x: x["xp"]/max(0.1, x["cost"]), reverse=True)
+        premium_draft = build_squad(others_for_premium, premiums)
+        
+        balanced_players = sorted([p for p in all_players if p["cost"] <= 9.5], key=lambda x: x["xp"], reverse=True)
+        balanced_draft = build_squad(balanced_players, [])
+        
+        def diff_score(p):
+            bonus = 2 if p["selected_by_percent"] < 10 else 1 if p["selected_by_percent"] < 15 else 0
+            return p["xp"] + bonus
+            
+        differential_players = sorted(all_players, key=diff_score, reverse=True)
+        diff_draft = build_squad(differential_players, [])
+        
+        return {
+            "drafts": [
+                {"id": 1, "name": "Premium Heavies (כוכבים יקרים)", "description": "הרכב מבוסס על שחקני פרימיום חזקים יחד עם שחקנים זולים משלימים.", "data": premium_draft},
+                {"id": 2, "name": "Balanced Spread (הרכב מאוזן)", "description": "ללא שחקנים יקרים מדי, מאפשר עומק חזק מאוד בכל העמדות במגרש.", "data": balanced_draft},
+                {"id": 3, "name": "Differentials (פנינים נסתרות)", "description": "שחקנים בכושר שיא שאחוזי הבחירה שלהם נמוכים, כדי לעקוף מתחרים.", "data": diff_draft}
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/radar")
 def get_radar():
     try:

@@ -3052,7 +3052,7 @@ function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: a
   const [currentDraftIndex, setCurrentDraftIndex] = useState(0);
 
   useEffect(() => {
-    fetch('/api-vercel/drafts')
+    fetch(`${API_BASE_URL}/api/drafts`)
       .then(res => res.json())
       .then(data => {
         if (data.drafts) setDrafts(data.drafts);
