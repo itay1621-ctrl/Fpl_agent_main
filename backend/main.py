@@ -688,7 +688,7 @@ def get_radar():
         raise HTTPException(status_code=500, detail=str(e))
 
 class BudgetScenariosRequest(BaseModel):
-    squad: list
+    squad: List[dict]
     bank: float
     next_gw: int
 
