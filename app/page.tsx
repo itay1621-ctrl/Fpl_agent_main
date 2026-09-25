@@ -2161,7 +2161,7 @@ function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, te
     
     setLoading(true);
     fetchScenarios();
-  }, [teamId]);
+  }, [teamId, data]);
 
   if (loading) return <div className="text-center p-10 font-bold">{isEnglish ? 'Analyzing weak links and calculating replacements...' : 'מנתח חוליות חלשות ומחשב חלופות אידיאליות...'}</div>;
   if (error) return <div className="text-center p-10 font-bold text-red-500">{error}</div>;
