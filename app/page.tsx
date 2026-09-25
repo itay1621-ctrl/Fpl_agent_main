@@ -304,9 +304,22 @@ export default function Home() {
             p.team_code = getTeamCode(p.team);
           }
           if (!p.fixture && p.upcoming_fixtures && p.upcoming_fixtures.length > 0) {
-            p.fixture = p.upcoming_fixtures[0].opponent;
-            p.fixture_diff = p.upcoming_fixtures[0].difficulty;
-          }
+                                p.fixture = p.upcoming_fixtures[0].opponent;
+                    p.fixture_diff = p.upcoming_fixtures[0].difficulty;
+                  }
+                  
+                  const realP = result.squad?.find((rp: any) => rp.id === p.id);
+                  if (realP) {
+                    p.form = realP.form;
+                    p.expected_goals = realP.expected_goals;
+                    p.expected_assists = realP.expected_assists;
+                    p.expected_goals_conceded = realP.expected_goals_conceded;
+                    p.defensive_contribution = realP.defensive_contribution;
+                    p.clean_sheets = realP.clean_sheets;
+                    p.goals_conceded = realP.goals_conceded;
+                    p.xp = realP.xp;
+                  }
+
         });
       }
 
@@ -339,9 +352,22 @@ export default function Home() {
                   p.team_code = getTeamCode(p.team);
                 }
                 if (!p.fixture && p.upcoming_fixtures && p.upcoming_fixtures.length > 0) {
-                  p.fixture = p.upcoming_fixtures[0].opponent;
-                  p.fixture_diff = p.upcoming_fixtures[0].difficulty;
-                }
+                                      p.fixture = p.upcoming_fixtures[0].opponent;
+                    p.fixture_diff = p.upcoming_fixtures[0].difficulty;
+                  }
+                  
+                  const realP = result.squad?.find((rp: any) => rp.id === p.id);
+                  if (realP) {
+                    p.form = realP.form;
+                    p.expected_goals = realP.expected_goals;
+                    p.expected_assists = realP.expected_assists;
+                    p.expected_goals_conceded = realP.expected_goals_conceded;
+                    p.defensive_contribution = realP.defensive_contribution;
+                    p.clean_sheets = realP.clean_sheets;
+                    p.goals_conceded = realP.goals_conceded;
+                    p.xp = realP.xp;
+                  }
+
               });
             }
             if (savedPlan.schedule) {
