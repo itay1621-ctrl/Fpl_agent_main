@@ -59,7 +59,7 @@ export async function GET() {
     const enriched = elements.map((p: any) => {
       const ep_next = parseFloat(p.ep_next) || 0;
       const form = parseFloat(p.form) || 0;
-      const xp = (ep_next * 0.7) + (form * 0.3);
+      const xp = ep_next;
       return {
         id: p.id,
         name: p.web_name,
