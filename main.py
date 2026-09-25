@@ -277,7 +277,9 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         "prob": availability_prob,
         "news": p.get("news", ""),
         "xg": float(p.get("expected_goals", 0) or 0),
-        "xa": float(p.get("expected_assists", 0) or 0)
+        "xa": float(p.get("expected_assists", 0) or 0),
+        "expected_minutes": round(expected_minutes, 1),
+        "start_probability": round(base_cop * 100, 1)
     }
 
 def enrich_picks(picks_ids, squad):
@@ -537,31 +539,53 @@ def get_transfer_recommendations(req: TransferRequest):
                 team_counts[t] = team_counts.get(t, 0) + 1
 
         candidates = []
+        all_evaluations = []
+        
         for p in elements:
-            if p["element_type"] == req.pos_code and p["id"] not in req.current_squad_ids:
-                if (p["now_cost"] / 10) <= req.max_budget:
-                    if team_counts.get(p["team"], 0) < 3:
-                        c = calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams)
-                        candidates.append(c)
-                    
+            if p["element_type"] == req.pos_code:
+                if p["id"] not in req.current_squad_ids or p["id"] == req.transfer_out_id:
+                    if (p["now_cost"] / 10) <= req.max_budget:
+                        c_team_count = team_counts.get(p["team"], 0)
+                        if c_team_count < 3 or p["id"] == req.transfer_out_id:
+                            c = calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams)
+                            all_evaluations.append(c)
+
+        all_evaluations = sorted(all_evaluations, key=decision_engine_score, reverse=True)
+        
+        current_player_rank = None
+        total_relevant = len(all_evaluations)
+        
+        for idx, c in enumerate(all_evaluations):
+            if current_player and c["id"] == current_player["id"]:
+                current_player_rank = idx + 1
+            if c["id"] != req.transfer_out_id:
+                candidates.append(c)
+                
         candidates = sorted(candidates, key=decision_engine_score, reverse=True)
         best_candidate = candidates[0] if candidates else None
-        
+
         recommendation = "TRANSFER"
+        explanation = ""
         delta = 0.0
-        
+
         transfer_cost = 0.0
         opportunity_cost = DEFAULT_WEIGHTS["opportunity_cost"]
         threshold = transfer_cost + opportunity_cost
-        
+
         if current_player and best_candidate:
             raw_gain = round(best_candidate["xp"] - current_player["xp"], 2)
             delta = raw_gain
             net_gain = raw_gain - threshold
-            
+
             if net_gain <= 0:
                 recommendation = "HOLD"
-                
+                explanation = "The selected player is already highly ranked among the relevant options. No clear upgrade is currently identified."
+            else:
+                explanation = "The selected player ranks below the strongest available alternatives and the replacement offers a meaningful projected improvement."
+        else:
+            recommendation = "MONITOR"
+            explanation = "Not enough data to form a definitive transfer decision."
+
         if current_player:
             log_prediction(current_player["id"], current_player["name"], next_gw, current_player["xp"], "Transfer Lab - Current", "HOLD" if recommendation == "HOLD" else "SELL")
         if best_candidate:
@@ -569,9 +593,12 @@ def get_transfer_recommendations(req: TransferRequest):
 
         return {
             "recommendation": recommendation,
+            "explanation": explanation,
             "delta": delta,
             "threshold": threshold,
             "current_player": current_player,
+            "current_player_rank": current_player_rank,
+            "total_relevant": total_relevant,
             "best_transfer": best_candidate,
             "candidates": candidates
         }
