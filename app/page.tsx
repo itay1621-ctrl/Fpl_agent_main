@@ -171,10 +171,13 @@ export default function Home() {
   const [showFeedback, setShowFeedback] = useState(true);
 
   const handleApplyDraft = (draftData: any) => {
+    // Drafts API provides 'cost' (multiplier of 10). Assuming a 100.0m budget (1000).
+    const calculatedBank = (1000 - (draftData.cost || 1000)) / 10;
+    
     setData((prev: any) => ({
       ...prev,
       squad: draftData.squad,
-      bank: draftData.bank
+      bank: calculatedBank
     }));
     setActiveTab('planner');
     setAppAlert(isEnglish ? 'Draft applied to planner!' : 'הדראפט הוחל על הסגל!');
