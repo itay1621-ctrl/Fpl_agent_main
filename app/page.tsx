@@ -3364,7 +3364,7 @@ function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onA
   const [currentDraftIndex, setCurrentDraftIndex] = useState(0);
 
   useEffect(() => {
-    fetch('/api-vercel/drafts')
+    fetch('/api-vercel/drafts?t=' + new Date().getTime())
       .then(res => res.json())
       .then(data => {
         if (data.drafts) setDrafts(data.drafts);
