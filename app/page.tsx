@@ -292,7 +292,7 @@ export default function Home() {
     setTransferOutId(null);
     setTransferRecs([]); setTransferDecision(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/dashboard/${idToFetch}`);
+      const res = await fetch(`${API_BASE_URL}/api/dashboard/${idToFetch}?t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error(isEnglish ? 'Team ID not found or FPL API is currently down. Please verify your ID.' : 'מזהה הקבוצה לא נמצא, או ששרתי FPL למטה. אנא ודא שה-ID נכון.');
       const result = await res.json();
       
@@ -2009,7 +2009,7 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/radar`)
+    fetch(`${API_BASE_URL}/api/radar?t=${Date.now()}`, { cache: 'no-store' as RequestCache })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -2904,7 +2904,7 @@ function PlayerInfoModal({ playerId, preloadedPlayer, onClose, onTransferAction,
   useEffect(() => {
     setLoading(true);
     setError(false);
-    fetch(`${API_BASE_URL}/api/player/${playerId}`)
+    fetch(`${API_BASE_URL}/api/player/${playerId}?t=${Date.now()}`, { cache: 'no-store' as RequestCache })
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
