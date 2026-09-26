@@ -1929,9 +1929,46 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
   const innerBoxBg = isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-200';
   const tableHeaderBg = isDarkMode ? 'bg-gray-800' : 'bg-gray-100';
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-      <div className={`p-5 rounded-xl border ${bgBox}`}>
+  const insights = generateManagerBriefing(data, isEnglish);
+
+    return (
+      <div className="flex flex-col gap-6 mt-4">
+        {insights.length > 0 && (
+          <div className={`p-4 md:p-6 rounded-2xl border shadow-sm ${isDarkMode ? 'bg-indigo-950/20 border-indigo-900/50' : 'bg-indigo-50/50 border-indigo-100'}`}>
+            <h3 className={`text-xl font-black mb-4 flex items-center gap-2 tracking-tight ${isDarkMode ? 'text-indigo-300' : 'text-indigo-800'}`}>
+              <span className="text-2xl">⚡</span> 
+              {isEnglish ? "MANAGER\'S BRIEFING" : "תדריך מנג'ר"}
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {insights.map(insight => (
+                <div key={insight.id} className={`flex flex-col p-4 rounded-xl border ${isDarkMode ? 'bg-gray-800/80 border-gray-700' : 'bg-white border-gray-200'} shadow-sm relative overflow-hidden`}>
+                  <div className={`text-xs font-bold uppercase tracking-wider mb-2 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                    {insight.category}
+                  </div>
+                  <div className={`font-black mb-2 text-lg ${textHighlight}`}>
+                    {insight.title}
+                  </div>
+                  <div className={`text-sm mb-3 font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                    {insight.mainInsight}
+                  </div>
+                  <div className={`text-xs mt-auto ${textMuted}`}>
+                    <span className="block mb-1 opacity-80">{isEnglish ? "Why this matters →" : "למה זה משנה ←"}</span>
+                    {insight.whyItMatters}
+                  </div>
+                  {insight.action && (
+                    <div className={`text-xs mt-3 pt-3 border-t font-medium ${isDarkMode ? 'border-gray-700 text-indigo-300' : 'border-gray-100 text-indigo-700'}`}>
+                      {insight.action}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className={`p-5 rounded-xl border ${bgBox}`}>
         <h4 className="text-lg font-black mb-4 flex items-center gap-2 text-red-500">
           <span>⚠️</span> {isEnglish ? 'Urgent Weaknesses' : 'נקודות תורפה דחופות (בהרכב)'}
         </h4>
@@ -2719,10 +2756,11 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
             ))}
             {scheduleForGw.length === 0 && <p className={`text-center text-sm ${textMuted}`}>{isEnglish ? 'No fixtures' : 'אין משחקים'}</p>}
           </div>
+          </div>
         </div>
       </div>
-    </div>
-  );
+      </div>
+    );
 }
 
 function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any) {
