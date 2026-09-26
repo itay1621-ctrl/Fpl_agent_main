@@ -217,8 +217,8 @@ export default function Home() {
        is_captain: p.id === capId,
        is_vice_captain: p.id === viceId,
        is_empty: false,
-       fixture: p.team_name,
-       fixture_diff: 3
+       fixture: p.fixture || p.team_name,
+       fixture_diff: p.fixture_diff || 3
     }));
 
     setData((prev: any) => ({

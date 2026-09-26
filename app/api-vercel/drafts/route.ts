@@ -226,6 +226,23 @@ export async function GET() {
     const teams: Record<number, any> = {};
     data.teams.forEach((t: any) => { teams[t.id] = t; });
 
+    const nextFixByTeam: Record<number, any> = {};
+    for (let t = 1; t <= 20; t++) {
+        const teamFixs = fixtures.filter((f: any) => f.event === nextGw && (f.team_h === t || f.team_a === t));
+        if (teamFixs.length > 0) {
+            const f = teamFixs[0];
+            const isHome = f.team_h === t;
+            const oppId = isHome ? f.team_a : f.team_h;
+            const oppTeam = data.teams.find((x: any) => x.id === oppId);
+            const oppName = oppTeam ? oppTeam.short_name : 'UNK';
+            const diff = isHome ? f.team_h_difficulty : f.team_a_difficulty;
+            nextFixByTeam[t] = {
+                str: `${oppName} (${isHome ? 'H' : 'A'})`,
+                diff: diff
+            };
+        }
+    }
+
     const enriched = elements.map((p: any) => {
       const xp = calculatePlayerProjection(p, nextGw, fixtures, teams);
       
@@ -243,7 +260,9 @@ export async function GET() {
         ep_next: parseFloat(p.ep_next) || 0,
         xp: xp,
         selected_by_percent: parseFloat(p.selected_by_percent) || 0,
-        total_points: p.total_points
+        total_points: p.total_points,
+        fixture: nextFixByTeam[p.team]?.str || "Blank",
+        fixture_diff: nextFixByTeam[p.team]?.diff || 3
       };
     });
 
