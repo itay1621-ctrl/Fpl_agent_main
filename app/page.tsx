@@ -3436,6 +3436,16 @@ function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onA
         <div className="bg-[#0e5230] rounded-b-lg p-2 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
           {bench.map((p: any) => renderDraftPlayer(p, true))}
         </div>
+        
+        <div className="flex justify-center mt-6 pb-4">
+          <button 
+            onClick={() => onApplyDraft(draft.data)}
+            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition-all flex items-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            {isEnglish ? 'Build This Squad' : 'בנה סגל זה'}
+          </button>
+        </div>
       </div>
     </div>
   );
