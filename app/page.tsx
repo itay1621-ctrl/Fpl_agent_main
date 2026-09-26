@@ -3488,8 +3488,6 @@ function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onA
           {bench.map((p: any) => renderDraftPlayer(p, true))}
         </div>
         
-          </button>
-        </div>
       </div>
     </div>
   );
