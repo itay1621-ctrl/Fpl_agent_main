@@ -319,6 +319,24 @@ export default function Home() {
                     p.goals_conceded = realP.goals_conceded;
                     p.xp = realP.xp;
                   }
+                  if (typeof window !== 'undefined') {
+                     const cachedStatsStr = localStorage.getItem('fpl_stats_cache');
+                     if (cachedStatsStr) {
+                         try {
+                             const cachedStats = JSON.parse(cachedStatsStr);
+                             if (cachedStats[p.id]) {
+                                 const sp = cachedStats[p.id];
+                                 p.form = p.form ?? sp.form;
+                                 p.expected_goals = p.expected_goals ?? sp.expected_goals;
+                                 p.expected_assists = p.expected_assists ?? sp.expected_assists;
+                                 p.expected_goals_conceded = p.expected_goals_conceded ?? sp.expected_goals_conceded;
+                                 p.defensive_contribution = p.defensive_contribution ?? sp.defensive_contribution;
+                                 p.clean_sheets = p.clean_sheets ?? sp.clean_sheets;
+                                 p.goals_conceded = p.goals_conceded ?? sp.goals_conceded;
+                             }
+                         } catch (e) {}
+                     }
+                  }
 
         });
       }
@@ -366,6 +384,24 @@ export default function Home() {
                     p.clean_sheets = realP.clean_sheets;
                     p.goals_conceded = realP.goals_conceded;
                     p.xp = realP.xp;
+                  }
+                  if (typeof window !== 'undefined') {
+                     const cachedStatsStr = localStorage.getItem('fpl_stats_cache');
+                     if (cachedStatsStr) {
+                         try {
+                             const cachedStats = JSON.parse(cachedStatsStr);
+                             if (cachedStats[p.id]) {
+                                 const sp = cachedStats[p.id];
+                                 p.form = p.form ?? sp.form;
+                                 p.expected_goals = p.expected_goals ?? sp.expected_goals;
+                                 p.expected_assists = p.expected_assists ?? sp.expected_assists;
+                                 p.expected_goals_conceded = p.expected_goals_conceded ?? sp.expected_goals_conceded;
+                                 p.defensive_contribution = p.defensive_contribution ?? sp.defensive_contribution;
+                                 p.clean_sheets = p.clean_sheets ?? sp.clean_sheets;
+                                 p.goals_conceded = p.goals_conceded ?? sp.goals_conceded;
+                             }
+                         } catch (e) {}
+                     }
                   }
 
               });
