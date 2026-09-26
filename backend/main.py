@@ -400,7 +400,7 @@ def get_dashboard_data(team_id: int):
         elements = ctx["elements"]
         teams = ctx["teams"]
 
-        picks, bank, team_name, rank, chips_used, leagues = fetch_user_team(team_id, next_gw)
+        picks, bank, team_name, rank, chips_used, leagues, free_transfers = fetch_user_team(team_id, next_gw)
 
         enriched_picks = []
         for pick in picks:
@@ -477,6 +477,7 @@ def get_dashboard_data(team_id: int):
             "team_name": team_name,
             "rank": rank,
             "bank": bank,
+            "free_transfers": free_transfers,
             "next_gw": next_gw,
             "squad": enriched_picks,
             "schedule": schedule,

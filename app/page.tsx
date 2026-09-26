@@ -1415,7 +1415,7 @@ export default function Home() {
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
                 <span>📡</span> {isEnglish ? 'Elite Transfer Radar' : 'רדאר רכש עילית'}
               </h3>
-              <EliteRadarTab isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} />
+              <EliteRadarTab data={data} isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} />
             </div>
           )}
           {appMode !== 'guest' && activeTab === 'budget' && (
@@ -1927,8 +1927,12 @@ function generateManagerBriefing(data: any, isEnglish: boolean): Insight[] {
     });
   }
   
-  // 5. FORM & CONTEXT (Underlying attacking stats - strictly MID & FWD)
-  const attackingStarters = starters.filter((p: any) => p.pos_code === 3 || p.pos_code === 4 || p.element_type === 3 || p.element_type === 4);
+  // 5. FORM & CONTEXT (Underlying attacking stats - strictly MID & FWD, EXCLUDING Captaincy pick & high-xP assets)
+  const attackingStarters = starters.filter((p: any) => 
+    (p.pos_code === 3 || p.pos_code === 4 || p.element_type === 3 || p.element_type === 4) &&
+    p.id !== highestXp?.id &&
+    (p.xp || 0) < 4.5
+  );
   const luckyPlayer = attackingStarters.find((p: any) => parseFloat(p.form || '0') > 5.0 && (parseFloat(p.expected_goals || '0') + parseFloat(p.expected_assists || '0')) < 0.3);
   if (luckyPlayer) {
     insights.push({
