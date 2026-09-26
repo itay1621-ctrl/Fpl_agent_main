@@ -171,16 +171,61 @@ export default function Home() {
   const [showFeedback, setShowFeedback] = useState(true);
 
   const handleApplyDraft = (draftData: any) => {
-    // Drafts API provides 'cost' (multiplier of 10). Assuming a 100.0m budget (1000).
     const calculatedBank = (1000 - (draftData.cost || 1000)) / 10;
     
+    const sortedSquad = [...draftData.squad].sort((a: any, b: any) => b.xp - a.xp);
+    const starters: any[] = [];
+    const bench: any[] = [];
+    const posCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
+    const mins = { 1: 1, 2: 3, 3: 2, 4: 1 };
+    
+    for (let pos = 1; pos <= 4; pos++) {
+       let needed = (mins as any)[pos];
+       const playersInPos = sortedSquad.filter(p => p.element_type === pos);
+       for (let i = 0; i < needed; i++) {
+          if (playersInPos[i]) {
+            starters.push(playersInPos[i]);
+            (posCounts as any)[pos]++;
+            const idx = sortedSquad.findIndex(p => p.id === playersInPos[i].id);
+            sortedSquad.splice(idx, 1);
+          }
+       }
+    }
+    const maxs = { 1: 1, 2: 5, 3: 5, 4: 3 };
+    for (const p of sortedSquad) {
+       if (starters.length < 11 && (posCounts as any)[p.element_type] < (maxs as any)[p.element_type]) {
+          starters.push(p);
+          (posCounts as any)[p.element_type]++;
+       } else {
+          bench.push(p);
+       }
+    }
+    const benchGkp = bench.filter(p => p.element_type === 1);
+    const benchOutfield = bench.filter(p => p.element_type !== 1).sort((a:any, b:any) => b.now_cost - a.now_cost);
+    
+    const finalStarters = starters.sort((a:any, b:any) => a.element_type - b.element_type);
+    
+    // Highest XP player in starters becomes captain
+    const capId = [...finalStarters].sort((a:any,b:any)=>b.xp - a.xp)[0]?.id;
+    const viceId = [...finalStarters].sort((a:any,b:any)=>b.xp - a.xp)[1]?.id;
+
+    const mappedSquad = [...finalStarters, ...benchGkp, ...benchOutfield].map((p, index) => ({
+       ...p,
+       position: index + 1,
+       cost: p.now_cost,
+       pos_code: p.element_type,
+       is_captain: p.id === capId,
+       is_vice_captain: p.id === viceId,
+       is_empty: false
+    }));
+
     setData((prev: any) => ({
       ...prev,
-      squad: draftData.squad,
+      squad: mappedSquad,
       bank: calculatedBank
     }));
     setActiveTab('planner');
-    setAppAlert(isEnglish ? 'Draft applied to planner!' : 'הדראפט הוחל על הסגל!');
+    setAppAlert(isEnglish ? '✅ Draft applied to planner!' : '✅ הסגל נבנה בהצלחה על פי הדראפט!');
     setTimeout(() => setAppAlert(null), 3000);
   };
 
