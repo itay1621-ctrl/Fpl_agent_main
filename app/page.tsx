@@ -227,7 +227,7 @@ export default function Home() {
       bank: calculatedBank
     }));
     setActiveTab('planner');
-    setAppAlert(isEnglish ? '✅ Draft applied to planner!' : '✅ הסגל נבנה בהצלחה על פי הדראפט!');
+    setAppAlert(isEnglish ? 'Draft applied to planner!' : 'הסגל נבנה בהצלחה על פי הדראפט!');
     setTimeout(() => setAppAlert(null), 3000);
   };
 
@@ -423,7 +423,7 @@ export default function Home() {
       if (savedPlanStr) {
         try {
           const savedPlan = JSON.parse(savedPlanStr);
-            if (savedPlan && savedPlan.squad && savedPlan.squad.length > 0 && typeof savedPlan.squad[0].position === "undefined") { localStorage.removeItem(`fpl_plan_${idToFetch}`); throw new Error("Broken plan wiped"); }
+            if (savedPlan && savedPlan.squad && savedPlan.squad.length > 0 && (typeof savedPlan.squad[0].position === "undefined" || savedPlan.squad.some((p: any) => p.cost > 30))) { localStorage.removeItem(`fpl_plan_${idToFetch}`); throw new Error("Broken plan wiped"); }
           // Only load if it matches the current upcoming GW, so outdated plans are wiped
           if (savedPlan.next_gw === result.next_gw) {
             if (savedPlan.squad && savedPlan.squad.length > 0) {
@@ -1759,7 +1759,7 @@ export default function Home() {
       {appAlert && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
           <div className={`w-full max-w-sm overflow-hidden p-6 rounded-2xl shadow-2xl flex flex-col items-center text-center ${isDarkMode ? 'bg-gray-800 border border-gray-700 text-white' : 'bg-white text-gray-900'}`}>
-            <div className="text-4xl mb-4">⚠️</div>
+            <div className="text-4xl mb-4">{appAlert.includes("Draft applied") || appAlert.includes("בנה בהצלחה") ? "✅" : "⚠️"}</div>
             <p className="font-bold mb-6">{appAlert}</p>
             <button 
               onClick={() => setAppAlert(null)}
