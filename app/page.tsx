@@ -421,6 +421,7 @@ export default function Home() {
       if (savedPlanStr) {
         try {
           const savedPlan = JSON.parse(savedPlanStr);
+            if (savedPlan && savedPlan.squad && savedPlan.squad.length > 0 && typeof savedPlan.squad[0].position === "undefined") { localStorage.removeItem(`fpl_plan_${idToFetch}`); throw new Error("Broken plan wiped"); }
           // Only load if it matches the current upcoming GW, so outdated plans are wiped
           if (savedPlan.next_gw === result.next_gw) {
             if (savedPlan.squad && savedPlan.squad.length > 0) {
