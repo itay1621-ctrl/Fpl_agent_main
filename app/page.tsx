@@ -1051,6 +1051,7 @@ export default function Home() {
 
           <div className="hidden md:flex overflow-x-auto gap-6 border-b border-gray-200 mb-6 pb-2 text-sm font-bold whitespace-nowrap scrollbar-hide">
             <button onClick={() => setActiveTab('pitch')} className={`${activeTab === 'pitch' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.pitchTab}</button>
+            <button onClick={() => setActiveTab('transfer')} className={`${activeTab === 'transfer' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.transferTab}</button>
             <button onClick={() => setActiveTab('analysis')} className={`${activeTab === 'analysis' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.analysisTab}</button>
             <button onClick={() => setActiveTab('radar')} className={`${activeTab === 'radar' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.radarTab}</button>
             <button onClick={() => setActiveTab('budget')} className={`${activeTab === 'budget' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.budgetTab}</button>
@@ -1405,7 +1406,7 @@ export default function Home() {
                 <span>📊</span> {isEnglish ? 'Squad Analysis & AI Insights' : 'ניתוח סגל ותובנות AI'}
               </h3>
               
-              <SquadAnalysisTab data={data} isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} />
+              <SquadAnalysisTab data={data} isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} onGoToTransfer={(playerId?: number) => { setActiveTab('transfer'); if (playerId) handlePlayerClick(playerId); }} />
             </div>
           )}
 
@@ -1803,6 +1804,7 @@ export default function Home() {
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#37003c] z-[100] flex overflow-x-auto scrollbar-hide shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.3)]">
           {[
             { id: 'pitch', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="12" x2="22" y2="12"></line><circle cx="12" cy="12" r="3"></circle></svg>, nameEn: 'Pitch', nameHe: 'מגרש' },
+            { id: 'transfer', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>, nameEn: 'Transfers', nameHe: 'העברות' },
             { id: 'planner', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>, nameEn: 'Planner', nameHe: 'תכנון' },
             { id: 'analysis', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>, nameEn: 'Analysis', nameHe: 'ניתוח' },
             { id: 'radar', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>, nameEn: 'Radar', nameHe: 'ראדאר' },
@@ -1834,6 +1836,7 @@ interface Insight {
   whyItMatters: string;
   action?: string;
   priority: number;
+  playerId?: number;
 }
 
 function generateManagerBriefing(data: any, isEnglish: boolean): Insight[] {
@@ -1868,17 +1871,21 @@ function generateManagerBriefing(data: any, isEnglish: boolean): Insight[] {
     });
   }
 
-  // 2. TRANSFER WATCH (Weak Links)
-  const weakLinks = starters.filter((p: any) => p.xp < 2.5 && p.fixture_diff >= 3.5);
-  if (weakLinks.length > 0) {
-    const target = weakLinks.sort((a: any, b: any) => (a.xp || 0) - (b.xp || 0))[0];
+  // 2. TRANSFER WATCH (Weak Links & Upgrade Candidates)
+  const outfieldStarters = starters.filter((p: any) => p.pos_code !== 1 && p.element_type !== 1);
+  const weakLinks = outfieldStarters.filter((p: any) => (p.xp < 3.2 && p.fixture_diff >= 3.0) || p.xp < 2.5);
+  const target = weakLinks.length > 0 
+    ? weakLinks.sort((a: any, b: any) => (a.xp || 0) - (b.xp || 0))[0]
+    : outfieldStarters.sort((a: any, b: any) => (a.xp || 0) - (b.xp || 0))[0];
+  if (target) {
     insights.push({
       id: `tw_${target.id}`,
       category: 'TRANSFER WATCH',
       title: target.name,
-      mainInsight: isEnglish ? `${target.name} is currently a transfer watch due to difficult fixtures and lower projected output.` : `${target.name} דורש מעקב לקראת החלפה בגלל משחקים קשים ותפוקה צפויה נמוכה.`,
-      whyItMatters: isEnglish ? `His upcoming fixtures are difficult (FDR ${target.fixture_diff}) and his projected output (${target.xp?.toFixed(1)} XP) is the lowest in your XI.` : `המשחקים הקרובים שלו קשים (FDR ${target.fixture_diff}) והתפוקה הצפויה שלו (${target.xp?.toFixed(1)} XP) היא הנמוכה בהרכב.`,
-      action: isEnglish ? 'Consider monitoring a replacement before your next free transfer.' : 'שקול לעקוב אחרי מחליף לקראת ההעברה הבאה שלך.',
+      playerId: target.id,
+      mainInsight: isEnglish ? `${target.name} is currently your prime transfer candidate.` : `${target.name} הוא המועמד העיקרי לחילוף בסגל שלך.`,
+      whyItMatters: isEnglish ? `With projected ${target.xp?.toFixed(1)} XP and FDR ${target.fixture_diff || 3}, an upgrade can optimize your points.` : `עם תחזית של ${target.xp?.toFixed(1)} נקודות ודרגת קושי ${target.fixture_diff || 3}, שדרוג שלו ימקסם את הניקוד.`,
+      action: isEnglish ? 'Tap below to explore smart replacements in Transfer Lab.' : 'לחץ למטה כדי לצפות בחלופות המומלצות במעבדת החילופים.',
       priority: 90
     });
   }
@@ -1920,27 +1927,29 @@ function generateManagerBriefing(data: any, isEnglish: boolean): Insight[] {
     });
   }
   
-  // 5. FORM & CONTEXT (Underlying stats)
-  const luckyPlayer = starters.find((p: any) => parseFloat(p.form || '0') > 5.0 && (parseFloat(p.expected_goals || '0') + parseFloat(p.expected_assists || '0')) < 0.2);
+  // 5. FORM & CONTEXT (Underlying attacking stats - strictly MID & FWD)
+  const attackingStarters = starters.filter((p: any) => p.pos_code === 3 || p.pos_code === 4 || p.element_type === 3 || p.element_type === 4);
+  const luckyPlayer = attackingStarters.find((p: any) => parseFloat(p.form || '0') > 5.0 && (parseFloat(p.expected_goals || '0') + parseFloat(p.expected_assists || '0')) < 0.3);
   if (luckyPlayer) {
     insights.push({
       id: `form_${luckyPlayer.id}`,
       category: 'FORM & CONTEXT',
       title: luckyPlayer.name,
-      mainInsight: isEnglish ? `Recent output has not been strongly supported by the underlying numbers.` : `התפוקה האחרונה אינה נתמכת מספיק על ידי נתוני הבסיס.`,
-      whyItMatters: isEnglish ? `Despite good recent form (${luckyPlayer.form}), his expected goal involvement (xG+xA) is very low.` : `למרות כושר טוב לאחרונה (${luckyPlayer.form}), המעורבות הצפויה שלו בשערים נמוכה מאוד.`,
+      mainInsight: isEnglish ? `Recent attacking output has not been strongly supported by underlying numbers.` : `התפוקה ההתקפית האחרונה לא נתמכת באופן מובהק ע"י הנתונים הבסיסיים.`,
+      whyItMatters: isEnglish ? `Despite good recent form (${luckyPlayer.form}), his expected goal involvement (xG+xA) is low.` : `למרות כושר טוב לאחרונה (${luckyPlayer.form}), מעורבות השערים הצפויה (xG+xA) נמוכה יחסית.`,
+      action: isEnglish ? 'Monitor underlying chances before relying on him long-term.' : 'עקוב אחר יצירת המצבים לפני שמסתמכים עליו לטווח ארוך.',
       priority: 75
     });
   } else {
-      const unluckyPlayer = starters.find((p: any) => parseFloat(p.form || '0') < 3.0 && (parseFloat(p.expected_goals || '0') + parseFloat(p.expected_assists || '0')) > 0.8 && p.xp >= 4.0);
+      const unluckyPlayer = attackingStarters.find((p: any) => parseFloat(p.form || '0') < 3.0 && (parseFloat(p.expected_goals || '0') + parseFloat(p.expected_assists || '0')) > 0.8 && p.xp >= 4.0);
       if (unluckyPlayer) {
           insights.push({
               id: `form_${unluckyPlayer.id}`,
               category: 'FORM & CONTEXT',
               title: unluckyPlayer.name,
-              mainInsight: isEnglish ? `Underlying numbers are strong despite poor recent points.` : `נתוני הבסיס חזקים למרות ניקוד נמוך לאחרונה.`,
-              whyItMatters: isEnglish ? `His expected involvements are high and projections look good (${unluckyPlayer.xp?.toFixed(1)} XP).` : `המעורבות הצפויה שלו גבוהה והתחזיות טובות.`,
-              action: isEnglish ? 'Patience is likely the best strategy here.' : 'סבלנות היא כנראה האסטרטגיה הטובה ביותר כאן.',
+              mainInsight: isEnglish ? `Underlying numbers are strong despite poor recent points.` : `הנתונים הבסיסיים חזקים למרות ניקוד נמוך לאחרונה.`,
+              whyItMatters: isEnglish ? `His expected involvements are high and projections look good (${unluckyPlayer.xp?.toFixed(1)} XP).` : `המעורבות הצפויה שלו גבוהה והתחזיות נראות טוב (${unluckyPlayer.xp?.toFixed(1)} נקודות צפויות).`,
+              action: isEnglish ? 'Patience is likely the best strategy here.' : 'סבלנות היא ככל הנראה האסטרטגיה המשתלמת ביותר.',
               priority: 75
           });
       }
@@ -1972,7 +1981,7 @@ function generateManagerBriefing(data: any, isEnglish: boolean): Insight[] {
   return insights.sort((a, b) => b.priority - a.priority).slice(0, 4);
 }
 
-function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any) {
+function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onGoToTransfer }: any) {
   const [selectedPlayerModalId, setSelectedPlayerModalId] = useState<number | null>(null);
   const _starters = data.squad.filter((p: any) => p.position <= 11 && !p.is_empty);
   const _bench = data.squad.filter((p: any) => p.position > 11 && !p.is_empty);
@@ -2024,9 +2033,44 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
                       {insight.action}
                     </div>
                   )}
+                  {insight.category === 'TRANSFER WATCH' && insight.playerId && onGoToTransfer && (
+                    <button
+                      onClick={() => onGoToTransfer(insight.playerId)}
+                      className="mt-3 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                      {isEnglish ? 'Explore Replacements' : 'צפה בחלופות מומלצות'}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
+          </div>
+        )}
+        {onGoToTransfer && (
+          <div className={`p-4 md:p-5 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm ${isDarkMode ? 'bg-gradient-to-r from-purple-950/40 to-indigo-950/40 border-purple-900/50' : 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-100'}`}>
+            <div className="flex items-center gap-3.5 text-center sm:text-start">
+              <div className="w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center text-xl shrink-0">
+                🔄
+              </div>
+              <div>
+                <h4 className={`text-sm sm:text-base font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {isEnglish ? 'Looking for AI Transfer Recommendations?' : 'מחפש המלצות חילופים של ה-AI?'}
+                </h4>
+                <p className={`text-xs mt-0.5 ${textMuted}`}>
+                  {isEnglish 
+                    ? 'Analyze optimal replacement options for any player in your squad based on xP projections and budget.' 
+                    : 'נתח חלופות אופטימליות לכל שחקן בסגל על בסיס תחזיות נקודות xP, תקציב ולוח משחקים.'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => onGoToTransfer()}
+              className="w-full sm:w-auto shrink-0 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-black py-2.5 px-6 rounded-xl shadow-md text-xs sm:text-sm transition-all flex items-center justify-center gap-2"
+            >
+              <span>{isEnglish ? 'Open Transfer Lab' : 'פתח מעבדת חילופים'}</span>
+              <span>→</span>
+            </button>
           </div>
         )}
         
