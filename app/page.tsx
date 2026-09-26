@@ -169,6 +169,18 @@ export default function Home() {
   const [appMode, setAppMode] = useState<'welcome' | 'team' | 'demo' | 'guest'>('welcome');
   const [isEnglish, setIsEnglish] = useState(true);
   const [showFeedback, setShowFeedback] = useState(true);
+
+  const handleApplyDraft = (draftData: any) => {
+    setData((prev: any) => ({
+      ...prev,
+      squad: draftData.squad,
+      bank: draftData.bank
+    }));
+    setActiveTab('planner');
+    setAppAlert(isEnglish ? 'Draft applied to planner!' : 'הדראפט הוחל על הסגל!');
+    setTimeout(() => setAppAlert(null), 3000);
+  };
+
   const [countdown, setCountdown] = useState("Calculating...");
   const [isUrgent, setIsUrgent] = useState(false);
 
@@ -1369,7 +1381,7 @@ export default function Home() {
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
                 <span>📋</span> {isEnglish ? 'Recommended Drafts' : 'הרכבים מומלצים'}
               </h3>
-              <DraftsTab isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} />
+              <DraftsTab isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} onApplyDraft={handleApplyDraft} />
             </div>
           )}
 
@@ -3294,7 +3306,7 @@ function PlayerInfoModal({ playerId, preloadedPlayer, onClose, onTransferAction,
 
 
 
-function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any) {
+function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onApplyDraft }: any) {
   const [drafts, setDrafts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
