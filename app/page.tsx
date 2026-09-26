@@ -1794,6 +1794,15 @@ function generateManagerBriefing(data: any, isEnglish: boolean): Insight[] {
       action: isEnglish ? `Consider switching the armband to ${highestXp.name}.` : `שקול להעביר את סרט הקפטן ל-${highestXp.name}.`,
       priority: 85
     });
+  } else if (highestXp && highestXp.xp > 5.0) {
+     insights.push({
+      id: 'cap_solid',
+      category: 'CAPTAINCY',
+      title: highestXp.name,
+      mainInsight: isEnglish ? `${highestXp.name} is a very strong captaincy option.` : `${highestXp.name} הוא אופציית קפטן מצוינת לשבוע הקרוב.`,
+      whyItMatters: isEnglish ? `Projecting at ${highestXp.xp?.toFixed(1)} XP, his underlying metrics and fixture make him a standout.` : `עם צפי של ${highestXp.xp?.toFixed(1)} נקודות, הנתונים והלו"ז הופכים אותו לבחירה מעולה.`,
+      priority: 60
+    });
   }
 
   // 2. TRANSFER WATCH (Weak Links)
@@ -1887,6 +1896,16 @@ function generateManagerBriefing(data: any, isEnglish: boolean): Insight[] {
     });
   }
 
+  if (insights.length === 0) {
+    insights.push({
+      id: 'all_good',
+      category: 'STRUCTURE',
+      title: 'Solid Squad',
+      mainInsight: isEnglish ? `Your squad is exceptionally well-balanced right now.` : `הקבוצה שלך מאוזנת בצורה יוצאת דופן כרגע.`,
+      whyItMatters: isEnglish ? `We found no major structural risks, no urgent transfer fires, and your captaincy choice looks solid. You are in a great position to save a transfer if you want.` : `לא מצאנו סיכונים מבניים, אין צורך בכיבוי שריפות דחוף, ובחירת הקפטן נראית טוב. זו עמדה מצוינת לשמור חילוף.`,
+      priority: 100
+    });
+  }
   return insights.sort((a, b) => b.priority - a.priority).slice(0, 4);
 }
 
