@@ -1760,6 +1760,136 @@ export default function Home() {
   );
 }
 
+
+type InsightCategory = 'TRANSFER WATCH' | 'OPPORTUNITY' | 'SQUAD RISK' | 'CAPTAINCY' | 'FORM & CONTEXT' | 'STRUCTURE' | 'BANK FLEXIBILITY';
+
+interface Insight {
+  id: string;
+  category: InsightCategory;
+  title: string;
+  mainInsight: string;
+  whyItMatters: string;
+  action?: string;
+  priority: number;
+}
+
+function generateManagerBriefing(data: any, isEnglish: boolean): Insight[] {
+  const insights: Insight[] = [];
+  if (!data || !data.squad) return insights;
+  
+  const starters = data.squad.filter((p: any) => p.position <= 11 && !p.is_empty);
+  const bench = data.squad.filter((p: any) => p.position > 11 && !p.is_empty);
+  const bank = (data.bank || 0) / 10;
+  
+  // 1. CAPTAINCY
+  const highestXp = [...starters].sort((a: any, b: any) => (b.xp || 0) - (a.xp || 0))[0];
+  const currentCap = starters.find((p: any) => p.is_captain);
+  if (highestXp && currentCap && highestXp.id !== currentCap.id && (highestXp.xp - currentCap.xp > 0.5)) {
+    insights.push({
+      id: 'cap',
+      category: 'CAPTAINCY',
+      title: highestXp.name,
+      mainInsight: isEnglish ? `${highestXp.name} projects significantly higher than your current captain.` : `${highestXp.name} צפוי להשיג משמעותית יותר נקודות מהקפטן הנוכחי שלך.`,
+      whyItMatters: isEnglish ? `He has an XP of ${highestXp.xp?.toFixed(1)} compared to ${currentCap.name}'s ${currentCap.xp?.toFixed(1)}, supported by favorable fixtures.` : `הוא מחזיק ב-XP של ${highestXp.xp?.toFixed(1)} לעומת ${currentCap.xp?.toFixed(1)} של ${currentCap.name}, בזכות משחקים נוחים.`,
+      action: isEnglish ? `Consider switching the armband to ${highestXp.name}.` : `שקול להעביר את סרט הקפטן ל-${highestXp.name}.`,
+      priority: 85
+    });
+  }
+
+  // 2. TRANSFER WATCH (Weak Links)
+  const weakLinks = starters.filter((p: any) => p.xp < 2.5 && p.fixture_diff >= 3.5);
+  if (weakLinks.length > 0) {
+    const target = weakLinks.sort((a: any, b: any) => (a.xp || 0) - (b.xp || 0))[0];
+    insights.push({
+      id: `tw_${target.id}`,
+      category: 'TRANSFER WATCH',
+      title: target.name,
+      mainInsight: isEnglish ? `${target.name} is currently a transfer watch due to difficult fixtures and lower projected output.` : `${target.name} דורש מעקב לקראת החלפה בגלל משחקים קשים ותפוקה צפויה נמוכה.`,
+      whyItMatters: isEnglish ? `His upcoming fixtures are difficult (FDR ${target.fixture_diff}) and his projected output (${target.xp?.toFixed(1)} XP) is the lowest in your XI.` : `המשחקים הקרובים שלו קשים (FDR ${target.fixture_diff}) והתפוקה הצפויה שלו (${target.xp?.toFixed(1)} XP) היא הנמוכה בהרכב.`,
+      action: isEnglish ? 'Consider monitoring a replacement before your next free transfer.' : 'שקול לעקוב אחרי מחליף לקראת ההעברה הבאה שלך.',
+      priority: 90
+    });
+  }
+
+  // 3. SQUAD RISK (Over-reliance on difficult fixtures)
+  const teamCounts: Record<string, any[]> = {};
+  starters.forEach((p: any) => {
+    if (!teamCounts[p.team]) teamCounts[p.team] = [];
+    teamCounts[p.team].push(p);
+  });
+  for (const team in teamCounts) {
+    if (teamCounts[team].length >= 3) {
+      const avgDiff = teamCounts[team].reduce((sum, p) => sum + p.fixture_diff, 0) / teamCounts[team].length;
+      if (avgDiff >= 3.3) {
+        insights.push({
+          id: `risk_${team}`,
+          category: 'SQUAD RISK',
+          title: `${team} Triple-Up`,
+          mainInsight: isEnglish ? `Your triple-up on ${team} creates increased fixture concentration.` : `השילוש שלך על ${team} יוצר תלות מסוכנת בלוח המשחקים.`,
+          whyItMatters: isEnglish ? `Over the upcoming Gameweeks, ${team}'s average fixture difficulty is high (${avgDiff.toFixed(1)}). A poor performance affects 3 players at once.` : `במחזורים הקרובים, דרגת הקושי של ${team} גבוהה. משחק חלש ישפיע על 3 שחקנים בבת אחת.`,
+          action: isEnglish ? 'Consider diversifying your squad if their form drops.' : 'שקול לגוון את הקבוצה במקרה של ירידה בכושר.',
+          priority: 80
+        });
+        break; // just show one
+      }
+    }
+  }
+
+  // 4. BANK FLEXIBILITY / OPPORTUNITY
+  if (bank >= 1.5) {
+    insights.push({
+      id: 'bank',
+      category: 'OPPORTUNITY',
+      title: `£${bank.toFixed(1)}m Available`,
+      mainInsight: isEnglish ? `You have significant budget available to upgrade a starting position.` : `יש לך תקציב משמעותי פנוי לשדרוג שחקן הרכב.`,
+      whyItMatters: isEnglish ? `Having £${bank.toFixed(1)}m idle means you might be missing out on premium assets that could boost your expected points.` : `כסף נזיל של £${bank.toFixed(1)}m אומר שאתה עשוי לפספס שחקני פרימיום שיכולים לשדרג את הנקודות שלך.`,
+      action: isEnglish ? 'Look for an upgrade opportunity in midfield or forward line.' : 'חפש הזדמנות לשדרוג לשחקן פרימיום בקישור או בהתקפה.',
+      priority: 70
+    });
+  }
+  
+  // 5. FORM & CONTEXT (Underlying stats)
+  const luckyPlayer = starters.find((p: any) => parseFloat(p.form || '0') > 5.0 && (parseFloat(p.expected_goals || '0') + parseFloat(p.expected_assists || '0')) < 0.2);
+  if (luckyPlayer) {
+    insights.push({
+      id: `form_${luckyPlayer.id}`,
+      category: 'FORM & CONTEXT',
+      title: luckyPlayer.name,
+      mainInsight: isEnglish ? `Recent output has not been strongly supported by the underlying numbers.` : `התפוקה האחרונה אינה נתמכת מספיק על ידי נתוני הבסיס.`,
+      whyItMatters: isEnglish ? `Despite good recent form (${luckyPlayer.form}), his expected goal involvement (xG+xA) is very low.` : `למרות כושר טוב לאחרונה (${luckyPlayer.form}), המעורבות הצפויה שלו בשערים נמוכה מאוד.`,
+      priority: 75
+    });
+  } else {
+      const unluckyPlayer = starters.find((p: any) => parseFloat(p.form || '0') < 3.0 && (parseFloat(p.expected_goals || '0') + parseFloat(p.expected_assists || '0')) > 0.8 && p.xp >= 4.0);
+      if (unluckyPlayer) {
+          insights.push({
+              id: `form_${unluckyPlayer.id}`,
+              category: 'FORM & CONTEXT',
+              title: unluckyPlayer.name,
+              mainInsight: isEnglish ? `Underlying numbers are strong despite poor recent points.` : `נתוני הבסיס חזקים למרות ניקוד נמוך לאחרונה.`,
+              whyItMatters: isEnglish ? `His expected involvements are high and projections look good (${unluckyPlayer.xp?.toFixed(1)} XP).` : `המעורבות הצפויה שלו גבוהה והתחזיות טובות.`,
+              action: isEnglish ? 'Patience is likely the best strategy here.' : 'סבלנות היא כנראה האסטרטגיה הטובה ביותר כאן.',
+              priority: 75
+          });
+      }
+  }
+
+  // 6. SQUAD STRUCTURE (Bench)
+  const weakBench = bench.filter((p: any) => p.xp < 1.0);
+  if (weakBench.length >= 2) {
+    insights.push({
+      id: 'bench',
+      category: 'STRUCTURE',
+      title: 'Weak Bench',
+      mainInsight: isEnglish ? `Your bench lacks reliable fallback options.` : `הספסל שלך חסר אופציות גיבוי אמינות.`,
+      whyItMatters: isEnglish ? `With ${weakBench.length} bench players projecting under 1.0 XP, you are highly vulnerable to unexpected rotation or injuries.` : `עם ${weakBench.length} שחקני ספסל שהצפי שלהם נמוך מ-1.0 XP, אתה פגיע מאוד לרוטציות או פציעות.`,
+      priority: 65
+    });
+  }
+
+  return insights.sort((a, b) => b.priority - a.priority).slice(0, 4);
+}
+
 function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any) {
   const [selectedPlayerModalId, setSelectedPlayerModalId] = useState<number | null>(null);
   const _starters = data.squad.filter((p: any) => p.position <= 11 && !p.is_empty);
