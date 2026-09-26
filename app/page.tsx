@@ -2098,6 +2098,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
       {selectedPlayerModalId && <PlayerInfoModal playerId={selectedPlayerModalId} preloadedPlayer={data.squad.find((p:any) => p.id === selectedPlayerModalId)} onClose={() => setSelectedPlayerModalId(null)} isDarkMode={isDarkMode} isEnglish={isEnglish} teams={data?.teams || {}} />}
 
     </div>
+    </div>
   );
 }
 
@@ -2758,7 +2759,6 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
           </div>
           </div>
         </div>
-      </div>
       </div>
     );
 }
