@@ -212,11 +212,13 @@ export default function Home() {
     const mappedSquad = [...finalStarters, ...benchGkp, ...benchOutfield].map((p, index) => ({
        ...p,
        position: index + 1,
-       cost: p.now_cost,
+       cost: p.now_cost / 10,
        pos_code: p.element_type,
        is_captain: p.id === capId,
        is_vice_captain: p.id === viceId,
-       is_empty: false
+       is_empty: false,
+       fixture: p.team_name,
+       fixture_diff: 3
     }));
 
     setData((prev: any) => ({
