@@ -1871,12 +1871,16 @@ function generateManagerBriefing(data: any, isEnglish: boolean): Insight[] {
     });
   }
 
-  // 2. TRANSFER WATCH (Weak Links & Upgrade Candidates)
-  const outfieldStarters = starters.filter((p: any) => p.pos_code !== 1 && p.element_type !== 1);
-  const weakLinks = outfieldStarters.filter((p: any) => (p.xp < 3.2 && p.fixture_diff >= 3.0) || p.xp < 2.5);
-  const target = weakLinks.length > 0 
+  // 2. TRANSFER WATCH (Weak Links & Upgrade Targets - Premium players >= 8.0m are exempt from fixture difficulty)
+  const transferEligible = starters.filter((p: any) => 
+    p.pos_code !== 1 && 
+    p.element_type !== 1 && 
+    ((p.cost || 0) < 8.0 || (p.chance_of_playing !== null && p.chance_of_playing < 75))
+  );
+  const weakLinks = transferEligible.filter((p: any) => ((p.xp || 0) < 3.2 && p.fixture_diff >= 3.0) || (p.xp || 0) < 2.5);
+  const target = weakLinks.length > 0
     ? weakLinks.sort((a: any, b: any) => (a.xp || 0) - (b.xp || 0))[0]
-    : outfieldStarters.sort((a: any, b: any) => (a.xp || 0) - (b.xp || 0))[0];
+    : (transferEligible.length > 0 ? transferEligible.sort((a: any, b: any) => (a.xp || 0) - (b.xp || 0))[0] : null);
   if (target) {
     insights.push({
       id: `tw_${target.id}`,
@@ -1990,8 +1994,9 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
   const _starters = data.squad.filter((p: any) => p.position <= 11 && !p.is_empty);
   const _bench = data.squad.filter((p: any) => p.position > 11 && !p.is_empty);
   
-  const hardFixtures = _starters.filter((p: any) => p.fixture_diff >= 4);
-  const lowXp = _starters.filter((p: any) => p.xp < 2.5);
+  // Premium players (cost >= 8.0m) are fixture-proof and never considered a hard-fixture weakness
+  const hardFixtures = _starters.filter((p: any) => p.fixture_diff >= 4 && (p.cost || 0) < 8.0);
+  const lowXp = _starters.filter((p: any) => (p.xp || 0) < 2.5 && (p.cost || 0) < 8.0 && (p.chance_of_playing === null || p.chance_of_playing > 0));
   const highestXpPlayer = [..._starters].sort((a: any, b: any) => b.xp - a.xp)[0];
   const _currentCap = _starters.find((p: any) => p.is_captain);
   const capSuboptimal = _currentCap && highestXpPlayer && _currentCap.id !== highestXpPlayer.id && (highestXpPlayer.xp - _currentCap.xp > 0.5);
