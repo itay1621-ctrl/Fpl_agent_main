@@ -170,6 +170,14 @@ export default function Home() {
   const [isEnglish, setIsEnglish] = useState(true);
   const [showFeedback, setShowFeedback] = useState(true);
 
+  // Maintenance Mode & System Announcements
+  const [isMaintenance, setIsMaintenance] = useState(false);
+  const [maintenanceBanner, setMaintenanceBanner] = useState<string | null>(null);
+  const [isBypassed, setIsBypassed] = useState(false);
+  const [showAdminBypassModal, setShowAdminBypassModal] = useState(false);
+  const [adminPassInput, setAdminPassInput] = useState('');
+  const [adminPassError, setAdminPassError] = useState('');
+
   const handleApplyDraft = (draftData: any) => {
     const calculatedBank = (1000 - (draftData.cost || 1000)) / 10;
     
@@ -494,7 +502,11 @@ export default function Home() {
       setData(JSON.parse(JSON.stringify(result)));
       setAppMode(targetMode);
     } catch (err: any) {
-      setError(err.message);
+      const isServerUpdating = err.message?.includes('500') || err.message?.includes('502') || err.message?.includes('503') || err.message?.includes('Failed to fetch');
+      const friendlyError = isServerUpdating
+        ? (isEnglish ? 'The server is currently waking up or undergoing a quick upgrade. Please wait 15 seconds and try again.' : 'השרת נמצא כרגע בתהליך אתחול או שדרוג גרסה. אנא המתן מספר רגעים ונסה שוב.')
+        : err.message;
+      setError(friendlyError);
       if (overrideId) localStorage.removeItem('fpl_team_id');
       setAppMode('welcome');
       setData(null);
@@ -504,6 +516,49 @@ export default function Home() {
   };
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const mParam = params.get('maintenance');
+      const bParam = params.get('bypass');
+      const aParam = params.get('admin');
+
+      const storedBypass = localStorage.getItem('fpl_maintenance_bypass') === 'true';
+
+      if (bParam === 'fpladmin' || aParam === 'true') {
+        localStorage.setItem('fpl_maintenance_bypass', 'true');
+        setIsBypassed(true);
+      } else if (storedBypass) {
+        setIsBypassed(true);
+      }
+
+      const envMaintenance = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
+      const envBanner = process.env.NEXT_PUBLIC_MAINTENANCE_BANNER || null;
+
+      if (mParam === 'true') {
+        setIsMaintenance(true);
+      } else if (mParam === 'false') {
+        setIsMaintenance(false);
+      } else if (envMaintenance) {
+        setIsMaintenance(true);
+      }
+
+      if (envBanner) {
+        setMaintenanceBanner(envBanner);
+      }
+
+      fetch('/api-vercel/maintenance')
+        .then(r => r.json())
+        .then(res => {
+          if (mParam === null && res.maintenance) {
+            setIsMaintenance(true);
+          }
+          if (res.banner) {
+            setMaintenanceBanner(res.banner);
+          }
+        })
+        .catch(() => {});
+    }
+
     const savedId = localStorage.getItem('fpl_team_id');
     if (savedId) {
       setTeamId(savedId);
@@ -898,13 +953,194 @@ export default function Home() {
     }
   };
 
+  const renderMaintenanceScreen = () => {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#37003c] text-white p-4 relative overflow-hidden" dir={isEnglish ? "ltr" : "rtl"}>
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-purple-600/20 via-pink-600/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
+          <button 
+            onClick={() => setIsEnglish(!isEnglish)} 
+            className="text-xs sm:text-sm font-bold px-3 py-1.5 rounded-lg border border-white/30 text-white hover:bg-white/20 transition-all backdrop-blur-sm"
+          >
+            {isEnglish ? 'עברית' : 'English'}
+          </button>
+        </div>
+
+        <div className="z-10 flex flex-col items-center w-full max-w-lg text-center px-4">
+          <div className="relative mb-6">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#01fc7a]/40 to-purple-600/40 animate-pulse blur-xl"></div>
+            <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full overflow-hidden border-4 border-[#01fc7a] bg-white relative flex items-center justify-center shadow-2xl">
+              <img src="/logo.jpg" alt="FPL Strategy Engine" className="w-full h-full object-cover" />
+            </div>
+            <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-lg border-2 border-[#37003c] flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
+              <span>⚙️ {isEnglish ? 'UPGRADE' : 'שדרוג'}</span>
+            </div>
+          </div>
+
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold text-[#01fc7a] mb-4">
+            <span className="w-2 h-2 rounded-full bg-[#01fc7a] animate-pulse"></span>
+            <span>{isEnglish ? 'System Maintenance & Upgrade in Progress' : 'המערכת בעבודות שדרוג ותחזוקה'}</span>
+          </div>
+
+          <h1 className="text-2xl sm:text-4xl font-black mb-3 tracking-tight text-white">
+            {isEnglish ? "We're Upgrading the Engine" : "אנחנו משדרגים את המערכת"}
+          </h1>
+
+          <p className="text-sm sm:text-base text-gray-300 mb-6 leading-relaxed max-w-md">
+            {isEnglish 
+              ? "We are currently deploying major improvements to our AI models, transfer algorithms, and server infrastructure. The platform will be back online shortly!"
+              : "אנו מבצעים כעת שדרוג מקיף למנוע ה-AI, מודלי החיזוי ותשתיות השרתים כדי להביא לכם ביצועים מהירים והמלצות חדות ומדויקות יותר. האתר יחזור לפעילות מלאה בהקדם!"}
+          </p>
+
+          <div className="w-full bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 sm:p-5 mb-6 text-start shadow-xl">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 flex items-center gap-2">
+              <span>🚀</span> {isEnglish ? "What's being deployed" : "מה מתעדכן כעת"}
+            </h3>
+            <div className="space-y-2.5 text-xs sm:text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-200 flex items-center gap-2">
+                  <span className="text-emerald-400">✓</span> {isEnglish ? "AI Transfer Recommendations" : "מנוע חילופי AI והמלצות חכמות"}
+                </span>
+                <span className="text-[#01fc7a] text-xs font-bold">{isEnglish ? 'Optimizing' : 'במיטוב'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-200 flex items-center gap-2">
+                  <span className="text-emerald-400">✓</span> {isEnglish ? "Gameweek Planner & Auto FT" : "מתכנן מחזורים וסנכרון חילופים"}
+                </span>
+                <span className="text-[#01fc7a] text-xs font-bold">{isEnglish ? 'Deploying' : 'בהפצה'}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-200 flex items-center gap-2">
+                  <span className="text-emerald-400">✓</span> {isEnglish ? "Cloud Infrastructure & Database" : "תשתיות ענן ועדכון מסדי נתונים"}
+                </span>
+                <span className="text-amber-400 text-xs font-bold animate-pulse">{isEnglish ? 'Syncing...' : 'מסנכרן...'}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm mb-6">
+            <button
+              onClick={() => window.location.reload()}
+              className="flex-1 py-3 px-6 rounded-xl font-black text-sm bg-[#01fc7a] hover:bg-[#00e56e] text-purple-950 transition-all shadow-lg hover:shadow-[#01fc7a]/20 flex items-center justify-center gap-2"
+            >
+              <span>🔄</span> {isEnglish ? 'Check Again / Refresh' : 'בדוק שוב / רענן דף'}
+            </button>
+          </div>
+
+          <button 
+            onClick={() => setShowAdminBypassModal(true)} 
+            className="text-xs text-white/40 hover:text-white/80 transition-colors underline"
+          >
+            🔒 {isEnglish ? 'Admin Access' : 'כניסת מנהל'}
+          </button>
+        </div>
+
+        {showAdminBypassModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+            <div className="bg-[#240028] border border-white/20 p-6 rounded-2xl w-full max-w-sm text-start shadow-2xl relative">
+              <button 
+                onClick={() => { setShowAdminBypassModal(false); setAdminPassError(''); }} 
+                className="absolute top-4 right-4 text-white/60 hover:text-white text-lg font-bold"
+              >
+                ✕
+              </button>
+              <h3 className="text-lg font-black text-white mb-2 flex items-center gap-2">
+                <span>🔒</span> {isEnglish ? 'Admin Bypass' : 'עקיפת מנהל'}
+              </h3>
+              <p className="text-xs text-gray-300 mb-4">
+                {isEnglish 
+                  ? 'Enter admin passcode to preview and test the site while maintenance is active.'
+                  : 'הזן סיסמת מנהל כדי לצפות באתר ולבדוק אותו בזמן שמצב תחזוקה פעיל.'}
+              </p>
+              <input
+                type="password"
+                placeholder={isEnglish ? "Passcode..." : "סיסמת מנהל..."}
+                value={adminPassInput}
+                onChange={(e) => setAdminPassInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    if (adminPassInput.trim() === 'fpladmin' || adminPassInput.trim() === '1234') {
+                      localStorage.setItem('fpl_maintenance_bypass', 'true');
+                      setIsBypassed(true);
+                      setShowAdminBypassModal(false);
+                    } else {
+                      setAdminPassError(isEnglish ? 'Incorrect passcode' : 'סיסמה שגויה');
+                    }
+                  }
+                }}
+                className="w-full px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white text-sm mb-3 outline-none focus:border-[#01fc7a]"
+              />
+              {adminPassError && (
+                <p className="text-xs text-red-400 mb-3">{adminPassError}</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    if (adminPassInput.trim() === 'fpladmin' || adminPassInput.trim() === '1234') {
+                      localStorage.setItem('fpl_maintenance_bypass', 'true');
+                      setIsBypassed(true);
+                      setShowAdminBypassModal(false);
+                    } else {
+                      setAdminPassError(isEnglish ? 'Incorrect passcode' : 'סיסמה שגויה');
+                    }
+                  }}
+                  className="flex-1 py-2 rounded-lg bg-[#01fc7a] text-purple-950 font-bold text-xs hover:bg-[#00e56e] transition-colors"
+                >
+                  {isEnglish ? 'Unlock' : 'פתח'}
+                </button>
+                <button
+                  onClick={() => { setShowAdminBypassModal(false); setAdminPassError(''); }}
+                  className="px-4 py-2 rounded-lg border border-white/20 text-white text-xs hover:bg-white/10"
+                >
+                  {isEnglish ? 'Cancel' : 'ביטול'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderInfoPopup = () => {
     if (!infoPopupPlayer) return null;
     return <PlayerInfoModal playerId={infoPopupPlayer.id} preloadedPlayer={infoPopupPlayer} onClose={() => setInfoPopupPlayer(null)} onTransferAction={(p:any) => { executeTransfer(p); setActiveTab('planner'); }} isDarkMode={isDarkMode} isEnglish={isEnglish} teams={data?.teams || {}} />;
   };
 
+  if (isMaintenance && !isBypassed) {
+    return renderMaintenanceScreen();
+  }
+
   return (
     <main className={`min-h-screen font-sans pb-24 md:pb-0 transition-colors duration-300 ${bgMain}`} dir={isEnglish ? "ltr" : "rtl"}>
+      {isMaintenance && isBypassed && (
+        <div className="bg-purple-900 text-purple-200 px-4 py-1.5 text-xs font-bold flex items-center justify-between sticky top-0 z-50 border-b border-purple-700">
+          <span>🛡️ {isEnglish ? 'Admin Bypass Active — Site is in Maintenance for regular users' : 'מצב עקיפת מנהל פעיל — האתר מוצג במצב תחזוקה לגולשים רגילים'}</span>
+          <button 
+            onClick={() => { localStorage.removeItem('fpl_maintenance_bypass'); setIsBypassed(false); }} 
+            className="bg-purple-700 hover:bg-purple-600 text-white px-2 py-0.5 rounded text-[11px] transition-colors"
+          >
+            {isEnglish ? 'Exit Bypass' : 'יציאה מעקיפה'}
+          </button>
+        </div>
+      )}
+
+      {maintenanceBanner && (
+        <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white px-4 py-2 text-xs sm:text-sm font-bold shadow-md flex items-center justify-between gap-3 sticky top-0 z-40">
+          <div className="flex items-center gap-2 mx-auto">
+            <span className="text-base animate-pulse">⚠️</span>
+            <span>
+              {maintenanceBanner === 'true' 
+                ? (isEnglish ? 'System Maintenance in progress: We are upgrading our AI models and servers. Some data may be temporarily updating.' : 'שדרוג מערכת בפעולה: אנחנו משדרגים כעת את מנוע ה-AI והשרתים. חלק מהנתונים והתחזיות עשויים להיות בתהליך עדכון.')
+                : maintenanceBanner}
+            </span>
+          </div>
+          <button onClick={() => setMaintenanceBanner(null)} className="text-white/80 hover:text-white text-lg font-bold px-2">✕</button>
+        </div>
+      )}
+
       {renderInfoPopup()}
       {renderFeedbackButton()}
       <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={(id:number) => { handleSwapClick(id); setActionPlayer(null); }} onCaptain={(id:number) => { handleSetCaptain(id); setActionPlayer(null); }} onVice={(id:number) => { handleSetViceCaptain(id); setActionPlayer(null); }} onShowInfo={(id:number) => { const p = data?.squad?.find((x:any) => x.id === id) || originalData?.squad?.find((x:any) => x.id === id); if(p) { setInfoPopupPlayer(p); } setActionPlayer(null); }} isEnglish={isEnglish} isDarkMode={isDarkMode} />
