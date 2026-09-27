@@ -616,7 +616,10 @@ def get_transfer_recommendations(req: TransferRequest):
         delta = 0.0
         threshold = DEFAULT_WEIGHTS["opportunity_cost"]
         explanation = ""
-        
+                    # Transfer cost awareness
+            # 0 FT means the move normally costs -4 points.
+            hit_cost = 0 if req.free_transfers > 0 else 4
+            net_gain_after_hit = raw_gain - hit_cost
         if current_player and best_candidate:
             raw_gain = round(best_candidate["xp"] - current_player["xp"], 2)
             delta = raw_gain
