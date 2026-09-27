@@ -512,7 +512,7 @@ def compare_teams(team_a: int, team_b: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 class TransferRequest(BaseModel):
-    free_transfers: int = 1
+    free_transfers: int
     transfers_before: int = 0
     active_chip: Optional[str] = None
     pos_code: int
