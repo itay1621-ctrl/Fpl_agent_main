@@ -606,7 +606,7 @@ def get_transfer_recommendations(req: TransferRequest):
             else:
                 recommendation = "TRANSFER"
                 explanation = (
-                    f"The projected gain is {raw_gain:.2f} points, "
+                    f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
                     f"with a {hit_cost}-point hit cost. "
                     "The replacement clears the required threshold."
                 )
