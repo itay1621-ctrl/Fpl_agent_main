@@ -579,10 +579,10 @@ def get_transfer_recommendations(req: TransferRequest):
         threshold = transfer_cost + opportunity_cost
 
         if current_player and best_candidate:
-            raw_gain = round(
-                best_candidate["xp"] - current_player["xp"], 2
-            )
-            delta = raw_gain
+            delta = round(
+              best_candidate["xp"] - current_player["xp"], 2
+             )
+            raw_gain = round(delta * ctx["gw_range"], 2)
 
             chip = (req.active_chip or "").lower().replace("_", "").replace(" ", "")
             chip_active = chip in {"wildcard", "freehit"}
@@ -599,7 +599,7 @@ def get_transfer_recommendations(req: TransferRequest):
             if net_gain <= opportunity_cost:
                 recommendation = "HOLD"
                 explanation = (
-                    f"The projected gain is {raw_gain:.2f} points, "
+                    f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
                     f"with a {hit_cost}-point hit cost. "
                     "The transfer does not clear the required threshold."
                 )
