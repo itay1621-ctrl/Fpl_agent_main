@@ -512,6 +512,9 @@ def compare_teams(team_a: int, team_b: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 class TransferRequest(BaseModel):
+    free_transfers: int = 1
+    transfers_before: int = 0
+    active_chip: Optional[str] = None
     pos_code: int
     max_budget: float
     current_squad_ids: List[int]
@@ -574,15 +577,37 @@ def get_transfer_recommendations(req: TransferRequest):
         threshold = transfer_cost + opportunity_cost
 
         if current_player and best_candidate:
-            raw_gain = round(best_candidate["xp"] - current_player["xp"], 2)
+            raw_gain = round(
+                best_candidate["xp"] - current_player["xp"], 2
+            )
             delta = raw_gain
-            net_gain = raw_gain - threshold
 
-            if net_gain <= 0:
+            chip = (req.active_chip or "").lower().replace("_", "").replace(" ", "")
+            chip_active = chip in {"wildcard", "freehit"}
+
+            free_transfers = max(0, min(5, int(req.free_transfers or 0)))
+            transfers_before = max(0, int(req.transfers_before or 0))
+
+            hits_before = max(0, transfers_before - free_transfers)
+            hits_after = max(0, transfers_before + 1 - free_transfers)
+            hit_cost = 0 if chip_active else (hits_after - hits_before) * 4
+
+            net_gain = raw_gain - hit_cost
+
+            if net_gain <= opportunity_cost:
                 recommendation = "HOLD"
-                explanation = "The selected player is already highly ranked among the relevant options. No clear upgrade is currently identified."
+                explanation = (
+                    f"The projected gain is {raw_gain:.2f} points, "
+                    f"with a {hit_cost}-point hit cost. "
+                    "The transfer does not clear the required threshold."
+                )
             else:
-                explanation = "The selected player ranks below the strongest available alternatives and the replacement offers a meaningful projected improvement."
+                recommendation = "TRANSFER"
+                explanation = (
+                    f"The projected gain is {raw_gain:.2f} points, "
+                    f"with a {hit_cost}-point hit cost. "
+                    "The replacement clears the required threshold."
+                )
         else:
             recommendation = "MONITOR"
             explanation = "Not enough data to form a definitive transfer decision."
