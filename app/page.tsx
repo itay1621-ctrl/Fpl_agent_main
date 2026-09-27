@@ -1751,7 +1751,7 @@ export default function Home() {
                         body: JSON.stringify({
                           pos_code: playerToSell.pos_code,
                           max_budget: budget,
-                          current_squad_ids: currentSquadIds, transfer_out_id: playerToSell.is_empty ? null : playerToSell.id, target_gw: targetGw
+                          current_squad_ids: currentSquadIds, transfer_out_id: playerToSell.is_empty ? null : playerToSell.id, target_gw: targetGw, free_transfers: data.free_transfers, transfers_before: Math.max(   0,   data.squad.filter(     (p: any) =>       !p.is_empty &&       !(originalData?.squad ?? []).some((original: any) => original.id === p.id)   ).length ), active_chip: activeChip ?? null
                         })
                       });
                       const recs = await res.json();
