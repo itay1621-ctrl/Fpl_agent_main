@@ -1661,7 +1661,7 @@ export default function Home() {
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
                 <span>💰</span> {isEnglish ? 'Budget Scenarios' : 'תרחישי תקציב (המלצות מבוססות AI)'}
               </h3>
-              <BudgetScenariosTab data={data} teamId={data?.team_id} isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} onTransfer={executeVirtualTransfer} />
+              <BudgetScenariosTab data={data} teamId={data?.team_id} isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} onTransfer={executeVirtualTransfer}  />
             </div>
           )}
 
@@ -2660,7 +2660,7 @@ function EliteRadarTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, 
   );
 }
 
-function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onTransfer }: any) {
+function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, textHighlight, bgBox, activeChip, onTransfer }: any) {
   const [scenarios, setScenarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -2702,6 +2702,7 @@ function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, te
                 target_gw: data.next_gw,
                 free_transfers: data.free_transfers,
                 transfers_before: 0
+                active_chip: activeChip ?? null
               })
             })
             .then(res => res.ok ? res.json() : null)
