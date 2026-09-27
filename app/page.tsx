@@ -1487,7 +1487,35 @@ export default function Home() {
                                 </span>
                               </div>
                             )}
-
+{transferDecision.raw_gain !== null &&
+  transferDecision.raw_gain !== undefined && (
+    <div className={`p-3 rounded-lg border mb-4 ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
+      <div className="flex justify-between text-sm">
+        <span className={textMuted}>
+          {isEnglish ? 'Projected gain over horizon' : 'רווח חזוי לאורך אופק התחזית'}
+        </span>
+        <span className="font-bold">
+          {Number(transferDecision.raw_gain).toFixed(2)} pts
+        </span>
+      </div>
+      <div className="flex justify-between text-sm mt-2">
+        <span className={textMuted}>
+          {isEnglish ? 'Hit cost' : 'עלות Hit'}
+        </span>
+        <span className="font-bold text-red-500">
+          -{transferDecision.hit_cost} pts
+        </span>
+      </div>
+      <div className="flex justify-between text-sm font-black mt-2">
+        <span className={textMuted}>
+          {isEnglish ? 'Net gain after hit' : 'רווח נטו אחרי Hit'}
+        </span>
+        <span className={transferDecision.net_gain >= 0 ? 'text-green-500' : 'text-red-500'}>
+          {Number(transferDecision.net_gain).toFixed(2)} pts
+        </span>
+      </div>
+    </div>
+)}
                             <div className="flex flex-col gap-2">
                               <div className="flex items-center justify-between">
                                 <span className={`text-sm font-bold ${textMuted}`}>{isEnglish ? 'Strategy Decision' : 'החלטת אסטרטגיה'}</span>
