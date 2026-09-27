@@ -2700,6 +2700,8 @@ function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, te
                 current_squad_ids: currentSquadIds,
                 transfer_out_id: sp.id,
                 target_gw: data.next_gw
+                free_transfers: data.free_transfers,
+                transfers_before: 0
               })
             })
             .then(res => res.ok ? res.json() : null)
