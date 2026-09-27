@@ -1,4 +1,4 @@
-'use client';
+  'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import html2canvas from 'html2canvas';
@@ -717,7 +717,9 @@ export default function Home() {
              max_budget: budget,
              current_squad_ids: currentSquadIds,
              transfer_out_id: playerToSell.id,
-             free_transfers: data.free_transfers ?? 1
+             free_transfers: data.free_transfers,
+             transfers_before: 0,
+             active_chip: activeChip ?? null
             })
           });
           const recs = await res.json();
@@ -1485,7 +1487,35 @@ export default function Home() {
                                 </span>
                               </div>
                             )}
-
+{transferDecision.raw_gain !== null &&
+  transferDecision.raw_gain !== undefined && (
+    <div className={`p-3 rounded-lg border mb-4 ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
+      <div className="flex justify-between text-sm">
+        <span className={textMuted}>
+          {isEnglish ? 'Projected gain over horizon' : 'רווח חזוי לאורך אופק התחזית'}
+        </span>
+        <span className="font-bold">
+          {Number(transferDecision.raw_gain).toFixed(2)} pts
+        </span>
+      </div>
+      <div className="flex justify-between text-sm mt-2">
+        <span className={textMuted}>
+          {isEnglish ? 'Hit cost' : 'עלות Hit'}
+        </span>
+        <span className="font-bold text-red-500">
+          -{transferDecision.hit_cost} pts
+        </span>
+      </div>
+      <div className="flex justify-between text-sm font-black mt-2">
+        <span className={textMuted}>
+          {isEnglish ? 'Net gain after hit' : 'רווח נטו אחרי Hit'}
+        </span>
+        <span className={transferDecision.net_gain >= 0 ? 'text-green-500' : 'text-red-500'}>
+          {Number(transferDecision.net_gain).toFixed(2)} pts
+        </span>
+      </div>
+    </div>
+)}
                             <div className="flex flex-col gap-2">
                               <div className="flex items-center justify-between">
                                 <span className={`text-sm font-bold ${textMuted}`}>{isEnglish ? 'Strategy Decision' : 'החלטת אסטרטגיה'}</span>
@@ -1661,7 +1691,7 @@ export default function Home() {
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
                 <span>💰</span> {isEnglish ? 'Budget Scenarios' : 'תרחישי תקציב (המלצות מבוססות AI)'}
               </h3>
-              <BudgetScenariosTab data={data} teamId={data?.team_id} isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} onTransfer={executeVirtualTransfer} />
+              <BudgetScenariosTab data={data} teamId={data?.team_id} isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} activeChip={activeChip} onTransfer={executeVirtualTransfer}  />
             </div>
           )}
 
@@ -1725,7 +1755,7 @@ export default function Home() {
                 activeChip={activeChip}
                 setActiveChip={setActiveChip}
                 swapSourceId={swapSourceId} 
-                onSell={async (id: number, targetGw?: number, removeOnly: boolean = false) => {
+                onSell={async (   id: number,   targetGw?: number,   removeOnly: boolean = false,   simulatedFt?: number,   transfersBefore?: number ) => {
                   const playerToSell = data.squad.find((p: any) => p.id === id);
                   if (playerToSell && removeOnly) {
                     const newBank = data.bank + playerToSell.cost;
@@ -1748,10 +1778,15 @@ export default function Home() {
                       const res = await fetch(`${API_BASE_URL}/api/transfer-lab`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          pos_code: playerToSell.pos_code,
-                          max_budget: budget,
-                          current_squad_ids: currentSquadIds, transfer_out_id: playerToSell.is_empty ? null : playerToSell.id, target_gw: targetGw
+                        body: JSON.stringify({    
+                        pos_code: playerToSell.pos_code,
+                        max_budget: budget,                               
+                        current_squad_ids: currentSquadIds,
+                        transfer_out_id: playerToSell.is_empty ? null : playerToSell.id,
+                        target_gw: targetGw,
+                        free_transfers: simulatedFt ?? data.free_transfers,
+                        transfers_before: transfersBefore ?? 0,
+                        active_chip: activeChip ?? null
                         })
                       });
                       const recs = await res.json();
@@ -2660,7 +2695,7 @@ function EliteRadarTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, 
   );
 }
 
-function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onTransfer }: any) {
+function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, textHighlight, bgBox, activeChip, onTransfer }: any) {
   const [scenarios, setScenarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -2699,7 +2734,10 @@ function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, te
                 max_budget: budget,
                 current_squad_ids: currentSquadIds,
                 transfer_out_id: sp.id,
-                target_gw: data.next_gw
+                target_gw: data.next_gw,
+                free_transfers: data.free_transfers,
+                transfers_before: 0,
+                active_chip: activeChip ?? null
               })
             })
             .then(res => res.ok ? res.json() : null)
@@ -2862,7 +2900,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
   const [infoPlayerId, setInfoPlayerId] = useState<number | null>(null);
   const [selectedGwOffset, setSelectedGwOffset] = useState(0);
   const [actionPlayer, setActionPlayer] = useState<any>(null);
-  const [ftAvailable, setFtAvailable] = useState(data?.free_transfers ?? 1);
+  const [ftAvailable, setFtAvailable] = useState(data?.free_transfers ?? 0);
 
   useEffect(() => {
     if (data?.free_transfers !== undefined) {
@@ -2928,7 +2966,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
   return (
     <div className="flex flex-col w-full">
-      <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={onSwap} onCaptain={onCaptain} onVice={onVice} onSell={(id: number, removeOnly: boolean) => onSell(id, selectedGwNumber, removeOnly)} onShowInfo={(id: number) => setInfoPlayerId(id)} isEnglish={isEnglish} isDarkMode={isDarkMode} />
+      <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={onSwap} onCaptain={onCaptain} onVice={onVice} onSell={(id: number, removeOnly: boolean) =>   onSell(id, selectedGwNumber, removeOnly, simulatedFt, transfersMade) } onShowInfo={(id: number) => setInfoPlayerId(id)} isEnglish={isEnglish} isDarkMode={isDarkMode} />
       {infoPlayerId && <PlayerInfoModal playerId={infoPlayerId} preloadedPlayer={data?.squad?.find((p:any) => p.id === infoPlayerId) || originalData?.squad?.find((p:any) => p.id === infoPlayerId)} onClose={() => setInfoPlayerId(null)} isDarkMode={isDarkMode} isEnglish={isEnglish} teams={originalData?.teams || {}} />}
 
       <div className={`p-4 sm:p-6 rounded-xl shadow-sm border mb-6 ${bgBox}`}>
