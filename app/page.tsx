@@ -1,4 +1,4 @@
-'use client';
+  'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import html2canvas from 'html2canvas';
@@ -1778,10 +1778,15 @@ export default function Home() {
                       const res = await fetch(`${API_BASE_URL}/api/transfer-lab`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          pos_code: playerToSell.pos_code,
-                          max_budget: budget,
-                          current_squad_ids: currentSquadIds, transfer_out_id: playerToSell.is_empty ? null : playerToSell.id, target_gw: targetGw, free_transfers: simulatedFt ?? data.free_transfers transfers_before: transfersBefore ?? 0,   0,   data.squad.filter(     (p: any) =>       !p.is_empty &&       !(originalData?.squad ?? []).some((original: any) => original.id === p.id)   ).length ), active_chip: activeChip ?? null
+                        body: JSON.stringify({    
+                         pos_code: playerToSell.pos_code,
+max_budget: budget,                               
+current_squad_ids: currentSquadIds,
+transfer_out_id: playerToSell.is_empty ? null : playerToSell.id,
+target_gw: targetGw,
+free_transfers: simulatedFt ?? data.free_transfers,
+transfers_before: transfersBefore ?? 0,
+active_chip: activeChip ?? null
                         })
                       });
                       const recs = await res.json();
