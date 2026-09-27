@@ -6,6 +6,18 @@ from functools import wraps
 API_HEADERS = {'User-Agent': 'Mozilla/5.0'}
 BASE_URL = "https://fantasy.premierleague.com/api/"
 
+def calculate_free_transfers(history_res: Dict[str, Any]) -> int:
+    current = history_res.get("current", []) if history_res else []
+    ft = 1
+    for row in current:
+        ev = row.get("event", 1)
+        if ev == 1:
+            continue
+        transfers = row.get("event_transfers", 0)
+        remaining = max(0, ft - transfers)
+        ft = min(5, remaining + 1)
+    return ft
+
 def time_cache(max_age: int):
     cache = {}
     def decorator(func):
@@ -29,7 +41,7 @@ def fetch_bootstrap() -> Dict[str, Any]:
     res.raise_for_status()
     return res.json()
 
-def fetch_user_team(t_id: int, gw: int) -> Tuple[List[Dict[str, Any]], float, str, str, List[str], Dict[str, Any]]:
+def fetch_user_team(t_id: int, gw: int) -> Tuple[List[Dict[str, Any]], float, str, str, List[str], Dict[str, Any], int]:
     last_gw = max(1, gw - 1)
     picks_url = f"{BASE_URL}entry/{t_id}/event/{last_gw}/picks/"
     entry_url = f"{BASE_URL}entry/{t_id}/"
@@ -61,8 +73,9 @@ def fetch_user_team(t_id: int, gw: int) -> Tuple[List[Dict[str, Any]], float, st
     
     chips_used = [c.get("name") for c in history_res.get("chips", [])] if history_res else []
     leagues = entry_res.get("leagues", {"classic": [], "h2h": []}) if entry_res else {"classic": [], "h2h": []}
+    free_transfers = calculate_free_transfers(history_res)
     
-    return picks, bank, team_name, rank, chips_used, leagues
+    return picks, bank, team_name, rank, chips_used, leagues, free_transfers
 
 @time_cache(max_age=3600)
 def fetch_fixtures(gw: int) -> List[Dict[str, Any]]:

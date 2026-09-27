@@ -2609,7 +2609,13 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
   const [infoPlayerId, setInfoPlayerId] = useState<number | null>(null);
   const [selectedGwOffset, setSelectedGwOffset] = useState(0);
   const [actionPlayer, setActionPlayer] = useState<any>(null);
-  const [ftAvailable, setFtAvailable] = useState(1);
+  const [ftAvailable, setFtAvailable] = useState(data?.free_transfers ?? 1);
+
+  useEffect(() => {
+    if (data?.free_transfers !== undefined) {
+      setFtAvailable(data.free_transfers);
+    }
+  }, [data?.free_transfers]);
   
 
   const isChipAvailable = (chipId: string) => {
@@ -2645,8 +2651,9 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
   const originalSquadIds = originalData?.squad.map((p: any) => p.id) || [];
   const transfersMade = data.squad.filter((p: any) => !originalSquadIds.includes(p.id)).length;
   const simulatedFt = Math.min(5, ftAvailable + selectedGwOffset);
-  const transfersRemaining = simulatedFt - transfersMade;
-  const hitPoints = (activeChip === 'wildcard' || activeChip === 'freehit') ? 0 : (transfersRemaining < 0 ? transfersRemaining * 4 : 0);
+  const transfersRemaining = Math.max(0, simulatedFt - transfersMade);
+  const additionalTransfers = Math.max(0, transfersMade - simulatedFt);
+  const hitPoints = (activeChip === 'wildcard' || activeChip === 'freehit') ? 0 : -(additionalTransfers * 4);
 
   const renderPlayer = (p: any, isBench: boolean = false) => {
     const fix0 = p.upcoming_fixtures?.[selectedGwOffset];

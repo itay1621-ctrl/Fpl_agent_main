@@ -339,7 +339,7 @@ def get_dashboard_data(team_id: int):
         elements = ctx["elements"]
         teams = ctx["teams"]
 
-        picks, bank, team_name, rank, chips_used, leagues = fetch_user_team(team_id, next_gw)
+        picks, bank, team_name, rank, chips_used, leagues, free_transfers = fetch_user_team(team_id, next_gw)
 
         enriched_picks = []
         for pick in picks:
@@ -421,6 +421,7 @@ def get_dashboard_data(team_id: int):
             "schedule": schedule,
             "chips_used": chips_used,
         "leagues": leagues,
+            "free_transfers": free_transfers,
         "teams": teams
         }
     except Exception as e:
@@ -445,8 +446,8 @@ def compare_teams(team_a: int, team_b: int):
         events = bootstrap.get("events", [])
         next_gw = next((e["id"] for e in events if e["is_next"]), 1)
         
-        a_picks, a_bank, _, _, _, _ = fetch_user_team(team_a, next_gw)
-        b_picks, b_bank, _, _, _, _ = fetch_user_team(team_b, next_gw)
+        a_picks, a_bank, *rest_a = fetch_user_team(team_a, next_gw)
+        b_picks, b_bank, *rest_b = fetch_user_team(team_b, next_gw)
         
         import requests
         a_info = requests.get(f"https://fantasy.premierleague.com/api/entry/{team_a}/", headers={'User-Agent': 'Mozilla/5.0'}, timeout=12)
