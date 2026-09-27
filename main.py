@@ -571,7 +571,9 @@ def get_transfer_recommendations(req: TransferRequest):
         recommendation = "TRANSFER"
         explanation = ""
         delta = 0.0
-
+        raw_gain = None
+        hit_cost = 0
+        net_gain = None
         transfer_cost = 0.0
         opportunity_cost = DEFAULT_WEIGHTS["opportunity_cost"]
         threshold = transfer_cost + opportunity_cost
@@ -621,6 +623,9 @@ def get_transfer_recommendations(req: TransferRequest):
             "recommendation": recommendation,
             "explanation": explanation,
             "delta": delta,
+            "raw_gain": raw_gain,
+            "hit_cost": hit_cost,
+            "net_gain": net_gain,
             "threshold": threshold,
             "current_player": current_player,
             "current_player_rank": current_player_rank,
