@@ -713,9 +713,11 @@ export default function Home() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              pos_code: playerToSell.pos_code,
-              max_budget: budget,
-              current_squad_ids: currentSquadIds, transfer_out_id: playerToSell.id
+             pos_code: playerToSell.pos_code,
+             max_budget: budget,
+             current_squad_ids: currentSquadIds,
+             transfer_out_id: playerToSell.id,
+             free_transfers: data.free_transfers ?? 1
             })
           });
           const recs = await res.json();
