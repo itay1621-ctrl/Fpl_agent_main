@@ -717,7 +717,9 @@ export default function Home() {
              max_budget: budget,
              current_squad_ids: currentSquadIds,
              transfer_out_id: playerToSell.id,
-             free_transfers: data.free_transfers, transfers_before: 0, active_chip: activeChip ?? null
+             free_transfers: data.free_transfers,
+             transfers_before: 0,
+             active_chip: activeChip ?? null
             })
           });
           const recs = await res.json();
