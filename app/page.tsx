@@ -2169,39 +2169,42 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
         <h4 className={`text-lg font-black mb-4 flex items-center gap-2 ${textHighlight}`}>
           <span>📈</span> {isEnglish ? 'Underlying Stats (Season)' : 'נתוני עומק של השחקנים שלך (העונה)'}
         </h4>
-        <table className="w-full text-sm text-left rtl:text-right min-w-[600px]">
+        <table className="w-full text-sm text-left rtl:text-right min-w-[550px]">
           <thead className={`text-xs uppercase ${tableHeaderBg} ${textMuted}`}>
             <tr>
-              <th className="px-2 sm:px-4 py-2 text-xs sm:text-sm whitespace-nowrap">{isEnglish ? 'Player' : 'שחקן'}</th>
-              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm">Form</th>
-              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm" title="Expected Goals">xG</th>
-              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm" title="Expected Assists">xA</th>
-              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm" title="Expected Goals Conceded">xGC</th>
-              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm" title="Clean Sheets">CS</th>
-              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm" title="Goals Conceded">GC</th>
-              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm" title="Defensive Contribution">DEF</th>
-              <th className="px-2 sm:px-4 py-2 text-center text-xs sm:text-sm"></th>
+              <th className={`sticky left-0 z-20 px-3 py-2 text-xs sm:text-sm whitespace-nowrap shadow-[2px_0_5px_-2px_rgba(0,0,0,0.15)] ${tableHeaderBg}`}>{isEnglish ? 'Player' : 'שחקן'}</th>
+              <th className="px-2 sm:px-3 py-2 text-center text-xs sm:text-sm">{isEnglish ? 'Pos' : 'עמדה'}</th>
+              <th className="px-2 sm:px-3 py-2 text-center text-xs sm:text-sm">{isEnglish ? 'Cost' : 'מחיר'}</th>
+              <th className="px-2 sm:px-3 py-2 text-center text-xs sm:text-sm">Form</th>
+              <th className="px-2 sm:px-3 py-2 text-center text-xs sm:text-sm font-black text-purple-500">xP</th>
+              <th className="px-2 sm:px-3 py-2 text-center text-xs sm:text-sm" title="Expected Goals">xG</th>
+              <th className="px-2 sm:px-3 py-2 text-center text-xs sm:text-sm" title="Expected Assists">xA</th>
+              <th className="px-2 sm:px-3 py-2 text-center text-xs sm:text-sm" title="Expected Goals Conceded">xGC</th>
+              <th className="px-2 sm:px-3 py-2 text-center text-xs sm:text-sm"></th>
             </tr>
           </thead>
           <tbody>
-            {[...data.squad].filter((p: any) => !p.is_empty).sort((a:any, b:any) => b.form - a.form).map((p: any) => (
+            {[...data.squad].filter((p: any) => !p.is_empty).sort((a:any, b:any) => b.form - a.form).map((p: any) => {
+              const posLabel = p.pos_code === 1 ? 'GKP' : p.pos_code === 2 ? 'DEF' : p.pos_code === 3 ? 'MID' : 'FWD';
+              return (
               <tr key={p.id} onClick={() => setSelectedPlayerModalId(p.id)} className={`cursor-pointer border-b transition-colors ${isDarkMode ? 'border-gray-700 hover:bg-gray-800' : 'border-gray-200 hover:bg-gray-50'}`}>
-                <td className="px-2 sm:px-4 py-2 font-bold flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
-                  <span className={`w-2 h-2 rounded-full ${p.position <= 11 ? 'bg-emerald-500' : 'bg-gray-400'}`}></span>
-                  {p.name}
+                <td className={`sticky left-0 z-10 px-3 py-2 font-bold flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap shadow-[2px_0_5px_-2px_rgba(0,0,0,0.15)] ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${p.position <= 11 ? 'bg-emerald-500' : 'bg-gray-400'}`}></span>
+                  <span className="truncate max-w-[120px] sm:max-w-none">{p.name}</span>
                 </td>
-                <td className="px-2 sm:px-4 py-2 text-center font-bold text-orange-500 text-xs sm:text-sm">{p.form}</td>
-                <td className="px-2 sm:px-4 py-2 text-center font-bold text-blue-500 text-xs sm:text-sm">{p.expected_goals || p.xg || "0.00"}</td>
-                <td className="px-2 sm:px-4 py-2 text-center font-bold text-purple-500 text-xs sm:text-sm">{p.expected_assists || p.xa || "0.00"}</td>
-                <td className="px-2 sm:px-4 py-2 text-center font-bold text-red-500 text-xs sm:text-sm">{p.expected_goals_conceded || p.xgc || "0.00"}</td>
-                <td className="px-2 sm:px-4 py-2 text-center font-bold text-emerald-500 text-xs sm:text-sm">{p.clean_sheets ?? p.cs ?? 0}</td>
-                <td className="px-2 sm:px-4 py-2 text-center font-bold text-red-700 text-xs sm:text-sm">{p.goals_conceded ?? p.gc ?? 0}</td>
-                <td className="px-2 sm:px-4 py-2 text-center font-bold text-blue-400 text-xs sm:text-sm">{p.defensive_contribution ?? p.defcon ?? 0}</td>
-                <td className="px-2 sm:px-4 py-2 text-center">
-                  <button onClick={(e) => { e.stopPropagation(); setSelectedPlayerModalId(p.id); }} className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-[10px] sm:text-xs font-black transition-colors" title={isEnglish ? 'Player Info' : 'מידע על השחקן'}>ℹ</button>
+                <td className="px-2 sm:px-3 py-2 text-center font-bold text-xs text-gray-500">{posLabel}</td>
+                <td className="px-2 sm:px-3 py-2 text-center font-bold text-xs sm:text-sm">£{p.cost?.toFixed(1)}m</td>
+                <td className="px-2 sm:px-3 py-2 text-center font-bold text-orange-500 text-xs sm:text-sm">{p.form}</td>
+                <td className="px-2 sm:px-3 py-2 text-center font-black text-purple-500 text-xs sm:text-sm">{p.xp?.toFixed(1) || '-'}</td>
+                <td className="px-2 sm:px-3 py-2 text-center font-bold text-blue-500 text-xs sm:text-sm">{p.expected_goals || p.xg || "0.00"}</td>
+                <td className="px-2 sm:px-3 py-2 text-center font-bold text-purple-500 text-xs sm:text-sm">{p.expected_assists || p.xa || "0.00"}</td>
+                <td className="px-2 sm:px-3 py-2 text-center font-bold text-red-500 text-xs sm:text-sm">{p.expected_goals_conceded || p.xgc || "0.00"}</td>
+                <td className="px-2 sm:px-3 py-2 text-center">
+                  <button onClick={(e) => { e.stopPropagation(); setSelectedPlayerModalId(p.id); }} className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-[10px] sm:text-xs font-black transition-colors" title={isEnglish ? 'Player Info' : 'מידע שחקן'}>i</button>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -2337,7 +2340,8 @@ function PlayerCard({
   );
 }
 
-function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any) {
+function EliteRadarTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any) {
+  const ownedIds = new Set(data?.squad?.filter((p: any) => !p.is_empty).map((p: any) => p.id) || []);
   const [selectedPlayerModalId2, setSelectedPlayerModalId2] = useState<number | null>(null); const [radarData, setRadarData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -2361,19 +2365,21 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
   if (loading) return <div className="text-center p-10 font-bold">{isEnglish ? 'Loading Elite Radar...' : 'טוען רדאר עילית...'} 📡</div>;
   if (error) return <div className="text-center p-10 font-bold text-red-500">{isEnglish ? error : 'שגיאה בטעינת הנתונים'}</div>;
 
-  const renderPlayerList = (players: any[], colorClass: string, icon: string, titleStr: string, descStr: string) => (
+  const renderPlayerList = (players: any[], colorClass: string, icon: string, titleStr: string, descStr: string) => {
+    const unownedPlayers = (players || []).filter((p: any) => !ownedIds.has(p.id));
+    return (
     <div className={`p-4 rounded-xl border ${isDarkMode ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50'} mb-6`}>
       <h4 className={`text-lg font-black mb-2 flex items-center gap-2 ${colorClass}`}>
         <span>{icon}</span> {titleStr}
       </h4>
       <p className={`text-xs mb-4 ${textMuted}`}>{descStr}</p>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto relative">
         <table className="w-full text-sm text-left rtl:text-right min-w-[600px]">
           <thead className={`text-xs uppercase ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'} ${textMuted}`}>
             <tr>
-              <th className="px-3 py-2">{isEnglish ? 'Player' : 'שחקן'}</th>
+              <th className={`sticky left-0 z-20 px-3 py-2 whitespace-nowrap shadow-[2px_0_5px_-2px_rgba(0,0,0,0.15)] ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>{isEnglish ? 'Player' : 'שחקן'}</th>
               <th className="px-3 py-2 text-center">{isEnglish ? 'Team' : 'קבוצה'}</th>
-              <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : 'משחק'}</th>
+              <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : 'משחק הבא'}</th>
               <th className="px-3 py-2 text-center">xP</th>
               <th className="px-3 py-2 text-center">{isEnglish ? 'Form' : 'כושר'}</th>
               <th className="px-3 py-2 text-center">{isEnglish ? 'Cost' : 'מחיר'}</th>
@@ -2382,23 +2388,23 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
             </tr>
           </thead>
           <tbody>
-            {players.map((p: any) => (
-              <tr key={p.id} className={`border-b transition-colors ${isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-white'}`}>
-                <td className="px-3 py-2 font-bold whitespace-nowrap">{p.name}</td>
+            {unownedPlayers.map((p: any) => (
+              <tr key={p.id} className={`border-b transition-colors ${isDarkMode ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'}`}>
+                <td className={`sticky left-0 z-10 px-3 py-2 font-bold whitespace-nowrap shadow-[2px_0_5px_-2px_rgba(0,0,0,0.15)] ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>{p.name}</td>
                 <td className="px-3 py-2 text-center font-bold">{p.team}</td>
                 <td className="px-3 py-2 text-center">
                   {p.fixture ? (
-                    <span className={`px-2 py-0.5 rounded text-xs font-bold text-white ${p.fixture_diff <= 2 ? 'bg-emerald-500' : p.fixture_diff === 3 ? 'bg-gray-400' : p.fixture_diff === 4 ? 'bg-red-500' : 'bg-red-800'}`}>
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold text-white ${p.fixture_diff <= 2 ? 'bg-emerald-600' : p.fixture_diff === 3 ? 'bg-gray-500' : p.fixture_diff === 4 ? 'bg-amber-600' : 'bg-red-600'}`}>
                       {p.fixture}
                     </span>
                   ) : '-'}
                 </td>
                 <td className="px-3 py-2 text-center font-bold text-blue-500">{p.xp.toFixed(1)}</td>
                 <td className="px-3 py-2 text-center font-bold text-orange-500">{p.form.toFixed(1)}</td>
-                <td className="px-3 py-2 text-center text-emerald-600">£{p.cost.toFixed(1)}M</td>
+                <td className="px-3 py-2 text-center text-emerald-600">{p.cost.toFixed(1)}M</td>
                 <td className="px-3 py-2 text-center font-bold text-purple-500">{p.selected_by_percent}%</td>
                 <td className="px-3 py-2 text-center">
-                  <button onClick={() => setSelectedPlayerModalId2(p.id)} className="w-7 h-7 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xs font-black transition-colors" title={isEnglish ? 'Player Info' : 'מידע על השחקן'}>ℹ</button>
+                  <button onClick={() => setSelectedPlayerModalId2(p.id)} className="w-7 h-7 rounded-full bg-blue-500 hover:bg-blue-600 text-white flex items-center justify-center font-bold text-xs mx-auto shadow-sm transition-transform hover:scale-110">i</button>
                 </td>
               </tr>
             ))}
@@ -2406,7 +2412,8 @@ function EliteRadarTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox 
         </table>
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <div>
