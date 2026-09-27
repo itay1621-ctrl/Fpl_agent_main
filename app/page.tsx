@@ -2083,7 +2083,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
           </div>
         )}
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex flex-col gap-6">
         <div className={`p-5 rounded-xl border ${bgBox}`}>
         <h4 className="text-lg font-black mb-4 flex items-center gap-2 text-red-500">
           <span>⚠️</span> {isEnglish ? 'Urgent Weaknesses' : 'נקודות תורפה דחופות (בהרכב)'}
@@ -2120,54 +2120,6 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
         </ul>
       </div>
 
-      <div className={`p-5 rounded-xl border ${bgBox}`}>
-        <h4 className={`text-lg font-black mb-4 flex items-center gap-2 ${textHighlight}`}>
-          <span>🏗️</span> {isEnglish ? 'Squad Structure & Budget' : 'מבנה הסגל וניהול תקציב'}
-        </h4>
-        <div className="space-y-6">
-          <div className="flex gap-4">
-            <div className={`flex-1 p-3 rounded-lg border ${innerBoxBg}`}>
-              <span className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Squad Value' : 'שווי הסגל (ללא בנק)'}</span>
-              <span className={`text-lg font-black ${textHighlight}`}>£{data.squad.reduce((s:any,p:any)=>s+p.cost,0).toFixed(1)}M</span>
-            </div>
-            <div className={`flex-1 p-3 rounded-lg border ${innerBoxBg}`}>
-              <span className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Bench Value' : 'שווי הספסל'}</span>
-              <span className={`text-lg font-black ${textHighlight}`}>£{_bench.reduce((sum:number, p:any) => sum + p.cost, 0).toFixed(1)}M</span>
-            </div>
-          </div>
-          <div>
-            <span className="font-bold text-sm block mb-0 sm:mb-1">{isEnglish ? 'Bench Budget Efficiency' : 'ניצולת תקציב הספסל:'}</span>
-            <div className={`w-full rounded-full h-2.5 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} mb-0 sm:mb-1`}>
-              <div className={`${_bench.reduce((sum:number, p:any) => sum + p.cost, 0) > 19.0 ? 'bg-red-500' : 'bg-blue-500'} h-2.5 rounded-full transition-all`} style={{ width: `${Math.min(100, (_bench.reduce((sum:number, p:any) => sum + p.cost, 0) / 20) * 100)}%` }}></div>
-            </div>
-            <p className={`text-xs mt-2 ${textMuted}`}>
-              {isEnglish 
-                 ? 'An optimal (cheapest) bench costs £17.0M. The colored bar shows how much you spent up to a £20M benchmark. Over £19.0M is inefficient (turns red).' 
-                 : 'ספסל אופטימלי (הכי זול שאפשר) עולה £17.0M. הפס המלא מציג חריגה של עד £20.0M. אם עברת את ה-£19.0M הפס יצבע באדום (בזבוז תקציב על שחקנים שלא פותחים).'}
-            </p>
-          </div>
-          
-          <div className={`pt-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-            <span className="font-bold text-sm block mb-3">{isEnglish ? 'Positional Spending:' : 'פיזור התקציב שלך לפי עמדות:'}</span>
-            <div className="flex gap-1 h-6 rounded-lg overflow-hidden text-xs text-white font-bold text-center">
-              <div style={{width: `${(data.squad.filter((p:any) => p.pos_code === 1).reduce((s:number,p:any)=>s+p.cost,0)/100)*100}%`}} className="bg-yellow-500 flex items-center justify-center" title="GK">GK</div>
-              <div style={{width: `${(data.squad.filter((p:any) => p.pos_code === 2).reduce((s:number,p:any)=>s+p.cost,0)/100)*100}%`}} className="bg-blue-500 flex items-center justify-center" title="DEF">DEF</div>
-              <div style={{width: `${(data.squad.filter((p:any) => p.pos_code === 3).reduce((s:number,p:any)=>s+p.cost,0)/100)*100}%`}} className="bg-green-500 flex items-center justify-center" title="MID">MID</div>
-              <div style={{width: `${(data.squad.filter((p:any) => p.pos_code === 4).reduce((s:number,p:any)=>s+p.cost,0)/100)*100}%`}} className="bg-red-500 flex items-center justify-center" title="FWD">FWD</div>
-            </div>
-          </div>
-
-          {maxedTeams.length > 0 && (
-            <div className={`pt-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-              <span className="font-bold text-sm block mb-2">{isEnglish ? 'Maxed Teams (3 players):' : 'קבוצות במקסימום (חוסמות העברות):'}</span>
-              <div className="flex gap-2 flex-wrap">
-                {maxedTeams.map(t => (
-                  <span key={t} className={`px-3 py-1 rounded-full text-xs font-bold border shadow-sm ${isDarkMode ? 'bg-purple-900/50 text-purple-200 border-purple-800' : 'bg-purple-100 text-purple-800 border-purple-200'}`}>{t}</span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       <div className={`col-span-1 md:col-span-2 p-5 rounded-xl border ${bgBox} overflow-x-auto`}>
@@ -2216,7 +2168,6 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
       {selectedPlayerModalId && <PlayerInfoModal playerId={selectedPlayerModalId} preloadedPlayer={data.squad.find((p:any) => p.id === selectedPlayerModalId)} onClose={() => setSelectedPlayerModalId(null)} isDarkMode={isDarkMode} isEnglish={isEnglish} teams={data?.teams || {}} />}
 
-    </div>
     </div>
   );
 }
