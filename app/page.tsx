@@ -3701,11 +3701,11 @@ function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onA
         <div className="text-center z-10 px-2 flex-1">
           <div className="text-[10px] font-bold text-purple-200 uppercase tracking-widest mb-1">{isEnglish ? `Draft ${currentDraftIndex + 1} of ${drafts.length}` : `דראפט ${currentDraftIndex + 1} מתוך ${drafts.length}`}</div>
           <h4 className="text-lg sm:text-2xl font-black text-[#01fc7a]">
-          {isEnglish ? draft.name_en : draft.name_he}
+            {isEnglish ? draft.name_en : draft.name_he}
           </h4>
-        <p className="text-[10px] sm:text-xs mt-1 text-purple-100 max-w-[250px] sm:max-w-md mx-auto">
-          {isEnglish ? draft.description_en : draft.description_he}
-        </p>
+          <p className="text-[10px] sm:text-xs mt-1 text-purple-100 max-w-[250px] sm:max-w-md mx-auto">
+            {isEnglish ? draft.description_en : draft.description_he}
+         </p>
         </div>
         <button onClick={() => setCurrentDraftIndex(prev => prev < drafts.length - 1 ? prev + 1 : 0)} className="z-10 p-2 hover:bg-white/20 rounded-full transition-colors flex items-center gap-1">
           <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
