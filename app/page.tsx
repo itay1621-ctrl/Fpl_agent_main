@@ -2703,7 +2703,7 @@ function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, te
                 transfer_out_id: sp.id,
                 target_gw: data.next_gw,
                 free_transfers: data.free_transfers,
-                transfers_before: 0
+                transfers_before: 0,
                 active_chip: activeChip ?? null
               })
             })
