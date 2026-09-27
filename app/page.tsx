@@ -2900,7 +2900,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
   const [infoPlayerId, setInfoPlayerId] = useState<number | null>(null);
   const [selectedGwOffset, setSelectedGwOffset] = useState(0);
   const [actionPlayer, setActionPlayer] = useState<any>(null);
-  const [ftAvailable, setFtAvailable] = useState(data?.free_transfers ?? 1);
+  const [ftAvailable, setFtAvailable] = useState(data?.free_transfers ?? 0);
 
   useEffect(() => {
     if (data?.free_transfers !== undefined) {
