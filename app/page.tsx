@@ -1755,7 +1755,7 @@ export default function Home() {
                 activeChip={activeChip}
                 setActiveChip={setActiveChip}
                 swapSourceId={swapSourceId} 
-                onSell={async (id: number, targetGw?: number, removeOnly: boolean = false) => {
+                onSell={async (   id: number,   targetGw?: number,   removeOnly: boolean = false,   simulatedFt?: number,   transfersBefore?: number ) => {
                   const playerToSell = data.squad.find((p: any) => p.id === id);
                   if (playerToSell && removeOnly) {
                     const newBank = data.bank + playerToSell.cost;
@@ -1781,7 +1781,7 @@ export default function Home() {
                         body: JSON.stringify({
                           pos_code: playerToSell.pos_code,
                           max_budget: budget,
-                          current_squad_ids: currentSquadIds, transfer_out_id: playerToSell.is_empty ? null : playerToSell.id, target_gw: targetGw, free_transfers: data.free_transfers, transfers_before: Math.max(   0,   data.squad.filter(     (p: any) =>       !p.is_empty &&       !(originalData?.squad ?? []).some((original: any) => original.id === p.id)   ).length ), active_chip: activeChip ?? null
+                          current_squad_ids: currentSquadIds, transfer_out_id: playerToSell.is_empty ? null : playerToSell.id, target_gw: targetGw, free_transfers: simulatedFt ?? data.free_transfers transfers_before: transfersBefore ?? 0,   0,   data.squad.filter(     (p: any) =>       !p.is_empty &&       !(originalData?.squad ?? []).some((original: any) => original.id === p.id)   ).length ), active_chip: activeChip ?? null
                         })
                       });
                       const recs = await res.json();
@@ -2961,7 +2961,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
 
   return (
     <div className="flex flex-col w-full">
-      <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={onSwap} onCaptain={onCaptain} onVice={onVice} onSell={(id: number, removeOnly: boolean) => onSell(id, selectedGwNumber, removeOnly)} onShowInfo={(id: number) => setInfoPlayerId(id)} isEnglish={isEnglish} isDarkMode={isDarkMode} />
+      <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={onSwap} onCaptain={onCaptain} onVice={onVice} onSell={(id: number, removeOnly: boolean) =>   onSell(id, selectedGwNumber, removeOnly, simulatedFt, transfersMade) } onShowInfo={(id: number) => setInfoPlayerId(id)} isEnglish={isEnglish} isDarkMode={isDarkMode} />
       {infoPlayerId && <PlayerInfoModal playerId={infoPlayerId} preloadedPlayer={data?.squad?.find((p:any) => p.id === infoPlayerId) || originalData?.squad?.find((p:any) => p.id === infoPlayerId)} onClose={() => setInfoPlayerId(null)} isDarkMode={isDarkMode} isEnglish={isEnglish} teams={originalData?.teams || {}} />}
 
       <div className={`p-4 sm:p-6 rounded-xl shadow-sm border mb-6 ${bgBox}`}>
