@@ -7,16 +7,58 @@ API_HEADERS = {'User-Agent': 'Mozilla/5.0'}
 BASE_URL = "https://fantasy.premierleague.com/api/"
 
 def calculate_free_transfers(history_res: Dict[str, Any]) -> int:
-    current = history_res.get("current", []) if history_res else []
+    """
+    Reconstruct the manager's current free-transfer balance from their
+    own FPL history.
+
+    FPL gives managers 1 free transfer per Gameweek, which can roll over
+    up to a maximum of 5. Wildcard and Free Hit preserve already banked
+    transfers, but the free transfer for the chip Gameweek is consumed
+    rather than creating an additional transfer.
+
+    The history endpoint is manager-specific, so this calculation is
+    performed independently for each team_id.
+    """
+    if not history_res:
+        return 1
+
+    current = history_res.get("current", []) or []
+    chips = history_res.get("chips", []) or []
+
+    # Chip usage is recorded separately from current[]. Build a lookup
+    # by Gameweek so Wildcard/Free Hit can be handled correctly.
+    chip_by_event = {
+        int(chip.get("event")): chip.get("name")
+        for chip in chips
+        if chip.get("event") is not None
+    }
+
+    # After the GW1 deadline, every manager starts GW2 with 1 FT.
+    # GW1 itself had unlimited transfers, so it must not add another FT.
     ft = 1
-    for row in current:
-        ev = row.get("event", 1)
-        if ev == 1:
+
+    for row in sorted(current, key=lambda item: item.get("event", 0)):
+        event = row.get("event")
+        if event is None or event <= 1:
             continue
-        transfers = row.get("event_transfers", 0)
-        remaining = max(0, ft - transfers)
-        ft = min(5, remaining + 1)
-    return ft
+
+        event = int(event)
+        transfers = max(0, int(row.get("event_transfers", 0) or 0))
+        chip = chip_by_event.get(event)
+
+        # Wildcard and Free Hit do not consume banked FTs.
+        # The FT granted for the chip GW is effectively used by the chip,
+        # so the balance carries forward unchanged.
+        if chip in {"wildcard", "freehit"}:
+            continue
+
+        # Normal Gameweek:
+        # 1) spend available free transfers on the transfers made
+        # 2) receive the next Gameweek's free transfer
+        ft = max(0, ft - transfers)
+        ft = min(5, ft + 1)
+
+    return max(1, min(5, ft))
 
 def time_cache(max_age: int):
     cache = {}
