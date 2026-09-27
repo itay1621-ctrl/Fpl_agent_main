@@ -2202,8 +2202,23 @@ function generateManagerBriefing(data: any, isEnglish: boolean): Insight[] {
   }
 
   // 6. SQUAD STRUCTURE (Bench)
-  const weakBench = bench.filter((p: any) => p.xp < 1.0);
-  if (weakBench.length >= 2) {
+const weakBench = bench.filter((p: any) => {
+  const chance = p.chance_of_playing;
+  const cost = p.cost || 0;
+  const xp = p.xp || 0;
+
+  const availabilityRisk =
+    chance !== null &&
+    chance !== undefined &&
+    chance < 75;
+
+  const expensiveWeakBench =
+    cost >= 4.8 &&
+    xp < 1.5 &&
+    (chance === null || chance === undefined || chance >= 75);
+
+  return availabilityRisk || expensiveWeakBench;
+});  if (weakBench.length >= 2) {
     insights.push({
       id: 'bench',
       category: 'STRUCTURE',
