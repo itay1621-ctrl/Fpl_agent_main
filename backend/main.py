@@ -578,6 +578,7 @@ class TransferRequest(BaseModel):
     current_squad_ids: List[int]
     transfer_out_id: Optional[int] = None
     target_gw: Optional[int] = None
+    free_transfers: int = 1
 
 @app.post("/api/transfer-lab")
 def get_transfer_recommendations(req: TransferRequest):
@@ -619,19 +620,50 @@ def get_transfer_recommendations(req: TransferRequest):
         if current_player and best_candidate:
             raw_gain = round(best_candidate["xp"] - current_player["xp"], 2)
             delta = raw_gain
-            
-            if raw_gain <= 0:
+                        # ---------------------------------------------------------
+            # BUDGET ENABLER PROTECTION
+            # Cheap £4.0m-ish goalkeepers are usually structural
+            # budget enablers, not players that need upgrading.
+            # Do not recommend like-for-like GK swaps for tiny gains.
+            # ---------------------------------------------------------
+            is_budget_gk = (
+                current_player["pos_code"] == 1
+                and current_player["cost"] <= 4.2
+            )
+
+            is_like_for_like_gk = (
+                is_budget_gk
+                and best_candidate["pos_code"] == 1
+                and best_candidate["cost"] <= 4.2
+                and raw_gain < 1.5
+            )
+
+            if is_like_for_like_gk:
+                recommendation = "HOLD"
+                explanation = (
+                    "Hold: this goalkeeper is functioning as a budget enabler. "
+                    "A similar-priced goalkeeper does not provide enough additional "
+                    "projected value to justify using a transfer."
+                )
+                delta = raw_gain
+                        if is_like_for_like_gk:
+                pass
+
+            elif raw_gain <= 0:
                 recommendation = "HOLD"
                 explanation = "השחקן הנוכחי צפוי להביא יותר או אותו מספר נקודות מאשר האלטרנטיבות, כך שאין צורך בחילוף."
+
             elif raw_gain <= 1.0:
                 recommendation = "HOLD"
                 explanation = f"המחליף ({best_candidate['name']}) צפוי להביא רק {raw_gain} נקודות יותר למחזור בממוצע. פער כה קטן לא מצדיק שריפת חילוף, אלא אם כן השחקן שלך פצוע."
+
             elif raw_gain <= 2.0:
                 recommendation = "CONSIDER"
                 explanation = f"שדרוג סביר. {best_candidate['name']} צפוי להביא {raw_gain} נקודות יותר. מומלץ לבצע את החילוף רק אם יש לך חילופים חינמיים עודפים ואין בעיות דחופות יותר."
+
             else:
                 recommendation = "TRANSFER"
-                explanation = f"חילוף מצוין! {best_candidate['name']} משדרג אותך משמעותית עם פער של {raw_gain} נקודות צפויות למחזור (פיצוי מהיר על עלות החילוף). מומלץ מאוד."
+                explanation = f"חילוף מצוין! {best_candidate['name']} משדרג אותך משמעותית עם פער של {raw_gain} נקודות צפויות למחזור."
                 
         if current_player:
             log_prediction(current_player, next_gw, "Transfer Lab - Current")
