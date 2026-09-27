@@ -280,13 +280,34 @@ export async function GET() {
     });
     const diffDraft = buildSquad(differentialPlayers, []);
 
-    return NextResponse.json({
-      drafts: [
-        { id: 1, name: "Premium Heavies (כוכבים יקרים)", description: "הרכב מבוסס על שחקני פרימיום חזקים יחד עם שחקנים זולים משלימים.", data: premiumDraft },
-        { id: 2, name: "Balanced Spread (הרכב מאוזן)", description: "ללא שחקנים יקרים מדי, מאפשר עומק חזק מאוד בכל העמדות במגרש.", data: balancedDraft },
-        { id: 3, name: "Differentials (פנינים נסתרות)", description: "שחקנים בכושר שיא שאחוזי הבחירה שלהם נמוכים, כדי לעקוף מתחרים.", data: diffDraft }
-      ]
-    });
+return NextResponse.json({
+  drafts: [
+    {
+      id: 1,
+      name_en: "Premium Build",
+      name_he: "כוכבים יקרים",
+      description_en: "A squad built around strong premium players with affordable supporting picks.",
+      description_he: "הרכב המבוסס על שחקני פרימיום חזקים יחד עם שחקנים זולים משלימים.",
+      data: premiumDraft
+    },
+    {
+      id: 2,
+      name_en: "Balanced Spread",
+      name_he: "הרכב מאוזן",
+      description_en: "Avoids overly expensive players and provides strong depth across all positions.",
+      description_he: "ללא שחקנים יקרים מדי, מאפשר עומק חזק מאוד בכל העמדות במגרש.",
+      data: balancedDraft
+    },
+    {
+      id: 3,
+      name_en: "Differentials",
+      name_he: "פנינים נסתרות",
+      description_en: "In-form players with lower ownership to help gain an edge over competitors.",
+      description_he: "שחקנים בכושר שיא שאחוזי הבחירה שלהם נמוכים, כדי לעקוף מתחרים.",
+      data: diffDraft
+    }
+  ]
+});
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
