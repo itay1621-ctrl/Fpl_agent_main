@@ -60,7 +60,7 @@ DEFAULT_WEIGHTS = {
 # --- DECISION ENGINE LAYER ---
 def decision_engine_score(c):
     score = c["xp"]
-    if "Rotation Risk / Bench" in c.get("reasons", []):
+    if "Rotation Risk / Bench" in c.get("reason", ""):
         score *= 0.75
     if "Low (Minutes Uncertainty)" in c.get("confidence", ""):
         score *= 0.60
