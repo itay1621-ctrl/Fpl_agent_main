@@ -182,7 +182,7 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     for gw_inc in range(gw_range):
 
         # Dynamic Expected Minutes & Injury Recovery Model
-        current_cop = min(1.0, base_cop + (gw_inc * 0.25))
+        current_cop = base_cop
         dyn_expected_minutes = base_expected_minutes * current_cop
         target_gw = next_gw + gw_inc
         gw_fixs = [f for f in upcoming_fixtures_raw if f.get("event") == target_gw]
