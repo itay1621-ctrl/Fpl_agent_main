@@ -2565,7 +2565,7 @@ const availabilityColor =
       </div>
       
       <div
-       className={`text-white text-[9px] min-[400px]:text-[10px] sm:text-sm font-bold px-0.5 sm:px-2 py-0 rounded shadow w-full text-center truncate mt-[-4px] z-10 ${player.is_empty ? 'bg-gray-400 opacity-60' : (isSelected ? 'bg-blue-600' : availabilityColor)}
+      className={`text-white text-[9px] min-[400px]:text-[10px] sm:text-sm font-bold px-0.5 sm:px-2 py-0 rounded shadow w-full text-center truncate mt-[-4px] z-10 ${player.is_empty ? 'bg-gray-400 opacity-60' : (isSelected ? 'bg-blue-600' : availabilityColor)}`}
         title={player.news || ''}
         dir="ltr"
       >
