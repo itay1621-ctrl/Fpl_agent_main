@@ -229,11 +229,25 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
             match_xSave = xSave_90 * (dyn_expected_minutes / 90.0) * def_multiplier
             match_xDefcon = xDefcon_90 * (dyn_expected_minutes / 90.0)
             
+            match_gc_penalty = 0.0
+            if pos_code in [1, 2] and match_xgc > 0:
+                match_gc_penalty = -(
+                    (match_xgc / 2.0)
+                    - (1.0 - math.exp(-2.0 * match_xgc)) / 4.0
+                )
+            
             appearance_pts = 0
             if dyn_expected_minutes >= 60: appearance_pts = 2 * current_cop
             elif dyn_expected_minutes > 0: appearance_pts = 1 * current_cop
             
-            gw_proj += match_xAtt + match_xDef + match_xSave + match_xDefcon + appearance_pts
+            gw_proj += (
+                match_xAtt
+                + match_xDef
+                + match_xSave
+                + match_xDefcon
+                + match_gc_penalty
+                + appearance_pts
+            )
             
         total_5gw_projection += gw_proj
         
