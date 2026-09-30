@@ -1,5 +1,5 @@
 import requests
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, Tuple, List, Optional
 import time
 from functools import wraps
 
@@ -132,3 +132,100 @@ def fetch_all_fixtures() -> List[Dict[str, Any]]:
     res = requests.get(url, headers=API_HEADERS, timeout=12)
     res.raise_for_status()
     return res.json()
+
+@time_cache(max_age=300)
+def fetch_user_transfers(t_id: int) -> List[Dict[str, Any]]:
+    url = f"{BASE_URL}entry/{t_id}/transfers/"
+    try:
+        res = requests.get(url, headers=API_HEADERS, timeout=12)
+        if res.status_code == 200:
+            return res.json()
+    except Exception:
+        pass
+    return []
+
+@time_cache(max_age=300)
+def fetch_user_history(t_id: int) -> Dict[str, Any]:
+    url = f"{BASE_URL}entry/{t_id}/history/"
+    try:
+        res = requests.get(url, headers=API_HEADERS, timeout=12)
+        if res.status_code == 200:
+            return res.json()
+    except Exception:
+        pass
+    return {}
+
+def calculate_player_prices(
+    team_id: int,
+    picks: List[Dict[str, Any]],
+    elements: Dict[int, Dict[str, Any]],
+    next_gw: int,
+    history_res: Optional[Dict[str, Any]] = None,
+    transfers: Optional[List[Dict[str, Any]]] = None
+) -> Dict[int, Dict[str, float]]:
+    """
+    Reconstructs the true purchase_price and selling_price for each player in picks
+    in accordance with official FPL rules.
+    Returns: {element_id: {"purchase_price": float, "selling_price": float}} in millions of £.
+    """
+    if transfers is None:
+        transfers = fetch_user_transfers(team_id)
+        
+    if history_res is None:
+        history_res = fetch_user_history(team_id)
+        
+    # Free Hit Gameweeks: exclude temporary transfers so they don't corrupt the permanent squad
+    chips = history_res.get("chips", []) if history_res else []
+    fh_events = {
+        int(c.get("event"))
+        for c in chips
+        if c.get("name") == "freehit" and c.get("event") is not None
+    }
+    
+    last_gw = max(1, (next_gw or 1) - 1)
+    
+    valid_transfers = []
+    for t in transfers:
+        ev = t.get("event")
+        if ev is not None:
+            ev = int(ev)
+            if ev in fh_events:
+                continue
+            if ev <= last_gw:
+                valid_transfers.append(t)
+                
+    # Sort chronologically by transfer time ascending so the latest purchase overwrites older ones
+    valid_transfers.sort(key=lambda x: str(x.get("time", "")))
+    
+    purchase_lookup = {}
+    for t in valid_transfers:
+        el_in = t.get("element_in")
+        in_cost = t.get("element_in_cost")
+        if el_in is not None and in_cost is not None:
+            purchase_lookup[el_in] = in_cost
+            
+    result = {}
+    for pick in picks:
+        el_id = pick.get("element")
+        if not el_id:
+            continue
+        el = elements.get(el_id, {})
+        now_cost = el.get("now_cost", 0)
+        cost_change_start = el.get("cost_change_start", 0)
+        
+        # Player in squad since GW1 was purchased at initial cost: now_cost - cost_change_start
+        initial_cost = now_cost - cost_change_start
+        purch_cost = purchase_lookup.get(el_id, initial_cost)
+        
+        # FPL official selling price formula:
+        if now_cost > purch_cost:
+            sell_cost = purch_cost + ((now_cost - purch_cost) // 2)
+        else:
+            sell_cost = now_cost
+            
+        result[el_id] = {
+            "purchase_price": round(purch_cost / 10.0, 1),
+            "selling_price": round(sell_cost / 10.0, 1)
+        }
+        
+    return result

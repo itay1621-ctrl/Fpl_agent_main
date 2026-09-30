@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict
-from fpl_api import fetch_bootstrap, fetch_user_team, fetch_fixtures, fetch_all_fixtures
+from fpl_api import fetch_bootstrap, fetch_user_team, fetch_fixtures, fetch_all_fixtures, calculate_player_prices
 import math
 import requests
 import os
@@ -60,10 +60,10 @@ DEFAULT_WEIGHTS = {
 # --- DECISION ENGINE LAYER ---
 def decision_engine_score(c):
     score = c["xp"]
-    if "Rotation Risk / Bench" in c.get("reason", ""):
-        score *= 0.75
     if "Low (Minutes Uncertainty)" in c.get("confidence", ""):
         score *= 0.60
+    elif "Rotation Risk / Bench" in c.get("reason", ""):
+        score *= 0.75
     return score
 
 import datetime
@@ -182,7 +182,7 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     for gw_inc in range(gw_range):
 
         # Dynamic Expected Minutes & Injury Recovery Model
-        current_cop = min(1.0, base_cop + (gw_inc * 0.25))
+        current_cop = base_cop
         dyn_expected_minutes = base_expected_minutes * current_cop
         target_gw = next_gw + gw_inc
         gw_fixs = [f for f in upcoming_fixtures_raw if f.get("event") == target_gw]
@@ -238,10 +238,14 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     total_5gw_projection = max(0.0, total_5gw_projection)
     
     # Confidence metrics based on uncertainty
+    past_gws = max(0, (next_gw or 1) - 1)
+    available_minutes_so_far = past_gws * 90
+    minutes_ratio = (total_mins / available_minutes_so_far) if available_minutes_so_far > 0 else 0.0
+
     confidence = "Medium"
     if availability_prob < 0.9 or expected_minutes < 45:
         confidence = "Low (Minutes Uncertainty)"
-    elif total_mins > 500 and availability_prob == 1.0 and fixtures_found >= gw_range:
+    elif minutes_ratio >= 0.75 and availability_prob == 1.0 and fixtures_found >= gw_range:
         confidence = "High (Nailed Starter)"
         
     reasons = []
@@ -278,6 +282,14 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         "news": p.get("news", ""),
         "xg": float(p.get("expected_goals", 0) or 0),
         "xa": float(p.get("expected_assists", 0) or 0),
+        "expected_goals": float(p.get("expected_goals", 0) or 0),
+        "expected_assists": float(p.get("expected_assists", 0) or 0),
+        "expected_goals_conceded": float(p.get("expected_goals_conceded", 0) or 0),
+        "xgc": float(p.get("expected_goals_conceded", 0) or 0),
+        "defensive_contribution": p.get("defensive_contribution_per_90", 0.0),
+        "clean_sheets": p.get("clean_sheets", 0),
+        "goals_conceded": p.get("goals_conceded", 0),
+        "minutes": p.get("minutes", 0),
         "expected_minutes": round(expected_minutes, 1),
         "start_probability": round(base_cop * 100, 1)
     }
@@ -340,12 +352,16 @@ def get_dashboard_data(team_id: int):
         teams = ctx["teams"]
 
         picks, bank, team_name, rank, chips_used, leagues, free_transfers = fetch_user_team(team_id, next_gw)
+        player_prices = calculate_player_prices(team_id, picks, elements, next_gw)
 
         enriched_picks = []
         for pick in picks:
             player = elements.get(pick["element"])
             if player:
                 proj = calculate_player_projection(player, next_gw, upcoming_fixtures_raw, teams)
+                prices = player_prices.get(player["id"], {})
+                selling_price = prices.get("selling_price", player["now_cost"] / 10)
+                purchase_price = prices.get("purchase_price", player["now_cost"] / 10)
                 
                 upcoming_fixtures = []
                 for gw_inc in range(gw_range):
@@ -375,6 +391,8 @@ def get_dashboard_data(team_id: int):
                     "pos_code": player["element_type"],
                     "position": pick.get("position"),
                     "cost": player["now_cost"] / 10,
+                    "selling_price": selling_price,
+                    "purchase_price": purchase_price,
                     "is_captain": pick.get("is_captain", False),
                     "is_vice_captain": pick.get("is_vice_captain", False),
                     "multiplier": pick.get("multiplier", 1),
@@ -706,7 +724,7 @@ def get_budget_scenarios(team_id: int):
                 reason = "Tough Upcoming Run (Low 5GW Projection)"
                 
             if reason:
-                budget = bank + sp["cost"]
+                budget = bank + sp.get("selling_price", sp["cost"])
                 candidates = [p for p in all_players if p["pos_code"] == sp["pos_code"] and p["id"] not in current_squad_ids and p["cost"] <= budget]
                 
                 candidates = sorted(candidates, key=decision_engine_score, reverse=True)
