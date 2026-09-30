@@ -153,12 +153,17 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     xa_90 *= form_multiplier
 
     # FPL Rule 2024/2025: Defensive Contributions points
-    # Defenders need 10 actions, Mid/Fwd need 12 actions for +2 points.
+    # Goalkeepers do NOT earn Defensive Contribution points (FPL Rule).
+    # Defenders need 10 actions (CBIT), Mid/Fwd need 12 actions (CBIRT) for +2 points.
     import math
-    defcon_threshold = 10 if pos_code == 2 else 12
-    defcon_std = max(defcon_90 * 0.35, 1.0)
-    z = (defcon_90 - defcon_threshold) / defcon_std
-    prob_cross_threshold = 1 / (1 + math.exp(-1.7 * z)) if defcon_90 > 0 else 0
+    if pos_code == 1:
+        xDefcon_90 = 0.0
+    else:
+        defcon_threshold = 10 if pos_code == 2 else 12
+        defcon_std = max(defcon_90 * 0.35, 1.0)
+        z = (defcon_90 - defcon_threshold) / defcon_std
+        prob_cross_threshold = 1 / (1 + math.exp(-1.7 * z)) if defcon_90 > 0 else 0
+        xDefcon_90 = prob_cross_threshold * 2.0
     
     goal_pts = {1: 6, 2: 6, 3: 5, 4: 4}.get(pos_code, 4)
     assist_pts = 3
@@ -167,9 +172,6 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     cs_pts = {1: 4, 2: 4, 3: 1, 4: 0}.get(pos_code, 0)
     cs_prob_90 = math.exp(-xgc_90) if xgc_90 > 0 else 0.5
     xSave_90 = (float(p.get("saves_per_90", 0) or 0) / 3.0) * 1 if pos_code == 1 else 0
-    
-    # 2 points awarded for crossing Defensive Contribution threshold
-    xDefcon_90 = prob_cross_threshold * 2.0
     
     gw_range = min(5, 38 - next_gw + 1)
     
