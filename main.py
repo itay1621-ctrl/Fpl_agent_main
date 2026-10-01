@@ -224,7 +224,7 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
             # Clean sheet
             match_xgc = (xgc_90 * (dyn_expected_minutes / 90.0)) / def_multiplier
             match_cs_prob = math.exp(-match_xgc) if match_xgc > 0 else 0.5
-            match_xDef = match_cs_prob * cs_pts
+            match_xDef = match_cs_prob * cs_pts if dyn_expected_minutes > 0 else 0.0
             
             match_xSave = xSave_90 * (dyn_expected_minutes / 90.0) * def_multiplier
             match_xDefcon = xDefcon_90 * (dyn_expected_minutes / 90.0)
