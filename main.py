@@ -439,6 +439,8 @@ def get_dashboard_data(team_id: int):
                     "is_vice_captain": pick.get("is_vice_captain", False),
                     "multiplier": pick.get("multiplier", 1),
                     "xp": proj["xp"],
+                    "prob": proj.get("prob", 1.0),
+                    "reason": proj.get("reason", ""),
                     "form": float(player.get("form", 0) or 0),
                     "chance_of_playing": player.get("chance_of_playing_next_round"),
                     "news": player.get("news"),
@@ -726,7 +728,8 @@ def get_radar():
         return {
             "scout_picks": scout_picks,
             "hot_form": hot_form,
-            "differentials": differentials
+            "differentials": differentials,
+            "teams": teams
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

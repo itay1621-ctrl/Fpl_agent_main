@@ -455,6 +455,8 @@ export default function Home() {
                     p.clean_sheets = realP.clean_sheets;
                     p.goals_conceded = realP.goals_conceded;
                     p.xp = realP.xp;
+                    p.prob = realP.prob;
+                    p.reason = realP.reason;
                   }
                   if (typeof window !== 'undefined') {
                      const cachedStatsStr = localStorage.getItem('fpl_stats_cache');
@@ -2699,7 +2701,22 @@ function EliteRadarTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, 
         isEnglish ? 'DIFFERENTIALS (Hidden Gems)' : 'שחקנים דיפרנציאליים (פנינים נסתרות)', 
         isEnglish ? 'High potential players owned by less than 10% of managers. Great for jumping up the ranks.' : 'שחקנים עם פוטנציאל גבוה שאחוזי הבעלות עליהם נמוכים מ-10%. מצוינים כדי לעקוף מתחרים בליגות.'
       )}
-      {selectedPlayerModalId2 && <PlayerInfoModal playerId={selectedPlayerModalId2} onClose={() => setSelectedPlayerModalId2(null)} isDarkMode={isDarkMode} isEnglish={isEnglish} teams={{}} />}
+      {selectedPlayerModalId2 && (
+        <PlayerInfoModal
+          playerId={selectedPlayerModalId2}
+          preloadedPlayer={
+            [
+              ...(radarData?.hot_form || []),
+              ...(radarData?.scout_picks || []),
+              ...(radarData?.differentials || [])
+            ].find((p: any) => p.id === selectedPlayerModalId2)
+          }
+          onClose={() => setSelectedPlayerModalId2(null)}
+          isDarkMode={isDarkMode}
+          isEnglish={isEnglish}
+          teams={data?.teams || radarData?.teams || {}}
+        />
+      )}
     </div>
   );
 }
@@ -3573,7 +3590,7 @@ function PlayerInfoModal({ playerId, preloadedPlayer, onClose, onTransferAction,
                   </div>
                   <div className={`p-2 rounded-lg ${cardBg}`}>
                     <span className="block text-[10px] uppercase font-bold text-gray-400">Fitness</span>
-                    <span className={`font-black text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{preloadedPlayer.prob ? `${(preloadedPlayer.prob * 100).toFixed(0)}%` : 'N/A'}</span>
+                    <span className={`font-black text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{preloadedPlayer.prob !== undefined && preloadedPlayer.prob !== null ? `${(preloadedPlayer.prob * 100).toFixed(0)}%` : 'N/A'}</span>
                   </div>
                 </div>
                 {preloadedPlayer.reason && (
