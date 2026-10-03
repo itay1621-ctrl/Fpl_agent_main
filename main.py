@@ -243,8 +243,28 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
             
             # Clean sheet
             match_xgc = (xgc_90 * (dyn_expected_minutes / 90.0)) / def_multiplier
-            match_cs_prob = math.exp(-match_xgc) if match_xgc > 0 else 0.5
-            match_xDef = match_cs_prob * cs_pts if dyn_expected_minutes > 0 else 0.0
+            team_match_xgc = (
+                xgc_90 / def_multiplier
+                if def_multiplier > 0
+                else xgc_90
+            )
+            team_cs_prob = (
+                math.exp(-team_match_xgc)
+                if team_match_xgc > 0
+                else 0.5
+            )
+            prob_60_mins = (
+                max(
+                    0.0,
+                    min(
+                        1.0,
+                        (dyn_expected_minutes - 30.0) / 60.0
+                    )
+                )
+                if dyn_expected_minutes > 30
+                else 0.0
+            )
+            match_xDef = prob_60_mins * team_cs_prob * cs_pts
             
             # Goalkeeper Expected Saves (Poisson model: E[floor(S / 3)])
             match_lambda_saves = (
