@@ -89,6 +89,26 @@ def log_prediction(player_id, player_name, gw, xp, context, recommendation=""):
     except Exception as e:
         print(f"Failed to log prediction: {e}")
 
+def calculate_poisson_xsave(lambda_val: float) -> float:
+    """
+    Computes expected FPL goalkeeper save points:
+    E[floor(S / 3)] where S ~ Poisson(lambda_val).
+    Equivalently: sum_{k=3}^60 floor(k / 3) * P(S = k).
+    Uses a numerically stable recurrence avoiding large factorials or exponents.
+    """
+    if lambda_val <= 0.0 or math.isnan(lambda_val) or math.isinf(lambda_val):
+        return 0.0
+    prob = math.exp(-lambda_val)
+    expected_save_pts = 0.0
+    for k in range(1, 61):
+        prob *= lambda_val / k
+        if k >= 3:
+            pts = k // 3
+            expected_save_pts += pts * prob
+        if prob < 1e-12 and k > lambda_val:
+            break
+    return expected_save_pts
+
 def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weights=None):
     if weights is None:
         weights = DEFAULT_WEIGHTS
@@ -171,7 +191,7 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     xAtt_90 = (xg_90 * goal_pts) + (xa_90 * assist_pts)
     cs_pts = {1: 4, 2: 4, 3: 1, 4: 0}.get(pos_code, 0)
     cs_prob_90 = math.exp(-xgc_90) if xgc_90 > 0 else 0.5
-    xSave_90 = (float(p.get("saves_per_90", 0) or 0) / 3.0) * 1 if pos_code == 1 else 0
+    saves_per_90 = float(p.get("saves_per_90", 0) or 0) if pos_code == 1 else 0.0
     
     gw_range = min(5, 38 - next_gw + 1)
     
@@ -226,7 +246,13 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
             match_cs_prob = math.exp(-match_xgc) if match_xgc > 0 else 0.5
             match_xDef = match_cs_prob * cs_pts if dyn_expected_minutes > 0 else 0.0
             
-            match_xSave = xSave_90 * (dyn_expected_minutes / 90.0) * def_multiplier
+            # Goalkeeper Expected Saves (Poisson model: E[floor(S / 3)])
+            match_lambda_saves = (
+                saves_per_90 * (dyn_expected_minutes / 90.0) * def_multiplier
+                if (pos_code == 1 and dyn_expected_minutes > 0)
+                else 0.0
+            )
+            match_xSave = calculate_poisson_xsave(match_lambda_saves)
             match_xDefcon = xDefcon_90 * (dyn_expected_minutes / 90.0)
             
             match_gc_penalty = 0.0
