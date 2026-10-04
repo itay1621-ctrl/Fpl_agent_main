@@ -454,6 +454,8 @@ export default function Home() {
                   
                   const realP = result.squad?.find((rp: any) => rp.id === p.id);
                   if (realP) {
+                    p.chance_of_playing = realP.chance_of_playing;
+                    p.news = realP.news;
                     p.form = realP.form;
                     p.expected_goals = realP.expected_goals;
                     p.expected_assists = realP.expected_assists;
@@ -2567,6 +2569,12 @@ function PlayerCard({
 
   const isSelected = activeId === player.id;
   const isActionMode = activeId !== null;
+  const chanceOfPlaying = player.chance_of_playing;
+const availabilityColor =
+  chanceOfPlaying === 0 ? 'bg-red-600' :
+  typeof chanceOfPlaying === 'number' && chanceOfPlaying < 100
+    ? (chanceOfPlaying >= 75 ? 'bg-yellow-400 text-gray-900' : 'bg-orange-500')
+    : 'bg-[#2c3e50]';
 
   return (
     <button onClick={() => onActionClick(player.id)} className={`relative flex flex-col items-center w-[46px] min-[400px]:w-[52px] sm:w-[95px] transition-all duration-300 cursor-pointer ${isBench && !isActionMode ? 'opacity-90 hover:opacity-100' : 'hover:scale-105'} ${isSelected ? 'scale-110 z-30 brightness-110' : ''}`}>
@@ -2582,7 +2590,7 @@ function PlayerCard({
       </div>
       
       <div
-        className={`text-white text-[9px] min-[400px]:text-[10px] sm:text-sm font-bold px-0.5 sm:px-2 py-0 rounded shadow w-full text-center truncate mt-[-4px] z-10 ${player.is_empty ? 'bg-gray-400 opacity-60' : (isSelected ? 'bg-blue-600' : (player.prob === 0 ? 'bg-red-600' : (player.prob !== null && player.prob !== undefined && player.prob < 1 ? 'bg-orange-500' : 'bg-[#2c3e50]')))}`}
+      className={`text-white text-[9px] min-[400px]:text-[10px] sm:text-sm font-bold px-0.5 sm:px-2 py-0 rounded shadow w-full text-center truncate mt-[-4px] z-10 ${player.is_empty ? 'bg-gray-400 opacity-60' : (isSelected ? 'bg-blue-600' : availabilityColor)}`}
         title={player.news || ''}
         dir="ltr"
       >
