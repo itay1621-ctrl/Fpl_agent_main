@@ -179,7 +179,12 @@ export default function Home() {
   const [adminPassError, setAdminPassError] = useState('');
 
   const handleApplyDraft = (draftData: any) => {
-    const calculatedBank = (1000 - (draftData.cost || 1000)) / 10;
+    const rawCost = draftData.cost || (draftData.squad ? draftData.squad.reduce((acc: number, p: any) => acc + (p.now_cost || (p.cost ? p.cost * 10 : 0)), 0) : 1000);
+    const costInTenths = rawCost <= 150 ? rawCost * 10 : rawCost;
+    const origSquadVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
+    const origBudget = (originalData?.bank ?? 0) + (origSquadVal > 0 ? origSquadVal : 100.0);
+    const budgetInTenths = Math.round(origBudget * 10);
+    const calculatedBank = Math.round((budgetInTenths - costInTenths)) / 10;
     
     const sortedSquad = [...draftData.squad].sort((a: any, b: any) => b.xp - a.xp);
     const starters: any[] = [];
@@ -221,6 +226,8 @@ export default function Home() {
        ...p,
        position: index + 1,
        cost: p.now_cost / 10,
+       selling_price: p.now_cost / 10,
+       purchase_price: p.now_cost / 10,
        pos_code: p.element_type,
        is_captain: p.id === capId,
        is_vice_captain: p.id === viceId,
@@ -293,7 +300,7 @@ export default function Home() {
       darkMode: "מצב כהה",
       lightMode: "מצב בהיר",
       overallRank: "דירוג כללי",
-      bank: "יתרה בבנק",
+      bank: "כסף שנשאר (יתרה בבנק)",
       xp: "תוחלת נקודות (xP)",
       squadScore: "ציון סגל נוכחי",
       timeUntil: "זמן נותר עד נעילת חילופים",
@@ -319,7 +326,7 @@ export default function Home() {
       darkMode: "Dark Mode",
       lightMode: "Light Mode",
       overallRank: "Overall Rank",
-      bank: "Bank Balance",
+      bank: "Money Left (ITB)",
       xp: "Expected Points (xP)",
       squadScore: "Squad Score",
       timeUntil: "Time until GW deadline",
@@ -491,6 +498,11 @@ export default function Home() {
                 }));
               }
             }
+            const origSquadVal = (result.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
+            const origBudget = (result.bank || 0) + (origSquadVal > 0 ? origSquadVal : 100.0);
+            const currentCost = (savedPlan.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0);
+            savedPlan.bank = Math.round((origBudget - currentCost) * 10) / 10;
+
             const savedChip = localStorage.getItem(`fpl_active_chip_${idToFetch}`);
             if (savedChip) setActiveChip(savedChip);
             setData(savedPlan);
@@ -609,9 +621,9 @@ export default function Home() {
     if (!originalPlayer || !currentPlayer) return;
     if (currentPlayer.id === originalPlayer.id) return;
 
-    const currentCost = currentPlayer.cost;
+    const currentCost = currentPlayer.is_empty ? 0 : currentPlayer.cost;
     const originalSellPrice = originalPlayer.selling_price ?? originalPlayer.cost;
-    const newBank = data.bank + currentCost - originalSellPrice;
+    const newBank = Math.round((data.bank + currentCost - originalSellPrice) * 10) / 10;
     const newSquad = data.squad.map((p: any) => p.position === position ? originalPlayer : p);
     
     setData({ ...data, squad: newSquad, bank: newBank });
@@ -622,8 +634,8 @@ export default function Home() {
     const oldPlayer = data.squad.find((p: any) => p.id === transferOutId);
     if (!oldPlayer) return;
 
-    const sellPrice = oldPlayer.selling_price ?? oldPlayer.cost;
-    const newBank = data.bank + sellPrice - newPlayer.cost;
+    const sellPrice = oldPlayer.is_empty ? 0 : (oldPlayer.selling_price ?? oldPlayer.cost);
+    const newBank = Math.round((data.bank + sellPrice - newPlayer.cost) * 10) / 10;
     
     const upcoming_fixtures = [];
     for (let offset = 0; offset <= 38 - data?.next_gw; offset++) {
@@ -671,8 +683,8 @@ export default function Home() {
   const executeVirtualTransfer = (oldPlayerId: number, newPlayer: any) => {
     const oldPlayer = data.squad.find((p: any) => p.id === oldPlayerId);
     if (!oldPlayer) return;
-    const sellPrice = oldPlayer.selling_price ?? oldPlayer.cost;
-    const newBank = data.bank + sellPrice - newPlayer.cost;
+    const sellPrice = oldPlayer.is_empty ? 0 : (oldPlayer.selling_price ?? oldPlayer.cost);
+    const newBank = Math.round((data.bank + sellPrice - newPlayer.cost) * 10) / 10;
     const newSquad = data.squad.filter((p: any) => p.id !== oldPlayer.id);
 
     const upcoming_fixtures = [];
@@ -1747,8 +1759,8 @@ export default function Home() {
                 onVice={handleSetViceCaptain}
                 onReset={handleReset}
                 onClearAll={() => {
-                  const totalCost = data.squad.reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : p.cost), 0);
-                  const newBank = data.bank + totalCost;
+                  const origSquadVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
+                  const totalBudget = (originalData?.bank ?? 0) + (origSquadVal > 0 ? origSquadVal : 100.0);
                   const newSquad = data.squad.map((p: any) => ({
                     ...p,
                     id: p.id > 0 ? -p.id : p.id,
@@ -1756,10 +1768,11 @@ export default function Home() {
                     name: 'Add Player',
                     team: 'TBD',
                     cost: 0,
+                    selling_price: 0,
                     xp: 0,
                     form: 0
                   }));
-                  setData({ ...data, bank: newBank, squad: newSquad });
+                  setData({ ...data, bank: Math.round(totalBudget * 10) / 10, squad: newSquad });
                 }}
                 originalData={originalData}
                 onRestorePlayer={handleRestorePlayer}
@@ -1769,10 +1782,11 @@ export default function Home() {
                 onSell={async (   id: number,   targetGw?: number,   removeOnly: boolean = false,   simulatedFt?: number,   transfersBefore?: number ) => {
                   const playerToSell = data.squad.find((p: any) => p.id === id);
                   if (playerToSell && removeOnly) {
-                    const newBank = data.bank + (playerToSell.selling_price ?? playerToSell.cost);
+                    const sellVal = playerToSell.is_empty ? 0 : (playerToSell.selling_price ?? playerToSell.cost);
+                    const newBank = Math.round((data.bank + sellVal) * 10) / 10;
                     const newSquad = data.squad.map((p: any) => {
                         if (p.id === id) {
-                            return { ...p, id: -id, is_empty: true, name: 'Add Player', team: 'TBD', cost: 0, xp: 0, form: 0 };
+                            return { ...p, id: -Math.abs(id), is_empty: true, name: 'Add Player', team: 'TBD', cost: 0, selling_price: 0, xp: 0, form: 0 };
                         }
                         return p;
                     });
@@ -2129,7 +2143,7 @@ function generateManagerBriefing(data: any, isEnglish: boolean): Insight[] {
   
   const starters = data.squad.filter((p: any) => p.position <= 11 && !p.is_empty);
   const bench = data.squad.filter((p: any) => p.position > 11 && !p.is_empty);
-  const bank = (data.bank || 0) / 10;
+  const bank = (data.bank || 0);
   
   // 1. CAPTAINCY
   const highestXp = [...starters].sort((a: any, b: any) => (b.xp || 0) - (a.xp || 0))[0];
@@ -2965,6 +2979,11 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
   const selectedGwNumber = data?.next_gw + selectedGwOffset;
   const scheduleForGw = data.schedule?.[selectedGwNumber] || [];
 
+  const origSquadVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
+  const totalBudget = originalData ? ((originalData.bank ?? 0) + (origSquadVal > 0 ? origSquadVal : 100.0)) : ((data?.bank ?? 0) + (data?.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0));
+  const currentSquadCost = (data?.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0);
+  const remainingBank = Math.round((totalBudget - currentSquadCost) * 10) / 10;
+
   const originalSquadIds = originalData?.squad.map((p: any) => p.id) || [];
   const transfersMade = data.squad.filter((p: any) => !originalSquadIds.includes(p.id)).length;
   const simulatedFt = Math.min(5, ftAvailable + selectedGwOffset);
@@ -3074,8 +3093,11 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
             <span className="text-lg sm:text-2xl font-black">{totalXP.toFixed(1)}</span>
           </div>
           <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
-            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Bank Balance' : 'יתרה בבנק'}</span>
-            <span className={`text-2xl font-black ${data.bank < 0 ? 'text-red-500' : ''}`}>£{data.bank.toFixed(1)}m</span>
+            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Money Left (ITB)' : 'כסף שנשאר (יתרה בבנק)'}</span>
+            <span className={`text-2xl font-black ${remainingBank < 0 ? 'text-red-500' : ''}`}>£{remainingBank.toFixed(1)}m</span>
+            <span className={`text-[10px] font-semibold mt-0.5 ${textMuted}`}>
+              {isEnglish ? `Spent: £${currentSquadCost.toFixed(1)}m` : `הושקע: £${currentSquadCost.toFixed(1)}m`}
+            </span>
           </div>
           <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
             <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Hit Points' : 'קנס נקודות (Hits)'}</span>
