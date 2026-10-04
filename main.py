@@ -602,6 +602,7 @@ class TransferRequest(BaseModel):
     current_squad_ids: List[int]
     transfer_out_id: Optional[int] = None
     target_gw: Optional[int] = None
+    unlimited_budget: Optional[bool] = False
 
 @app.post("/api/transfer-lab")
 def get_transfer_recommendations(req: TransferRequest):
@@ -630,7 +631,8 @@ def get_transfer_recommendations(req: TransferRequest):
         for p in elements:
             if p["element_type"] == req.pos_code:
                 if p["id"] not in req.current_squad_ids or p["id"] == req.transfer_out_id:
-                    if (p["now_cost"] / 10) <= req.max_budget:
+                    within_budget = (p["now_cost"] / 10) <= req.max_budget
+                    if within_budget or req.unlimited_budget:
                         c_team_count = team_counts.get(p["team"], 0)
                         if c_team_count < 3 or p["id"] == req.transfer_out_id:
                             c = calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams)
@@ -648,7 +650,8 @@ def get_transfer_recommendations(req: TransferRequest):
                 candidates.append(c)
                 
         candidates = sorted(candidates, key=decision_engine_score, reverse=True)
-        best_candidate = candidates[0] if candidates else None
+        affordable_candidates = [c for c in candidates if c["cost"] <= req.max_budget]
+        best_candidate = affordable_candidates[0] if affordable_candidates else (candidates[0] if candidates else None)
 
         recommendation = "TRANSFER"
         explanation = ""

@@ -179,12 +179,15 @@ export default function Home() {
   const [adminPassError, setAdminPassError] = useState('');
 
   const handleApplyDraft = (draftData: any) => {
-    const rawCost = draftData.cost || (draftData.squad ? draftData.squad.reduce((acc: number, p: any) => acc + (p.now_cost || (p.cost ? p.cost * 10 : 0)), 0) : 1000);
-    const costInTenths = rawCost <= 150 ? rawCost * 10 : rawCost;
-    const origSquadVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
-    const origBudget = (originalData?.bank ?? 0) + (origSquadVal > 0 ? origSquadVal : 100.0);
-    const budgetInTenths = Math.round(origBudget * 10);
-    const calculatedBank = Math.round((budgetInTenths - costInTenths)) / 10;
+    const origPurchaseVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.purchase_price ?? p.cost ?? 0), 0);
+    const origBudget = (originalData?.bank ?? 0) + (origPurchaseVal > 0 ? origPurchaseVal : 100.0);
+    
+    const draftTotalCost = (draftData.squad || []).reduce((acc: number, p: any) => {
+      const origPlayer = originalData?.squad?.find((op: any) => op.id === p.id);
+      const playerCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : (p.now_cost ? p.now_cost / 10 : (p.cost || 0));
+      return acc + playerCost;
+    }, 0);
+    const calculatedBank = Math.round((origBudget - draftTotalCost) * 10) / 10;
     
     const sortedSquad = [...draftData.squad].sort((a: any, b: any) => b.xp - a.xp);
     const starters: any[] = [];
@@ -222,19 +225,25 @@ export default function Home() {
     const capId = [...finalStarters].sort((a:any,b:any)=>b.xp - a.xp)[0]?.id;
     const viceId = [...finalStarters].sort((a:any,b:any)=>b.xp - a.xp)[1]?.id;
 
-    const mappedSquad = [...finalStarters, ...benchGkp, ...benchOutfield].map((p, index) => ({
-       ...p,
-       position: index + 1,
-       cost: p.now_cost / 10,
-       selling_price: p.now_cost / 10,
-       purchase_price: p.now_cost / 10,
-       pos_code: p.element_type,
-       is_captain: p.id === capId,
-       is_vice_captain: p.id === viceId,
-       is_empty: false,
-       fixture: p.fixture || p.team_name,
-       fixture_diff: p.fixture_diff || 3
-    }));
+    const mappedSquad = [...finalStarters, ...benchGkp, ...benchOutfield].map((p, index) => {
+      const origPlayer = originalData?.squad?.find((op: any) => op.id === p.id);
+      const effectiveCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : (p.now_cost ? p.now_cost / 10 : (p.cost || 0));
+      const effectiveSellingPrice = origPlayer ? (origPlayer.selling_price ?? origPlayer.cost) : (p.now_cost ? p.now_cost / 10 : (p.cost || 0));
+      const effectivePurchasePrice = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : (p.now_cost ? p.now_cost / 10 : (p.cost || 0));
+      return {
+        ...p,
+        position: index + 1,
+        cost: effectiveCost,
+        selling_price: effectiveSellingPrice,
+        purchase_price: effectivePurchasePrice,
+        pos_code: p.element_type,
+        is_captain: p.id === capId,
+        is_vice_captain: p.id === viceId,
+        is_empty: false,
+        fixture: p.fixture || p.team_name,
+        fixture_diff: p.fixture_diff || 3
+      };
+    });
 
     setData((prev: any) => ({
       ...prev,
@@ -500,8 +509,8 @@ export default function Home() {
                 }));
               }
             }
-            const origSquadVal = (result.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
-            const origBudget = (result.bank || 0) + (origSquadVal > 0 ? origSquadVal : 100.0);
+            const origPurchaseVal = (result.squad || []).reduce((sum: number, p: any) => sum + (p.purchase_price ?? p.cost ?? 0), 0);
+            const origBudget = (result.bank || 0) + (origPurchaseVal > 0 ? origPurchaseVal : 100.0);
             const currentCost = (savedPlan.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0);
             savedPlan.bank = Math.round((origBudget - currentCost) * 10) / 10;
 
@@ -513,9 +522,13 @@ export default function Home() {
           }
         } catch (e) {}
       }
-            const savedChip = localStorage.getItem(`fpl_active_chip_${idToFetch}`);
-            if (savedChip) setActiveChip(savedChip);
-      setData(JSON.parse(JSON.stringify(result)));
+      const savedChip = localStorage.getItem(`fpl_active_chip_${idToFetch}`);
+      if (savedChip) setActiveChip(savedChip);
+      const initialSquad = (result.squad || []).map((p: any) => ({
+        ...p,
+        cost: p.purchase_price ?? p.cost
+      }));
+      setData({ ...JSON.parse(JSON.stringify(result)), squad: initialSquad });
       setAppMode(targetMode);
     } catch (err: any) {
       const isServerUpdating = err.message?.includes('500') || err.message?.includes('502') || err.message?.includes('503') || err.message?.includes('Failed to fetch');
@@ -607,7 +620,11 @@ export default function Home() {
 
   const handleReset = () => {
     if (originalData) {
-      setData(JSON.parse(JSON.stringify(originalData)));
+      const resetSquad = (originalData.squad || []).map((p: any) => ({
+        ...p,
+        cost: p.purchase_price ?? p.cost
+      }));
+      setData({ ...JSON.parse(JSON.stringify(originalData)), squad: resetSquad });
       setSwapSourceId(null);
       setTransferOutId(null);
       setActiveChip(null);
@@ -624,9 +641,15 @@ export default function Home() {
     if (currentPlayer.id === originalPlayer.id) return;
 
     const currentCost = currentPlayer.is_empty ? 0 : currentPlayer.cost;
-    const originalSellPrice = originalPlayer.selling_price ?? originalPlayer.cost;
-    const newBank = Math.round((data.bank + currentCost - originalSellPrice) * 10) / 10;
-    const newSquad = data.squad.map((p: any) => p.position === position ? originalPlayer : p);
+    const restoredCost = originalPlayer.purchase_price ?? originalPlayer.cost;
+    const newBank = Math.round((data.bank + currentCost - restoredCost) * 10) / 10;
+    const restoredPlayer = {
+      ...originalPlayer,
+      cost: restoredCost,
+      selling_price: originalPlayer.selling_price ?? originalPlayer.cost,
+      purchase_price: originalPlayer.purchase_price ?? originalPlayer.cost
+    };
+    const newSquad = data.squad.map((p: any) => p.position === position ? restoredPlayer : p);
     
     setData({ ...data, squad: newSquad, bank: newBank });
   };
@@ -637,7 +660,13 @@ export default function Home() {
     if (!oldPlayer) return;
 
     const sellPrice = oldPlayer.is_empty ? 0 : (oldPlayer.selling_price ?? oldPlayer.cost);
-    const newBank = Math.round((data.bank + sellPrice - newPlayer.cost) * 10) / 10;
+    
+    const origPlayer = originalData?.squad?.find((op: any) => op.id === newPlayer.id);
+    const effectiveCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : newPlayer.cost;
+    const effectiveSellingPrice = origPlayer ? (origPlayer.selling_price ?? origPlayer.cost) : newPlayer.cost;
+    const effectivePurchasePrice = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : newPlayer.cost;
+
+    const newBank = Math.round((data.bank + sellPrice - effectiveCost) * 10) / 10;
     
     const upcoming_fixtures = [];
     for (let offset = 0; offset <= 38 - data?.next_gw; offset++) {
@@ -671,22 +700,29 @@ export default function Home() {
       fixture: upcoming_fixtures[0]?.opponent || "Blank",
       fixture_diff: upcoming_fixtures[0]?.difficulty || 5,
       upcoming_fixtures: upcoming_fixtures,
-      selling_price: newPlayer.cost,
-      purchase_price: newPlayer.cost
+      cost: effectiveCost,
+      selling_price: effectiveSellingPrice,
+      purchase_price: effectivePurchasePrice
     });
 
     setData({ ...data, squad: newSquad, bank: newBank });
     setTransferOutId(null);
     setTransferRecs([]); setTransferDecision(null);
     setSearchQuery('');
-    setActiveTab('pitch');
+    setActiveTab(activeTab === 'transfer' ? 'pitch' : 'planner');
   };
 
   const executeVirtualTransfer = (oldPlayerId: number, newPlayer: any) => {
     const oldPlayer = data.squad.find((p: any) => p.id === oldPlayerId);
     if (!oldPlayer) return;
     const sellPrice = oldPlayer.is_empty ? 0 : (oldPlayer.selling_price ?? oldPlayer.cost);
-    const newBank = Math.round((data.bank + sellPrice - newPlayer.cost) * 10) / 10;
+    
+    const origPlayer = originalData?.squad?.find((op: any) => op.id === newPlayer.id);
+    const effectiveCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : newPlayer.cost;
+    const effectiveSellingPrice = origPlayer ? (origPlayer.selling_price ?? origPlayer.cost) : newPlayer.cost;
+    const effectivePurchasePrice = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : newPlayer.cost;
+
+    const newBank = Math.round((data.bank + sellPrice - effectiveCost) * 10) / 10;
     const newSquad = data.squad.filter((p: any) => p.id !== oldPlayer.id);
 
     const upcoming_fixtures = [];
@@ -718,8 +754,9 @@ export default function Home() {
       fixture: upcoming_fixtures[0]?.opponent || "Blank",
       fixture_diff: upcoming_fixtures[0]?.difficulty || 5,
       upcoming_fixtures: upcoming_fixtures,
-      selling_price: newPlayer.cost,
-      purchase_price: newPlayer.cost
+      cost: effectiveCost,
+      selling_price: effectiveSellingPrice,
+      purchase_price: effectivePurchasePrice
     });
     setData({ ...data, squad: newSquad, bank: newBank });
   };
@@ -1761,8 +1798,8 @@ export default function Home() {
                 onVice={handleSetViceCaptain}
                 onReset={handleReset}
                 onClearAll={() => {
-                  const origSquadVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
-                  const totalBudget = (originalData?.bank ?? 0) + (origSquadVal > 0 ? origSquadVal : 100.0);
+                  const origPurchaseVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.purchase_price ?? p.cost ?? 0), 0);
+                  const totalBudget = (originalData?.bank ?? 0) + (origPurchaseVal > 0 ? origPurchaseVal : 100.0);
                   const newSquad = data.squad.map((p: any) => ({
                     ...p,
                     id: p.id > 0 ? -p.id : p.id,
@@ -1771,6 +1808,7 @@ export default function Home() {
                     team: 'TBD',
                     cost: 0,
                     selling_price: 0,
+                    purchase_price: 0,
                     xp: 0,
                     form: 0
                   }));
@@ -1788,7 +1826,7 @@ export default function Home() {
                     const newBank = Math.round((data.bank + sellVal) * 10) / 10;
                     const newSquad = data.squad.map((p: any) => {
                         if (p.id === id) {
-                            return { ...p, id: -Math.abs(id), is_empty: true, name: 'Add Player', team: 'TBD', cost: 0, selling_price: 0, xp: 0, form: 0 };
+                            return { ...p, id: -Math.abs(id), is_empty: true, name: 'Add Player', team: 'TBD', cost: 0, selling_price: 0, purchase_price: 0, xp: 0, form: 0 };
                         }
                         return p;
                     });
@@ -1813,7 +1851,8 @@ export default function Home() {
                         target_gw: targetGw,
                         free_transfers: simulatedFt ?? data.free_transfers,
                         transfers_before: transfersBefore ?? 0,
-                        active_chip: activeChip ?? null
+                        active_chip: activeChip ?? null,
+                        unlimited_budget: true
                         })
                       });
                       const recs = await res.json();
@@ -1942,7 +1981,10 @@ export default function Home() {
                               {isEnglish ? 'Top 3 Smart Recommendations:' : '3 ההמלצות המובילות של המערכת (לפי xP):'}
                             </h4>
                             <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
-                              {transferRecs.slice(0, 3).map((rec, idx) => (
+                              {transferRecs.slice(0, 3).map((rec, idx) => {
+                                const origPlayer = originalData?.squad?.find((op: any) => op.id === rec.id);
+                                const displayCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : rec.cost;
+                                return (
                                 <button 
                                   key={rec.id} 
                                   onClick={() => { executeTransfer(rec); setActiveTab('planner'); }}
@@ -1968,7 +2010,10 @@ export default function Home() {
                                   </div>
                                   <div className={`w-full text-[8px] sm:text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded flex flex-col gap-1 ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
                                       <div className="flex justify-between w-full">
-                                        <span className={textHighlight}>£{rec.cost.toFixed(1)}</span>
+                                        <span className={textHighlight}>
+                                          £{displayCost.toFixed(1)}
+                                          {origPlayer && <span className="ml-1 text-[8px] text-purple-400 font-normal">({isEnglish ? 'Owned' : 'בסגל'})</span>}
+                                        </span>
                                         <span className="text-emerald-500">{rec.xp.toFixed(1)} xP/GW</span>
                                       </div>
                                       <span className={`text-[7px] sm:text-[9px] px-1 py-0.5 rounded text-center text-white ${rec.fixture_diff <= 2 ? 'bg-emerald-500' : rec.fixture_diff === 3 ? 'bg-slate-400' : 'bg-rose-500'}`}>
@@ -1976,7 +2021,8 @@ export default function Home() {
                                       </span>
                                     </div>
                                 </button>
-                              ))}
+                              );
+                            })}
                             </div>
                           </div>
                         )}
@@ -2005,14 +2051,22 @@ export default function Home() {
                               </tr>
                             </thead>
                             <tbody>
-                              {[...(searchQuery === '' ? transferRecs.slice(3) : filteredRecs)].sort((a, b) => b.total_points - a.total_points).map(rec => (
+                              {[...(searchQuery === '' ? transferRecs.slice(3) : filteredRecs)].sort((a, b) => b.total_points - a.total_points).map(rec => {
+                                const origPlayer = originalData?.squad?.find((op: any) => op.id === rec.id);
+                                const displayCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : rec.cost;
+                                return (
                                 <tr key={rec.id} className={`border-b last:border-0 ${isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-200 hover:bg-gray-50'}`}>
                                   <td className="px-3 py-2 font-bold flex items-center gap-2">
                                     <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${rec.team_code}-66.webp`} className="w-6 h-auto" />
                                     <span className={textHighlight}>{rec.name}</span>
+                                    {origPlayer && (
+                                      <span className="text-[10px] bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 px-1.5 py-0.5 rounded font-normal">
+                                        {isEnglish ? 'Owned' : 'בסגל'}
+                                      </span>
+                                    )}
                                   </td>
                                   <td className={`px-3 py-2 text-center text-xs font-bold ${textMuted}`}>{rec.team}</td>
-                                  <td className={`px-3 py-2 text-center font-bold ${textHighlight}`}>£{rec.cost.toFixed(1)}</td>
+                                  <td className={`px-3 py-2 text-center font-bold ${textHighlight}`}>£{displayCost.toFixed(1)}</td>
                                   <td className={`px-3 py-2 text-center font-bold text-blue-500`}>{rec.total_points}</td>
                                   <td className="px-3 py-2 text-center text-emerald-500 font-bold">{rec.xp.toFixed(1)}</td>
                                   <td className="px-3 py-2 text-center">
@@ -2037,12 +2091,13 @@ export default function Home() {
                                     </button>
                                   </td>
                                 </tr>
-                              ))}
+                              );
+                            })}
                             </tbody>
                           </table>
                           {filteredRecs.length === 0 && (
                             <p className="text-red-500 font-bold p-4 text-center">
-                              {isEnglish ? 'No matching players found in your budget.' : 'לא נמצאו שחקנים מתאימים בתקציב שלך.'}
+                              {isEnglish ? 'No matching players found.' : 'לא נמצאו שחקנים מתאימים.'}
                             </p>
                           )}
                         </div>
@@ -2987,10 +3042,10 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
   const selectedGwNumber = data?.next_gw + selectedGwOffset;
   const scheduleForGw = data.schedule?.[selectedGwNumber] || [];
 
-  const origSquadVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
-  const totalBudget = originalData ? ((originalData.bank ?? 0) + (origSquadVal > 0 ? origSquadVal : 100.0)) : ((data?.bank ?? 0) + (data?.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0));
+  const origPurchaseVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.purchase_price ?? p.cost ?? 0), 0);
+  const totalBudget = originalData ? ((originalData.bank ?? 0) + (origPurchaseVal > 0 ? origPurchaseVal : 100.0)) : ((data?.bank ?? 0) + (data?.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0));
   const currentSquadCost = (data?.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0);
-  const remainingBank = Math.round((totalBudget - currentSquadCost) * 10) / 10;
+  const remainingBank = typeof data?.bank === 'number' ? Math.round(data.bank * 10) / 10 : Math.round((totalBudget - currentSquadCost) * 10) / 10;
 
   const originalSquadIds = originalData?.squad.map((p: any) => p.id) || [];
   const transfersMade = data.squad.filter((p: any) => !originalSquadIds.includes(p.id)).length;
