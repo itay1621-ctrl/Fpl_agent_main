@@ -457,6 +457,8 @@ export default function Home() {
                     p.clean_sheets = realP.clean_sheets;
                     p.goals_conceded = realP.goals_conceded;
                     p.xp = realP.xp;
+                    p.prob = realP.prob;
+                    p.reason = realP.reason;
                   }
                   if (typeof window !== 'undefined') {
                      const cachedStatsStr = localStorage.getItem('fpl_stats_cache');
@@ -607,8 +609,11 @@ export default function Home() {
     const originalPlayer = originalData.squad.find((p: any) => p.position === position);
     const currentPlayer = data.squad.find((p: any) => p.position === position);
     if (!originalPlayer || !currentPlayer) return;
+    if (currentPlayer.id === originalPlayer.id) return;
 
-    const newBank = data.bank + currentPlayer.cost - originalPlayer.cost;
+    const currentCost = currentPlayer.cost;
+    const originalSellPrice = originalPlayer.selling_price ?? originalPlayer.cost;
+    const newBank = data.bank + currentCost - originalSellPrice;
     const newSquad = data.squad.map((p: any) => p.position === position ? originalPlayer : p);
     
     setData({ ...data, squad: newSquad, bank: newBank });
@@ -619,7 +624,8 @@ export default function Home() {
     const oldPlayer = data.squad.find((p: any) => p.id === transferOutId);
     if (!oldPlayer) return;
 
-    const newBank = data.bank + oldPlayer.cost - newPlayer.cost;
+    const sellPrice = oldPlayer.selling_price ?? oldPlayer.cost;
+    const newBank = data.bank + sellPrice - newPlayer.cost;
     
     const upcoming_fixtures = [];
     for (let offset = 0; offset <= 38 - data?.next_gw; offset++) {
@@ -652,7 +658,9 @@ export default function Home() {
       is_vice_captain: oldPlayer.is_vice_captain,
       fixture: upcoming_fixtures[0]?.opponent || "Blank",
       fixture_diff: upcoming_fixtures[0]?.difficulty || 5,
-      upcoming_fixtures: upcoming_fixtures
+      upcoming_fixtures: upcoming_fixtures,
+      selling_price: newPlayer.cost,
+      purchase_price: newPlayer.cost
     });
 
     setData({ ...data, squad: newSquad, bank: newBank });
@@ -665,7 +673,8 @@ export default function Home() {
   const executeVirtualTransfer = (oldPlayerId: number, newPlayer: any) => {
     const oldPlayer = data.squad.find((p: any) => p.id === oldPlayerId);
     if (!oldPlayer) return;
-    const newBank = data.bank + oldPlayer.cost - newPlayer.cost;
+    const sellPrice = oldPlayer.selling_price ?? oldPlayer.cost;
+    const newBank = data.bank + sellPrice - newPlayer.cost;
     const newSquad = data.squad.filter((p: any) => p.id !== oldPlayer.id);
 
     const upcoming_fixtures = [];
@@ -696,7 +705,9 @@ export default function Home() {
       is_vice_captain: oldPlayer.is_vice_captain,
       fixture: upcoming_fixtures[0]?.opponent || "Blank",
       fixture_diff: upcoming_fixtures[0]?.difficulty || 5,
-      upcoming_fixtures: upcoming_fixtures
+      upcoming_fixtures: upcoming_fixtures,
+      selling_price: newPlayer.cost,
+      purchase_price: newPlayer.cost
     });
     setData({ ...data, squad: newSquad, bank: newBank });
   };
@@ -709,7 +720,7 @@ export default function Home() {
       if (playerToSell) {
         setLoadingRecs(true);
         try {
-          const budget = data.bank + playerToSell.cost;
+          const budget = data.bank + (playerToSell.selling_price ?? playerToSell.cost);
           const currentSquadIds = data.squad.map((p: any) => p.id);
           const res = await fetch(`${API_BASE_URL}/api/transfer-lab`, {
             method: 'POST',
@@ -1760,7 +1771,7 @@ export default function Home() {
                 onSell={async (   id: number,   targetGw?: number,   removeOnly: boolean = false,   simulatedFt?: number,   transfersBefore?: number ) => {
                   const playerToSell = data.squad.find((p: any) => p.id === id);
                   if (playerToSell && removeOnly) {
-                    const newBank = data.bank + playerToSell.cost;
+                    const newBank = data.bank + (playerToSell.selling_price ?? playerToSell.cost);
                     const newSquad = data.squad.map((p: any) => {
                         if (p.id === id) {
                             return { ...p, id: -id, is_empty: true, name: 'Add Player', team: 'TBD', cost: 0, xp: 0, form: 0 };
@@ -1774,7 +1785,7 @@ export default function Home() {
                   setTransferOutId(id);
                   if (playerToSell) {
                     setLoadingRecs(true);
-                    const budget = data.bank + playerToSell.cost;
+                    const budget = data.bank + (playerToSell.selling_price ?? playerToSell.cost);
                     const currentSquadIds = data.squad.filter((p: any) => !p.is_empty).map((p: any) => p.id > 0 ? p.id : -p.id);
                     try {
                       const res = await fetch(`${API_BASE_URL}/api/transfer-lab`, {
@@ -1811,7 +1822,7 @@ export default function Home() {
                     <div className="flex justify-between items-center mb-4">
                 <div className="flex flex-col-reverse sm:flex-row justify-between items-start sm:items-center w-full mb-4">
                   <div className={`text-base sm:text-lg font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'} bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 mt-2 sm:mt-0`}>
-                    {isEnglish ? 'Available Budget:' : 'תקציב פנוי:'} £{((data?.bank || 0) + (data?.squad?.find((p: any) => p.id === transferOutId)?.cost || 0)).toFixed(1)}M
+                    {isEnglish ? 'Available Budget:' : 'תקציב פנוי:'} £{((data?.bank || 0) + (data?.squad?.find((p: any) => p.id === transferOutId)?.selling_price ?? data?.squad?.find((p: any) => p.id === transferOutId)?.cost ?? 0)).toFixed(1)}M
                   </div>
                   <h2 className={`text-xl sm:text-3xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'} text-right flex items-center justify-end gap-2`}>
                         <span>🧪</span> {isEnglish ? 'Transfer Lab (Planner Mode)' : 'מעבדת העברות (מצב מתכנן)'}
@@ -2698,7 +2709,22 @@ function EliteRadarTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, 
         isEnglish ? 'DIFFERENTIALS (Hidden Gems)' : 'שחקנים דיפרנציאליים (פנינים נסתרות)', 
         isEnglish ? 'High potential players owned by less than 10% of managers. Great for jumping up the ranks.' : 'שחקנים עם פוטנציאל גבוה שאחוזי הבעלות עליהם נמוכים מ-10%. מצוינים כדי לעקוף מתחרים בליגות.'
       )}
-      {selectedPlayerModalId2 && <PlayerInfoModal playerId={selectedPlayerModalId2} onClose={() => setSelectedPlayerModalId2(null)} isDarkMode={isDarkMode} isEnglish={isEnglish} teams={{}} />}
+      {selectedPlayerModalId2 && (
+        <PlayerInfoModal
+          playerId={selectedPlayerModalId2}
+          preloadedPlayer={
+            [
+              ...(radarData?.hot_form || []),
+              ...(radarData?.scout_picks || []),
+              ...(radarData?.differentials || [])
+            ].find((p: any) => p.id === selectedPlayerModalId2)
+          }
+          onClose={() => setSelectedPlayerModalId2(null)}
+          isDarkMode={isDarkMode}
+          isEnglish={isEnglish}
+          teams={data?.teams || radarData?.teams || {}}
+        />
+      )}
     </div>
   );
 }
@@ -2732,7 +2758,7 @@ function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, te
           }
 
           if (reason) {
-            const budget = data.bank + (sp.cost || 0);
+            const budget = data.bank + (sp.selling_price ?? sp.cost ?? 0);
             
             const promise = fetch(`${API_BASE_URL}/api/transfer-lab`, {
               method: 'POST',
@@ -3572,7 +3598,7 @@ function PlayerInfoModal({ playerId, preloadedPlayer, onClose, onTransferAction,
                   </div>
                   <div className={`p-2 rounded-lg ${cardBg}`}>
                     <span className="block text-[10px] uppercase font-bold text-gray-400">Fitness</span>
-                    <span className={`font-black text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{preloadedPlayer.prob ? `${(preloadedPlayer.prob * 100).toFixed(0)}%` : 'N/A'}</span>
+                    <span className={`font-black text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{preloadedPlayer.prob !== undefined && preloadedPlayer.prob !== null ? `${(preloadedPlayer.prob * 100).toFixed(0)}%` : 'N/A'}</span>
                   </div>
                 </div>
                 {preloadedPlayer.reason && (

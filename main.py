@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict
-from fpl_api import fetch_bootstrap, fetch_user_team, fetch_fixtures, fetch_all_fixtures
+from fpl_api import fetch_bootstrap, fetch_user_team, fetch_fixtures, fetch_all_fixtures, calculate_player_prices
 import math
 import requests
 import os
@@ -60,10 +60,10 @@ DEFAULT_WEIGHTS = {
 # --- DECISION ENGINE LAYER ---
 def decision_engine_score(c):
     score = c["xp"]
-    if "Rotation Risk / Bench" in c.get("reason", ""):
-        score *= 0.75
     if "Low (Minutes Uncertainty)" in c.get("confidence", ""):
         score *= 0.60
+    elif "Rotation Risk / Bench" in c.get("reason", ""):
+        score *= 0.75
     return score
 
 import datetime
@@ -88,6 +88,26 @@ def log_prediction(player_id, player_name, gw, xp, context, recommendation=""):
             f.write(json.dumps(entry) + "\n")
     except Exception as e:
         print(f"Failed to log prediction: {e}")
+
+def calculate_poisson_xsave(lambda_val: float) -> float:
+    """
+    Computes expected FPL goalkeeper save points:
+    E[floor(S / 3)] where S ~ Poisson(lambda_val).
+    Equivalently: sum_{k=3}^60 floor(k / 3) * P(S = k).
+    Uses a numerically stable recurrence avoiding large factorials or exponents.
+    """
+    if lambda_val <= 0.0 or math.isnan(lambda_val) or math.isinf(lambda_val):
+        return 0.0
+    prob = math.exp(-lambda_val)
+    expected_save_pts = 0.0
+    for k in range(1, 61):
+        prob *= lambda_val / k
+        if k >= 3:
+            pts = k // 3
+            expected_save_pts += pts * prob
+        if prob < 1e-12 and k > lambda_val:
+            break
+    return expected_save_pts
 
 def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weights=None):
     if weights is None:
@@ -153,12 +173,17 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     xa_90 *= form_multiplier
 
     # FPL Rule 2024/2025: Defensive Contributions points
-    # Defenders need 10 actions, Mid/Fwd need 12 actions for +2 points.
+    # Goalkeepers do NOT earn Defensive Contribution points (FPL Rule).
+    # Defenders need 10 actions (CBIT), Mid/Fwd need 12 actions (CBIRT) for +2 points.
     import math
-    defcon_threshold = 10 if pos_code == 2 else 12
-    defcon_std = max(defcon_90 * 0.35, 1.0)
-    z = (defcon_90 - defcon_threshold) / defcon_std
-    prob_cross_threshold = 1 / (1 + math.exp(-1.7 * z)) if defcon_90 > 0 else 0
+    if pos_code == 1:
+        xDefcon_90 = 0.0
+    else:
+        defcon_threshold = 10 if pos_code == 2 else 12
+        defcon_std = max(defcon_90 * 0.35, 1.0)
+        z = (defcon_90 - defcon_threshold) / defcon_std
+        prob_cross_threshold = 1 / (1 + math.exp(-1.7 * z)) if defcon_90 > 0 else 0
+        xDefcon_90 = prob_cross_threshold * 2.0
     
     goal_pts = {1: 6, 2: 6, 3: 5, 4: 4}.get(pos_code, 4)
     assist_pts = 3
@@ -166,10 +191,7 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     xAtt_90 = (xg_90 * goal_pts) + (xa_90 * assist_pts)
     cs_pts = {1: 4, 2: 4, 3: 1, 4: 0}.get(pos_code, 0)
     cs_prob_90 = math.exp(-xgc_90) if xgc_90 > 0 else 0.5
-    xSave_90 = (float(p.get("saves_per_90", 0) or 0) / 3.0) * 1 if pos_code == 1 else 0
-    
-    # 2 points awarded for crossing Defensive Contribution threshold
-    xDefcon_90 = prob_cross_threshold * 2.0
+    saves_per_90 = float(p.get("saves_per_90", 0) or 0) if pos_code == 1 else 0.0
     
     gw_range = min(5, 38 - next_gw + 1)
     
@@ -221,27 +243,71 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
             
             # Clean sheet
             match_xgc = (xgc_90 * (dyn_expected_minutes / 90.0)) / def_multiplier
-            match_cs_prob = math.exp(-match_xgc) if match_xgc > 0 else 0.5
-            match_xDef = match_cs_prob * cs_pts
+            team_match_xgc = (
+                xgc_90 / def_multiplier
+                if def_multiplier > 0
+                else xgc_90
+            )
+            team_cs_prob = (
+                math.exp(-team_match_xgc)
+                if team_match_xgc > 0
+                else 0.5
+            )
+            prob_60_mins = (
+                max(
+                    0.0,
+                    min(
+                        1.0,
+                        (dyn_expected_minutes - 30.0) / 60.0
+                    )
+                )
+                if dyn_expected_minutes > 30
+                else 0.0
+            )
+            match_xDef = prob_60_mins * team_cs_prob * cs_pts
             
-            match_xSave = xSave_90 * (dyn_expected_minutes / 90.0) * def_multiplier
+            # Goalkeeper Expected Saves (Poisson model: E[floor(S / 3)])
+            match_lambda_saves = (
+                saves_per_90 * (dyn_expected_minutes / 90.0) * def_multiplier
+                if (pos_code == 1 and dyn_expected_minutes > 0)
+                else 0.0
+            )
+            match_xSave = calculate_poisson_xsave(match_lambda_saves)
             match_xDefcon = xDefcon_90 * (dyn_expected_minutes / 90.0)
+            
+            match_gc_penalty = 0.0
+            if pos_code in [1, 2] and match_xgc > 0:
+                match_gc_penalty = -(
+                    (match_xgc / 2.0)
+                    - (1.0 - math.exp(-2.0 * match_xgc)) / 4.0
+                )
             
             appearance_pts = 0
             if dyn_expected_minutes >= 60: appearance_pts = 2 * current_cop
             elif dyn_expected_minutes > 0: appearance_pts = 1 * current_cop
             
-            gw_proj += match_xAtt + match_xDef + match_xSave + match_xDefcon + appearance_pts
+            gw_proj += (
+                match_xAtt
+                + match_xDef
+                + match_xSave
+                + match_xDefcon
+                + match_gc_penalty
+                + appearance_pts
+            )
             
         total_5gw_projection += gw_proj
         
     total_5gw_projection = max(0.0, total_5gw_projection)
     
     # Confidence metrics based on uncertainty
+    past_gws = max(0, (next_gw or 1) - 1)
+    available_minutes_so_far = past_gws * 90
+    minutes_ratio = (total_mins / available_minutes_so_far) if available_minutes_so_far > 0 else 0.0
+
     confidence = "Medium"
     if availability_prob < 0.9 or expected_minutes < 45:
         confidence = "Low (Minutes Uncertainty)"
-    elif total_mins > 500 and availability_prob == 1.0 and fixtures_found >= gw_range:
+    elif minutes_ratio >= 0.75 and availability_prob == 1.0 and fixtures_found >= gw_range:
         confidence = "High (Nailed Starter)"
         
     reasons = []
@@ -278,6 +344,14 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         "news": p.get("news", ""),
         "xg": float(p.get("expected_goals", 0) or 0),
         "xa": float(p.get("expected_assists", 0) or 0),
+        "expected_goals": float(p.get("expected_goals", 0) or 0),
+        "expected_assists": float(p.get("expected_assists", 0) or 0),
+        "expected_goals_conceded": float(p.get("expected_goals_conceded", 0) or 0),
+        "xgc": float(p.get("expected_goals_conceded", 0) or 0),
+        "defensive_contribution": p.get("defensive_contribution_per_90", 0.0),
+        "clean_sheets": p.get("clean_sheets", 0),
+        "goals_conceded": p.get("goals_conceded", 0),
+        "minutes": p.get("minutes", 0),
         "expected_minutes": round(expected_minutes, 1),
         "start_probability": round(base_cop * 100, 1)
     }
@@ -340,12 +414,16 @@ def get_dashboard_data(team_id: int):
         teams = ctx["teams"]
 
         picks, bank, team_name, rank, chips_used, leagues, free_transfers = fetch_user_team(team_id, next_gw)
+        player_prices = calculate_player_prices(team_id, picks, elements, next_gw)
 
         enriched_picks = []
         for pick in picks:
             player = elements.get(pick["element"])
             if player:
                 proj = calculate_player_projection(player, next_gw, upcoming_fixtures_raw, teams)
+                prices = player_prices.get(player["id"], {})
+                selling_price = prices.get("selling_price", player["now_cost"] / 10)
+                purchase_price = prices.get("purchase_price", player["now_cost"] / 10)
                 
                 upcoming_fixtures = []
                 for gw_inc in range(gw_range):
@@ -375,10 +453,14 @@ def get_dashboard_data(team_id: int):
                     "pos_code": player["element_type"],
                     "position": pick.get("position"),
                     "cost": player["now_cost"] / 10,
+                    "selling_price": selling_price,
+                    "purchase_price": purchase_price,
                     "is_captain": pick.get("is_captain", False),
                     "is_vice_captain": pick.get("is_vice_captain", False),
                     "multiplier": pick.get("multiplier", 1),
                     "xp": proj["xp"],
+                    "prob": proj.get("prob", 1.0),
+                    "reason": proj.get("reason", ""),
                     "form": float(player.get("form", 0) or 0),
                     "chance_of_playing": player.get("chance_of_playing_next_round"),
                     "news": player.get("news"),
@@ -666,7 +748,8 @@ def get_radar():
         return {
             "scout_picks": scout_picks,
             "hot_form": hot_form,
-            "differentials": differentials
+            "differentials": differentials,
+            "teams": teams
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -706,7 +789,7 @@ def get_budget_scenarios(team_id: int):
                 reason = "Tough Upcoming Run (Low 5GW Projection)"
                 
             if reason:
-                budget = bank + sp["cost"]
+                budget = bank + sp.get("selling_price", sp["cost"])
                 candidates = [p for p in all_players if p["pos_code"] == sp["pos_code"] and p["id"] not in current_squad_ids and p["cost"] <= budget]
                 
                 candidates = sorted(candidates, key=decision_engine_score, reverse=True)
