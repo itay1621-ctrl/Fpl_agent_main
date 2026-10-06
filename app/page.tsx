@@ -149,13 +149,13 @@ export default function Home() {
   const [originalData, setOriginalData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [swapSourceId, setSwapSourceId] = useState<number | null>(null);
   const [actionPlayer, setActionPlayer] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'pitch' | 'transfer' | 'planner' | 'analysis' | 'radar' | 'budget' | 'drafts' | 'leagues' | 'tips'>('planner');
   const [appAlert, setAppAlert] = useState<string | null>(null);
   const [activeChip, setActiveChip] = useState<string | null>(null);
-  
+
   const [transferOutId, setTransferOutId] = useState<number | null>(null);
   const [transferRecs, setTransferRecs] = useState<any[]>([]);
   const [transferDecision, setTransferDecision] = useState<any>(null);
@@ -163,6 +163,7 @@ export default function Home() {
   const [loadingRecs, setLoadingRecs] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [transferError, setTransferError] = useState('');
+  const [allowOverBudget, setAllowOverBudget] = useState(true);
 
   // חדש: מצב כהה ושפות
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -183,20 +184,20 @@ export default function Home() {
     const origSellingVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
     const maxOrigVal = Math.max(origPurchaseVal, origSellingVal);
     const origBudget = Math.max(100.0, Math.round(((originalData?.bank ?? 0) + maxOrigVal) * 10) / 10);
-    
+
     const draftTotalCost = (draftData.squad || []).reduce((acc: number, p: any) => {
       const origPlayer = originalData?.squad?.find((op: any) => op.id === p.id);
       const playerCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : (p.now_cost ? p.now_cost / 10 : (p.cost || 0));
       return acc + playerCost;
     }, 0);
     const calculatedBank = Math.round((origBudget - draftTotalCost) * 10) / 10;
-    
+
     const sortedSquad = [...draftData.squad].sort((a: any, b: any) => b.xp - a.xp);
     const starters: any[] = [];
     const bench: any[] = [];
     const posCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
     const mins = { 1: 1, 2: 3, 3: 2, 4: 1 };
-    
+
     for (let pos = 1; pos <= 4; pos++) {
        let needed = (mins as any)[pos];
        const playersInPos = sortedSquad.filter(p => p.element_type === pos);
@@ -220,9 +221,9 @@ export default function Home() {
     }
     const benchGkp = bench.filter(p => p.element_type === 1);
     const benchOutfield = bench.filter(p => p.element_type !== 1).sort((a:any, b:any) => b.now_cost - a.now_cost);
-    
+
     const finalStarters = starters.sort((a:any, b:any) => a.element_type - b.element_type);
-    
+
     // Highest XP player in starters becomes captain
     const capId = [...finalStarters].sort((a:any,b:any)=>b.xp - a.xp)[0]?.id;
     const viceId = [...finalStarters].sort((a:any,b:any)=>b.xp - a.xp)[1]?.id;
@@ -262,43 +263,43 @@ export default function Home() {
 
   useEffect(() => {
     if (!data || !data.schedule || !data.schedule[data?.next_gw] || data.schedule[data?.next_gw].length === 0) return;
-    
+
     // Sort matches to find the earliest kickoff
     const matches = [...data.schedule[data?.next_gw]].sort((a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime());
     const firstMatchTime = new Date(matches[0].time);
-    
+
     if (isNaN(firstMatchTime.getTime())) {
       setCountdown("Time unknown");
       return;
     }
-    
+
     // FPL deadline is 90 mins before the first match
     const deadline = new Date(firstMatchTime.getTime() - 90 * 60000);
 
     const updateTimer = () => {
       const now = new Date();
       const diff = deadline.getTime() - now.getTime();
-      
+
       if (diff <= 0) {
         setCountdown("Deadline Passed");
         setIsUrgent(true);
         return;
       }
-      
+
       setIsUrgent(diff <= 2 * 60 * 60 * 1000);
-      
+
       const d = Math.floor(diff / (1000 * 60 * 60 * 24));
       const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const m = Math.floor((diff / 1000 / 60) % 60);
       const s = Math.floor((diff / 1000) % 60);
-      
+
       const parts = [];
       if (d > 0) parts.push(`${d}d`);
       parts.push(`${h}h`, `${m}m`, `${s}s`);
-      
+
       setCountdown(parts.join(' '));
     };
-    
+
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
@@ -359,9 +360,9 @@ export default function Home() {
       teamWord: "Team:"
     }
   };
-  
+
   const t = isEnglish ? dict.en : dict.he;
-  
+
   // צבעי המערכת בהתאם למצב (Dark/Light)
   const bgMain = isDarkMode ? "bg-gray-900 text-gray-100" : "bg-[#f8f9fa] text-gray-900";
   const bgCard = isDarkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900";
@@ -383,7 +384,7 @@ export default function Home() {
       const res = await fetch(`${API_BASE_URL}/api/dashboard/${idToFetch}?t=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error(isEnglish ? 'Team ID not found or FPL API is currently down. Please verify your ID.' : 'מזהה הקבוצה לא נמצא, או ששרתי FPL למטה. אנא ודא שה-ID נכון.');
       const result = await res.json();
-      
+
       // Fix missing position property by using the array index (FPL API returns them in order)
       if (result.squad && result.squad.length > 0) {
         result.squad.forEach((p: any, index: number) => {
@@ -395,7 +396,7 @@ export default function Home() {
                                 p.fixture = p.upcoming_fixtures[0].opponent;
                     p.fixture_diff = p.upcoming_fixtures[0].difficulty;
                   }
-                  
+
                   const realP = result.squad?.find((rp: any) => rp.id === p.id);
                   if (realP) {
                     p.form = realP.form;
@@ -444,7 +445,7 @@ export default function Home() {
 
       setOriginalData(JSON.parse(JSON.stringify(result)));
       if (idToFetch !== '3450961') localStorage.setItem('fpl_team_id', idToFetch);
-      
+
       const savedPlanStr = localStorage.getItem(`fpl_plan_${idToFetch}`);
       if (savedPlanStr) {
         try {
@@ -462,7 +463,7 @@ export default function Home() {
                                       p.fixture = p.upcoming_fixtures[0].opponent;
                     p.fixture_diff = p.upcoming_fixtures[0].difficulty;
                   }
-                  
+
                   const realP = result.squad?.find((rp: any) => rp.id === p.id);
                   if (realP) {
                     p.chance_of_playing = realP.chance_of_playing;
@@ -609,7 +610,7 @@ export default function Home() {
     } else {
       setInitLoading(false);
     }
-    
+
     const interval = setInterval(() => {
       setTipIndex(prev => (prev + 1) % FPL_SUCCESS_TIPS.length);
     }, 6000);
@@ -669,7 +670,7 @@ export default function Home() {
       return orig && !p.is_empty;
     });
     const finalBank = isAllOriginal ? (originalData.bank ?? 0) : newBank;
-    
+
     setData({ ...data, squad: newSquad, bank: finalBank });
   };
 
@@ -679,14 +680,14 @@ export default function Home() {
     if (!oldPlayer) return;
 
     const sellPrice = oldPlayer.is_empty ? 0 : (oldPlayer.selling_price ?? oldPlayer.cost);
-    
+
     const origPlayer = originalData?.squad?.find((op: any) => op.id === newPlayer.id);
     const effectiveCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : newPlayer.cost;
     const effectiveSellingPrice = origPlayer ? (origPlayer.selling_price ?? origPlayer.cost) : newPlayer.cost;
     const effectivePurchasePrice = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : newPlayer.cost;
 
     const newBank = Math.round((data.bank + sellPrice - effectiveCost) * 10) / 10;
-    
+
     const upcoming_fixtures = [];
     for (let offset = 0; offset <= 38 - data?.next_gw; offset++) {
       const gw = data?.next_gw + offset;
@@ -710,7 +711,7 @@ export default function Home() {
 
     setTransferError('');
     const newSquad = data.squad.filter((p: any) => p.id !== oldPlayer.id);
-    
+
     newSquad.push({
       ...newPlayer,
       position: oldPlayer.position,
@@ -723,6 +724,7 @@ export default function Home() {
       selling_price: effectiveSellingPrice,
       purchase_price: effectivePurchasePrice
     });
+    newSquad.sort((a: any, b: any) => a.position - b.position);
 
     setData({ ...data, squad: newSquad, bank: newBank });
     setTransferOutId(null);
@@ -735,7 +737,7 @@ export default function Home() {
     const oldPlayer = data.squad.find((p: any) => p.id === oldPlayerId);
     if (!oldPlayer) return;
     const sellPrice = oldPlayer.is_empty ? 0 : (oldPlayer.selling_price ?? oldPlayer.cost);
-    
+
     const origPlayer = originalData?.squad?.find((op: any) => op.id === newPlayer.id);
     const effectiveCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : newPlayer.cost;
     const effectiveSellingPrice = origPlayer ? (origPlayer.selling_price ?? origPlayer.cost) : newPlayer.cost;
@@ -777,6 +779,7 @@ export default function Home() {
       selling_price: effectiveSellingPrice,
       purchase_price: effectivePurchasePrice
     });
+    newSquad.sort((a: any, b: any) => a.position - b.position);
     setData({ ...data, squad: newSquad, bank: newBank });
   };
 
@@ -795,12 +798,14 @@ export default function Home() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
              pos_code: playerToSell.pos_code,
-             max_budget: budget,
+             max_budget: allowOverBudget ? 100.0 : budget,
+             actual_budget: budget,
              current_squad_ids: currentSquadIds,
              transfer_out_id: playerToSell.id,
              free_transfers: data.free_transfers,
              transfers_before: 0,
-             active_chip: activeChip ?? null
+             active_chip: activeChip ?? null,
+             unlimited_budget: allowOverBudget
             })
           });
           const recs = await res.json();
@@ -823,7 +828,7 @@ export default function Home() {
   const totalXP = starters.reduce((acc: number, p: any) => { let mult = p.multiplier || 1; if (activeChip === '3xc' && p.is_captain) mult = 3; return acc + (p.xp * mult); }, 0);
   const avgFDR = starters.reduce((acc: number, p: any) => acc + (p.fixture_diff || 3), 0) / (starters.length || 1);
   const avgForm = starters.reduce((acc: number, p: any) => acc + (p.form || 0), 0) / (starters.length || 1);
-  
+
   const injuryPenalty = starters.reduce((acc: number, p: any) => {
     if (p.prob === 0) return acc + 6;
     if (p.prob !== null && p.prob !== undefined && p.prob < 1) return acc + 3;
@@ -832,7 +837,7 @@ export default function Home() {
 
   const rawScore = (totalXP * 1.25) + (avgForm * 2.0) + ((3.0 - avgFDR) * 8) - injuryPenalty;
   const calculatedSquadScore = Math.min(99, Math.max(10, Math.round(rawScore)));
-  
+
   const currentCaptain = data?.squad.find((p: any) => p.is_captain);
   const currentVice = data?.squad.find((p: any) => p.is_vice_captain);
 
@@ -863,7 +868,7 @@ export default function Home() {
       const newSquad = [...data.squad];
       const p1 = newSquad.find((p: any) => p.id === swapSourceId);
       const p2 = newSquad.find((p: any) => p.id === playerId);
-      
+
       if (p1 && p2) {
         let isValid = true;
         if (p1.pos_code !== p2.pos_code) {
@@ -872,24 +877,24 @@ export default function Home() {
           } else {
             const p1Pitch = p1.position <= 11;
             const p2Pitch = p2.position <= 11;
-            
+
             if (p1Pitch !== p2Pitch) {
               const leaving = p1Pitch ? p1 : p2;
               const entering = p1Pitch ? p2 : p1;
-              
+
               const pitchAfter = newSquad.filter((p: any) => p.position <= 11 && p.id !== leaving.id);
               pitchAfter.push(entering);
-              
+
               const defs = pitchAfter.filter((p: any) => p.pos_code === 2).length;
               const fwds = pitchAfter.filter((p: any) => p.pos_code === 4).length;
-              
+
               if (defs < 3 || fwds < 1) {
                 isValid = false;
               }
             }
           }
         }
-        
+
         if (!isValid) {
           setAppAlert(isEnglish ? "Invalid formation! FPL rules require 1 GK, at least 3 Defenders, and at least 1 Forward." : "חילוף לא חוקי! לפי חוקי הפנטזי חובה להציב שוער 1, לפחות 3 שחקני הגנה, ולפחות חלוץ 1.");
           setSwapSourceId(null);
@@ -927,7 +932,7 @@ export default function Home() {
     } else {
       if (oldCap) oldCap.is_captain = false;
     }
-    
+
     newCap.is_captain = true;
     newSquad.forEach((p: any) => p.multiplier = 1);
     const finalCap = newSquad.find((p: any) => p.is_captain);
@@ -952,18 +957,28 @@ export default function Home() {
     } else {
       if (oldVice) oldVice.is_vice_captain = false;
     }
-    
+
     newVice.is_vice_captain = true;
     setData({ ...data, squad: newSquad });
   };
 
-  const filteredRecs = transferRecs.filter(p => 
+  const affordableRecs = transferRecs.filter(p => {
+    if (allowOverBudget) return true;
+    const playerToSell = data?.squad?.find((sp: any) => sp.id === transferOutId);
+    const sellPrice = playerToSell?.is_empty ? 0 : (playerToSell?.selling_price ?? playerToSell?.cost ?? 0);
+    const budget = Math.round(((data?.bank ?? 0) + sellPrice) * 10) / 10;
+    const origPlayer = originalData?.squad?.find((op: any) => op.id === p.id);
+    const effectiveCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : p.cost;
+    return effectiveCost <= budget;
+  });
+
+  const filteredRecs = affordableRecs.filter(p =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.team.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
 
-  
+
   const renderFeedbackButton = () => {
     if (!showFeedback) return null;
     return (
@@ -976,7 +991,7 @@ export default function Home() {
           <span className="text-xl">💬</span>
           <span className="hidden sm:inline">{isEnglish ? 'Feedback' : 'פידבק'}</span>
         </a>
-        <button 
+        <button
           onClick={() => setShowFeedback(false)}
           className="bg-gray-800/80 hover:bg-gray-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md transition-colors border border-white/40 absolute -top-1 -left-2 md:-left-2"
           title={isEnglish ? 'Dismiss' : 'הסתר'}
@@ -987,11 +1002,11 @@ export default function Home() {
     );
   };
 
-  
+
   const handleSharePitch = async (elementId: string, title: string) => {
     const element = document.getElementById(elementId);
     if (!element) return;
-    
+
     const watermark = document.createElement('div');
     watermark.innerHTML = 'Generated by FPL AI Agent<br/><span style="font-size:10px">fpl-agent-main-five.vercel.app</span>';
     watermark.className = 'absolute bottom-2 left-2 text-white/70 font-black text-xs text-left z-50 pointer-events-none drop-shadow-md bg-black/30 p-2 rounded';
@@ -999,16 +1014,16 @@ export default function Home() {
     element.appendChild(watermark);
 
     try {
-        const canvas = await html2canvas(element, { 
-            scale: 2, 
-            useCORS: true, 
+        const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
             backgroundColor: isDarkMode ? '#111827' : '#f9fafb'
         });
-        
+
         canvas.toBlob(async (blob) => {
             if (!blob) return;
             const file = new File([blob], `fpl_${title}.png`, { type: 'image/png' });
-            
+
             if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
                     await navigator.share({
@@ -1044,8 +1059,8 @@ export default function Home() {
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-purple-600/20 via-pink-600/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="absolute top-4 right-4 flex items-center gap-3 z-50">
-          <button 
-            onClick={() => setIsEnglish(!isEnglish)} 
+          <button
+            onClick={() => setIsEnglish(!isEnglish)}
             className="text-xs sm:text-sm font-bold px-3 py-1.5 rounded-lg border border-white/30 text-white hover:bg-white/20 transition-all backdrop-blur-sm"
           >
             {isEnglish ? 'עברית' : 'English'}
@@ -1074,7 +1089,7 @@ export default function Home() {
           </h1>
 
           <p className="text-sm sm:text-base text-gray-300 mb-6 leading-relaxed max-w-md">
-            {isEnglish 
+            {isEnglish
               ? "We are currently deploying major improvements to our AI models, transfer algorithms, and server infrastructure. The platform will be back online shortly!"
               : "אנו מבצעים כעת שדרוג מקיף למנוע ה-AI, מודלי החיזוי ותשתיות השרתים כדי להביא לכם ביצועים מהירים והמלצות חדות ומדויקות יותר. האתר יחזור לפעילות מלאה בהקדם!"}
           </p>
@@ -1114,8 +1129,8 @@ export default function Home() {
             </button>
           </div>
 
-          <button 
-            onClick={() => setShowAdminBypassModal(true)} 
+          <button
+            onClick={() => setShowAdminBypassModal(true)}
             className="text-xs text-white/40 hover:text-white/80 transition-colors underline"
           >
             🔒 {isEnglish ? 'Admin Access' : 'כניסת מנהל'}
@@ -1125,8 +1140,8 @@ export default function Home() {
         {showAdminBypassModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
             <div className="bg-[#240028] border border-white/20 p-6 rounded-2xl w-full max-w-sm text-start shadow-2xl relative">
-              <button 
-                onClick={() => { setShowAdminBypassModal(false); setAdminPassError(''); }} 
+              <button
+                onClick={() => { setShowAdminBypassModal(false); setAdminPassError(''); }}
                 className="absolute top-4 right-4 text-white/60 hover:text-white text-lg font-bold"
               >
                 ✕
@@ -1135,7 +1150,7 @@ export default function Home() {
                 <span>🔒</span> {isEnglish ? 'Admin Bypass' : 'עקיפת מנהל'}
               </h3>
               <p className="text-xs text-gray-300 mb-4">
-                {isEnglish 
+                {isEnglish
                   ? 'Enter admin passcode to preview and test the site while maintenance is active.'
                   : 'הזן סיסמת מנהל כדי לצפות באתר ולבדוק אותו בזמן שמצב תחזוקה פעיל.'}
               </p>
@@ -1203,8 +1218,8 @@ export default function Home() {
       {isMaintenance && isBypassed && (
         <div className="bg-purple-900 text-purple-200 px-4 py-1.5 text-xs font-bold flex items-center justify-between sticky top-0 z-50 border-b border-purple-700">
           <span>🛡️ {isEnglish ? 'Admin Bypass Active — Site is in Maintenance for regular users' : 'מצב עקיפת מנהל פעיל — האתר מוצג במצב תחזוקה לגולשים רגילים'}</span>
-          <button 
-            onClick={() => { localStorage.removeItem('fpl_maintenance_bypass'); setIsBypassed(false); }} 
+          <button
+            onClick={() => { localStorage.removeItem('fpl_maintenance_bypass'); setIsBypassed(false); }}
             className="bg-purple-700 hover:bg-purple-600 text-white px-2 py-0.5 rounded text-[11px] transition-colors"
           >
             {isEnglish ? 'Exit Bypass' : 'יציאה מעקיפה'}
@@ -1217,7 +1232,7 @@ export default function Home() {
           <div className="flex items-center gap-2 mx-auto">
             <span className="text-base animate-pulse">⚠️</span>
             <span>
-              {maintenanceBanner === 'true' 
+              {maintenanceBanner === 'true'
                 ? (isEnglish ? 'System Maintenance in progress: We are upgrading our AI models and servers. Some data may be temporarily updating.' : 'שדרוג מערכת בפעולה: אנחנו משדרגים כעת את מנוע ה-AI והשרתים. חלק מהנתונים והתחזיות עשויים להיות בתהליך עדכון.')
                 : maintenanceBanner}
             </span>
@@ -1229,16 +1244,16 @@ export default function Home() {
       {renderInfoPopup()}
       {renderFeedbackButton()}
       <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={(id:number) => { handleSwapClick(id); setActionPlayer(null); }} onCaptain={(id:number) => { handleSetCaptain(id); setActionPlayer(null); }} onVice={(id:number) => { handleSetViceCaptain(id); setActionPlayer(null); }} onShowInfo={(id:number) => { const p = data?.squad?.find((x:any) => x.id === id) || originalData?.squad?.find((x:any) => x.id === id); if(p) { setInfoPopupPlayer(p); } setActionPlayer(null); }} isEnglish={isEnglish} isDarkMode={isDarkMode} />
-      
+
       {appMode === 'welcome' && !initLoading && (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#37003c] text-white relative">
-          <button 
-            onClick={() => setIsEnglish(!isEnglish)} 
+          <button
+            onClick={() => setIsEnglish(!isEnglish)}
             className="absolute top-4 right-4 text-sm font-bold px-4 py-2 rounded-lg border-2 border-white/30 text-white hover:bg-white/20 transition-all z-50"
           >
             {isEnglish ? 'עברית' : 'English'}
           </button>
-          
+
           <div className="z-10 flex flex-col items-center w-full max-w-md px-4">
             <div className="mb-8 text-center">
               <div className="w-40 h-40 sm:w-56 sm:h-56 mb-8 drop-shadow-2xl hover:scale-105 transition-transform duration-300 rounded-full overflow-hidden border-8 border-[#37003c] bg-white mx-auto flex items-center justify-center">
@@ -1251,17 +1266,17 @@ export default function Home() {
             <div className="bg-white p-8 rounded-2xl shadow-xl w-full text-[#37003c]" dir={isEnglish ? "ltr" : "rtl"}>
               <h2 className="text-xl font-black mb-6 text-center text-[#37003c]">{t.enterId}</h2>
               <div className="flex flex-col gap-4">
-                <input 
-                  type="number" 
-                  value={teamId} 
-                  onChange={(e) => setTeamId(e.target.value)} 
-                  placeholder={t.placeholder} 
-                  className="w-full bg-gray-50 border border-gray-300 rounded-xl p-4 text-center text-2xl font-black focus:outline-none focus:ring-2 focus:ring-[#01fc7a] transition-all placeholder:text-gray-400 placeholder:text-lg placeholder:font-medium" 
-                  onKeyDown={(e) => { if (e.key === 'Enter') fetchTeam(undefined, 'team'); }} 
+                <input
+                  type="number"
+                  value={teamId}
+                  onChange={(e) => setTeamId(e.target.value)}
+                  placeholder={t.placeholder}
+                  className="w-full bg-gray-50 border border-gray-300 rounded-xl p-4 text-center text-2xl font-black focus:outline-none focus:ring-2 focus:ring-[#01fc7a] transition-all placeholder:text-gray-400 placeholder:text-lg placeholder:font-medium"
+                  onKeyDown={(e) => { if (e.key === 'Enter') fetchTeam(undefined, 'team'); }}
                 />
-                <button 
-                  onClick={() => { fetchTeam(undefined, 'team'); }} 
-                  disabled={loading || !teamId} 
+                <button
+                  onClick={() => { fetchTeam(undefined, 'team'); }}
+                  disabled={loading || !teamId}
                   className="w-full bg-[#01fc7a] hover:bg-[#00e36d] text-[#37003c] px-6 py-4 rounded-xl font-black text-lg shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                 >
                   {loading ? t.loading : (isEnglish ? 'Analyze My Team' : 'נתח את הקבוצה שלי')}
@@ -1272,18 +1287,18 @@ export default function Home() {
                   <span className="px-3 text-xs font-bold text-gray-400">{isEnglish ? 'OR' : 'או'}</span>
                   <div className="flex-1 h-px bg-gray-200"></div>
                 </div>
-                
-                <button 
-                  onClick={() => { setTeamId('3450961'); setTimeout(() => fetchTeam('3450961', 'demo'), 100); }} 
-                  disabled={loading} 
+
+                <button
+                  onClick={() => { setTeamId('3450961'); setTimeout(() => fetchTeam('3450961', 'demo'), 100); }}
+                  disabled={loading}
                   className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 px-6 py-3 rounded-xl font-bold shadow-sm transition-all disabled:opacity-50 active:scale-95 text-sm mb-2 border border-blue-200"
                 >
                   {isEnglish ? 'Try Demo Team' : 'נסה קבוצת הדגמה'}
                 </button>
-                
-                <button 
-                  onClick={() => { setAppMode('guest'); setActiveTab('radar'); setData(null); }} 
-                  disabled={loading} 
+
+                <button
+                  onClick={() => { setAppMode('guest'); setActiveTab('radar'); setData(null); }}
+                  disabled={loading}
                   className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold shadow-sm transition-all disabled:opacity-50 active:scale-95 text-sm"
                 >
                   {isEnglish ? 'Explore Without a Team' : 'היכנס כאורח ללא קבוצה'}
@@ -1291,7 +1306,7 @@ export default function Home() {
               </div>
               {error && <p className="text-red-400 mt-4 text-center font-bold bg-red-900/40 p-2 rounded-lg">{error}</p>}
             </div>
-            
+
             <div className="mt-12 h-24 w-full flex flex-col items-center justify-center text-center px-4 opacity-80">
               <span className="text-2xl mb-2">{FPL_SUCCESS_TIPS[tipIndex]?.icon}</span>
               <p className="text-sm font-medium text-purple-200 max-w-sm">
@@ -1304,7 +1319,7 @@ export default function Home() {
           </div>
         </div>
       )}
-      
+
       {initLoading && (
         <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-green-900">
            <div className="animate-pulse text-white font-bold text-xl">{isEnglish ? 'Loading your squad...' : 'טוען את הקבוצה שלך...'}</div>
@@ -1313,7 +1328,7 @@ export default function Home() {
 
       {(data || appMode === 'guest') && (
         <div className="max-w-6xl mx-auto p-4 sm:p-6 pb-20">
-          
+
 
           {appMode === 'demo' && (
              <div className="bg-purple-600 text-white p-3 rounded-lg mb-4 text-center text-sm font-bold shadow-md flex items-center justify-between">
@@ -1333,8 +1348,8 @@ export default function Home() {
                             <img src="/logo.jpg" alt="Logo" className="w-12 h-12 rounded-full border-2 border-[#37003c] drop-shadow-md hidden sm:block" />
               <div>
                 <h2 className={`text-2xl font-black ${textHighlight}`}>
-                  {appMode === 'guest' ? (isEnglish ? 'Guest Explorer' : 'סייר אורח') : 
-                   appMode === 'demo' ? (isEnglish ? 'Demo Squad' : 'קבוצת הדגמה (Demo)') : 
+                  {appMode === 'guest' ? (isEnglish ? 'Guest Explorer' : 'סייר אורח') :
+                   appMode === 'demo' ? (isEnglish ? 'Demo Squad' : 'קבוצת הדגמה (Demo)') :
                    data?.team_name}
                 </h2>
                 {appMode !== 'guest' && (
@@ -1349,9 +1364,18 @@ export default function Home() {
               <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.overallRank}</p>
               <p className="text-lg sm:text-2xl font-black">{data.rank.toLocaleString()}</p>
             </div>
-            <div className={`border-2 border-orange-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
-              <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.bank}</p>
-              <p className="text-lg sm:text-2xl font-black">£{data.bank.toFixed(1)}m</p>
+            <div className={`border-2 ${data.bank < 0 ? 'border-red-500' : 'border-orange-300'} rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
+              <div className="flex items-center justify-between w-full">
+                <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.bank}</p>
+                {data.bank < 0 && (
+                  <span className="text-[9px] bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 px-1.5 py-0.5 rounded font-black">
+                    {isEnglish ? 'Deficit' : 'חריגה'}
+                  </span>
+                )}
+              </div>
+              <p className={`text-lg sm:text-2xl font-black ${data.bank < 0 ? 'text-red-500' : ''}`}>
+                {data.bank < 0 ? `-£${Math.abs(data.bank).toFixed(1)}m` : `£${data.bank.toFixed(1)}m`}
+              </p>
             </div>
             <div className={`border-2 border-blue-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
               <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.xp}</p>
@@ -1396,16 +1420,16 @@ export default function Home() {
                   <div className="absolute top-1/2 left-0 right-0 h-1 bg-white"></div>
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-4 border-white rounded-full"></div>
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full"></div>
-                  
+
                   <div className="absolute top-0 left-1/4 right-1/4 h-32 border-4 border-t-0 border-white"></div>
                   <div className="absolute top-0 left-[35%] right-[35%] h-12 border-4 border-t-0 border-white"></div>
                   <div className="absolute top-[8rem] left-1/2 -translate-x-1/2 w-20 h-10 border-4 border-transparent border-b-white rounded-full"></div>
-                  
+
                   <div className="absolute bottom-0 left-1/4 right-1/4 h-32 border-4 border-b-0 border-white"></div>
                   <div className="absolute bottom-0 left-[35%] right-[35%] h-12 border-4 border-b-0 border-white"></div>
                   <div className="absolute bottom-[8rem] left-1/2 -translate-x-1/2 w-20 h-10 border-4 border-transparent border-t-white rounded-full"></div>
                 </div>
-                
+
                 <div className="flex justify-around w-full px-1 sm:px-4 z-10">
                   {starters.filter((p: any) => p.pos_code === 1).map((p: any) => (
                     <PlayerCard key={p.id} player={p} activeId={swapSourceId} onActionClick={(id: number) => { if (swapSourceId !== null) { handleSwapClick(id); } else { setActionPlayer([...starters, ...bench].find((p:any) => p.id === id)); } }} onCaptainClick={handleSetCaptain} onViceClick={handleSetViceCaptain} />
@@ -1427,7 +1451,7 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-              
+
               <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
                 {bench.sort((a: any, b: any) => a.position - b.position).map((p: any) => (
                   <PlayerCard key={p.id} player={p} isBench activeId={swapSourceId} onActionClick={(id: number) => { if (swapSourceId !== null) { handleSwapClick(id); } else { setActionPlayer([...starters, ...bench].find((p:any) => p.id === id)); } }} />
@@ -1438,7 +1462,7 @@ export default function Home() {
 
           {appMode !== 'guest' && activeTab === 'transfer' && (
             <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${bgCard}`}>
-              
+
               <div className="flex flex-col lg:flex-row gap-8">
                 <div className="flex-1">
                   <div className="flex justify-between items-center mb-4">
@@ -1446,8 +1470,8 @@ export default function Home() {
                       {transferOutId ? (isEnglish ? 'Select replacement below' : 'בחר מחליף למטה') : (isEnglish ? 'Select player to sell' : 'בחר שחקן למכירה')}
                     </h4>
                     {transferOutId && (
-                      <button 
-                        onClick={() => { setTransferOutId(null); setTransferRecs([]); setTransferDecision(null); setSearchQuery(''); }} 
+                      <button
+                        onClick={() => { setTransferOutId(null); setTransferRecs([]); setTransferDecision(null); setSearchQuery(''); }}
                         className={`px-4 py-2 border rounded-md text-sm font-bold hover:opacity-80 ${bgCard}`}
                       >
                         {isEnglish ? 'Cancel' : 'ביטול'}
@@ -1460,16 +1484,16 @@ export default function Home() {
                       <div className="absolute top-1/2 left-0 right-0 h-1 bg-white"></div>
                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-4 border-white rounded-full"></div>
                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full"></div>
-                      
+
                       <div className="absolute top-0 left-1/4 right-1/4 h-32 border-4 border-t-0 border-white"></div>
                       <div className="absolute top-0 left-[35%] right-[35%] h-12 border-4 border-t-0 border-white"></div>
                       <div className="absolute top-[8rem] left-1/2 -translate-x-1/2 w-20 h-10 border-4 border-transparent border-b-white rounded-full"></div>
-                      
+
                       <div className="absolute bottom-0 left-1/4 right-1/4 h-32 border-4 border-b-0 border-white"></div>
                       <div className="absolute bottom-0 left-[35%] right-[35%] h-12 border-4 border-b-0 border-white"></div>
                       <div className="absolute bottom-[8rem] left-1/2 -translate-x-1/2 w-20 h-10 border-4 border-transparent border-t-white rounded-full"></div>
                     </div>
-                    
+
                     <div className="flex justify-around w-full px-1 sm:px-4 z-10">
                       {starters.filter((p: any) => p.pos_code === 1).map((p: any) => (
                         <PlayerCard key={p.id} player={p} activeId={transferOutId} onActionClick={handlePlayerClick} transferMode />
@@ -1491,7 +1515,7 @@ export default function Home() {
                       ))}
                     </div>
                   </div>
-                  
+
                   <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
                     {bench.sort((a: any, b: any) => a.position - b.position).map((p: any) => (
                       <PlayerCard key={p.id} player={p} isBench activeId={transferOutId} onActionClick={handlePlayerClick} transferMode />
@@ -1504,7 +1528,7 @@ export default function Home() {
                     <h3 className={`text-xl font-black mb-4 flex items-center gap-2 ${textHighlight}`}>
                       <span>🧪</span> {isEnglish ? 'Transfer Lab' : 'מעבדת העברות'}
                     </h3>
-                    
+
                     {transferError && (
                       <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-4 rounded shadow-sm font-bold text-sm">
                         ⚠️ {transferError}
@@ -1515,14 +1539,14 @@ export default function Home() {
                       <p className={`font-bold animate-pulse ${textMuted}`}>{isEnglish ? 'Calculating smart alternatives...' : 'מחשב אלטרנטיבות חכמות...'}</p>
                     ) : (
                       <div className="flex flex-col h-full">
-                        
+
                         {searchQuery === '' && transferDecision && transferDecision.current_player && (
                           <div className={`mb-6 p-4 rounded-xl border ${isDarkMode ? 'bg-gray-800/80 border-gray-700' : 'bg-white border-gray-200'} shadow-sm`}>
                             <h3 className={`text-sm font-black mb-4 flex items-center gap-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                               <svg className="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                               {isEnglish ? 'TRANSFER DECISION' : 'החלטת העברה'}
                             </h3>
-                            
+
                             <div className="grid grid-cols-2 gap-4 mb-4">
                               <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
                                 <div className={`text-xs font-bold mb-1 ${textMuted}`}>{isEnglish ? 'Current player' : 'שחקן נוכחי'}</div>
@@ -1559,7 +1583,7 @@ export default function Home() {
                                 )}
                               </div>
                             </div>
-                            
+
                             {transferDecision.best_transfer && (
                               <div className={`flex items-center justify-between p-3 rounded-lg border mb-4 ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
                                 <span className={`text-sm font-bold ${textMuted}`}>{isEnglish ? 'Projected difference' : 'הפרש נקודות צפוי'}</span>
@@ -1601,8 +1625,8 @@ export default function Home() {
                               <div className="flex items-center justify-between">
                                 <span className={`text-sm font-bold ${textMuted}`}>{isEnglish ? 'Strategy Decision' : 'החלטת אסטרטגיה'}</span>
                                 <span className={`px-3 py-1 rounded-full text-xs font-black ${
-                                  transferDecision.recommendation === 'TRANSFER' ? 'bg-green-100 text-green-700' : 
-                                  transferDecision.recommendation === 'HOLD' ? 'bg-yellow-100 text-yellow-700' : 
+                                  transferDecision.recommendation === 'TRANSFER' ? 'bg-green-100 text-green-700' :
+                                  transferDecision.recommendation === 'HOLD' ? 'bg-yellow-100 text-yellow-700' :
                                   'bg-gray-100 text-gray-700'
                                 }`}>
                                   {transferDecision.recommendation}
@@ -1618,117 +1642,159 @@ export default function Home() {
                           </div>
                         )}
 
-                        {searchQuery === '' && transferRecs.length > 0 && (
-                          <div className="mb-6">
-                            <h4 className={`text-sm font-black mb-3 ${textMuted}`}>
-                              {isEnglish ? 'Top 3 Smart Recommendations:' : '3 ההמלצות המובילות של המערכת (לפי xP):'}
-                            </h4>
-                            <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
-                              {transferRecs.slice(0, 3).map((rec, idx) => (
-                                <button 
-                                  key={rec.id} 
-                                  onClick={() => executeTransfer(rec)}
-                                  title={`Security: ${rec.confidence || 'N/A'} \nReasons: ${rec.reason || 'None'}`}
-                                  className={`w-full text-center p-1.5 sm:p-3 rounded-xl border flex flex-col items-center gap-1 sm:gap-2 hover:border-purple-500 transition-colors group ${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-700' : 'bg-purple-50/50 border-purple-100 hover:bg-purple-50'}`}
-                                >
-                                  <div className="bg-purple-600 text-white w-4 h-4 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-bold text-[8px] sm:text-xs shadow-sm group-hover:scale-110 transition-transform">
-                                    {idx + 1}
+                        {(() => {
+                          const transferOutPlayer = data?.squad?.find((p: any) => p.id === transferOutId);
+                          const sellVal = transferOutPlayer?.is_empty ? 0 : (transferOutPlayer?.selling_price ?? transferOutPlayer?.cost ?? 0);
+                          const availableBudget = Math.round(((data?.bank ?? 0) + sellVal) * 10) / 10;
+                          return (
+                            <>
+                              {searchQuery === '' && affordableRecs.length > 0 && (
+                                <div className="mb-6">
+                                  <h4 className={`text-sm font-black mb-3 ${textMuted}`}>
+                                    {isEnglish ? 'Top 3 Smart Recommendations:' : '3 ההמלצות המובילות של המערכת (לפי xP):'}
+                                  </h4>
+                                  <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
+                                    {affordableRecs.slice(0, 3).map((rec, idx) => {
+                                      const isOverBudget = rec.cost > availableBudget;
+                                      const overBudgetDiff = Math.round((rec.cost - availableBudget) * 10) / 10;
+                                      return (
+                                        <button
+                                          key={rec.id}
+                                          onClick={() => executeTransfer(rec)}
+                                          title={`Security: ${rec.confidence || 'N/A'} \nReasons: ${rec.reason || 'None'}`}
+                                          className={`w-full text-center p-1.5 sm:p-3 rounded-xl border flex flex-col items-center gap-1 sm:gap-2 hover:border-purple-500 transition-colors group ${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-700' : 'bg-purple-50/50 border-purple-100 hover:bg-purple-50'}`}
+                                        >
+                                          <div className="bg-purple-600 text-white w-4 h-4 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-bold text-[8px] sm:text-xs shadow-sm group-hover:scale-110 transition-transform">
+                                            {idx + 1}
+                                          </div>
+                                          <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${rec.team_code}-66.webp`} className="w-7 sm:w-10" />
+                                          <div className="w-full relative">
+                                            <div className="flex items-center justify-center gap-1">
+                                              <p className={`font-black text-[9px] sm:text-sm truncate ${textHighlight}`}>{rec.name}</p>
+                                              <button
+                                                className="text-gray-400 hover:text-purple-500 cursor-pointer flex-shrink-0"
+                                                onClick={(e) => { e.stopPropagation(); setInfoPopupPlayer(rec); }}
+                                                aria-label="Player Info"
+                                                title="View player stats"
+                                              >
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                              </button>
+                                            </div>
+                                            <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{rec.team}</p>
+                                          </div>
+                                          <div className={`w-full text-[8px] sm:text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded flex flex-col gap-1 ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
+                                            <div className="flex justify-between w-full">
+                                              <span className={textHighlight}>£{rec.cost.toFixed(1)}</span>
+                                              <span className="text-emerald-500">{rec.xp.toFixed(1)} xP/GW</span>
+                                            </div>
+                                            {isOverBudget && (
+                                              <span className="text-[7px] sm:text-[9px] px-1 py-0.5 rounded text-center font-bold bg-red-100 text-red-700 dark:bg-red-900/60 dark:text-red-300">
+                                                {isEnglish ? `Deficit (-£${overBudgetDiff.toFixed(1)}m)` : `חריגה (-£${overBudgetDiff.toFixed(1)}m)`}
+                                              </span>
+                                            )}
+                                            <span className={`text-[7px] sm:text-[9px] px-1 py-0.5 rounded text-center text-white ${rec.fixture_diff <= 2 ? 'bg-emerald-500' : rec.fixture_diff === 3 ? 'bg-slate-400' : 'bg-rose-500'}`}>
+                                              {rec.fixture}
+                                            </span>
+                                          </div>
+                                        </button>
+                                      );
+                                    })}
                                   </div>
-                                  <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${rec.team_code}-66.webp`} className="w-7 sm:w-10" />
-                                  <div className="w-full relative">
-                                    <div className="flex items-center justify-center gap-1">
-                                      <p className={`font-black text-[9px] sm:text-sm truncate ${textHighlight}`}>{rec.name}</p>
-                                      <button 
-                                        className="text-gray-400 hover:text-purple-500 cursor-pointer flex-shrink-0"
-                                        onClick={(e) => { e.stopPropagation(); setInfoPopupPlayer(rec); }}
-                                        aria-label="Player Info"
-                                        title="View player stats"
-                                      >
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                                      </button>
-                                    </div>
-                                    <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{rec.team}</p>
-                                  </div>
-                                  <div className={`w-full text-[8px] sm:text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded flex flex-col gap-1 ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
-                                    <div className="flex justify-between w-full">
-                                      <span className={textHighlight}>£{rec.cost.toFixed(1)}</span>
-                                      <span className="text-emerald-500">{rec.xp.toFixed(1)} xP/GW</span>
-                                    </div>
-                                    <span className={`text-[7px] sm:text-[9px] px-1 py-0.5 rounded text-center text-white ${rec.fixture_diff <= 2 ? 'bg-emerald-500' : rec.fixture_diff === 3 ? 'bg-slate-400' : 'bg-rose-500'}`}>
-                                      {rec.fixture}
-                                    </span>
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                                </div>
+                              )}
 
-                        <div className="mb-4">
-                          <input 
-                            type="text" 
-                            placeholder={isEnglish ? "Search by name or team..." : "חפש שחקן לפי שם או קבוצה..."} 
-                            value={searchQuery}
-                            onChange={(e) => { setSearchQuery(e.target.value); setTransferError(''); }}
-                            className={`w-full border rounded-lg p-2 focus:outline-none focus:border-purple-500 ${bgCard}`}
-                          />
-                        </div>
+                              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                                <div className="flex-1 w-full sm:w-auto">
+                                  <input
+                                    type="text"
+                                    placeholder={isEnglish ? "Search by name or team..." : "חפש שחקן לפי שם או קבוצה..."}
+                                    value={searchQuery}
+                                    onChange={(e) => { setSearchQuery(e.target.value); setTransferError(''); }}
+                                    className={`w-full border rounded-lg p-2 focus:outline-none focus:border-purple-500 ${bgCard}`}
+                                  />
+                                </div>
+                                <label className="flex items-center gap-2 cursor-pointer select-none bg-purple-50/60 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 px-3 py-2 rounded-lg text-xs font-bold shrink-0">
+                                  <input
+                                    type="checkbox"
+                                    checked={allowOverBudget}
+                                    onChange={(e) => setAllowOverBudget(e.target.checked)}
+                                    className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500 accent-purple-600"
+                                  />
+                                  <span className={isDarkMode ? 'text-purple-200' : 'text-purple-900'}>
+                                    {isEnglish ? 'Show all players (allow budget deficit)' : 'הצג את כל השחקנים (אפשר מינוס בבנק)'}
+                                  </span>
+                                </label>
+                              </div>
 
-                        <div className={`flex-1 max-h-[400px] overflow-y-auto rounded-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                          <table className={`w-full text-sm text-start`}>
-                            <thead className={`sticky top-0 z-10 text-xs uppercase font-bold ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
-                              <tr>
-                                <th className="px-3 py-2">{isEnglish ? 'Player' : 'שחקן'}</th>
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Team' : 'קבוצה'}</th>
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Price' : 'מחיר'}</th>
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Points' : 'נקודות'}</th>
-                                <th className="px-3 py-2 text-center">xP</th>
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : 'משחק'}</th>
-                                <th className="px-3 py-2 text-center"></th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {[...(searchQuery === '' ? transferRecs.slice(3) : filteredRecs)].sort((a, b) => b.total_points - a.total_points).map(rec => (
-                                <tr key={rec.id} className={`border-b last:border-0 ${isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-200 hover:bg-gray-50'}`}>
-                                  <td className="px-3 py-2 font-bold flex items-center gap-2">
-                                    <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${rec.team_code}-66.webp`} className="w-6 h-auto" />
-                                    <span className={textHighlight}>{rec.name}</span>
-                                  </td>
-                                  <td className={`px-3 py-2 text-center text-xs font-bold ${textMuted}`}>{rec.team}</td>
-                                  <td className={`px-3 py-2 text-center font-bold ${textHighlight}`}>£{rec.cost.toFixed(1)}</td>
-                                  <td className={`px-3 py-2 text-center font-bold text-blue-500`}>{rec.total_points}</td>
-                                  <td className="px-3 py-2 text-center text-emerald-500 font-bold">{rec.xp.toFixed(1)}</td>
-                                  <td className="px-3 py-2 text-center">
-                                    <div className={`text-[10px] font-bold py-1 px-2 rounded shadow-sm inline-block whitespace-nowrap ${rec.fixture_diff === 1 ? 'bg-green-800 text-white' : rec.fixture_diff === 2 ? 'bg-green-500 text-white' : rec.fixture_diff === 4 ? 'bg-red-500 text-white' : rec.fixture_diff === 5 ? 'bg-red-800 text-white' : 'bg-gray-200 text-gray-800'}`}>
-                                      {rec.fixture || 'Blank'}
-                                    </div>
-                                  </td>
-                                  <td className="px-1 md:px-3 py-2 text-center whitespace-nowrap">
-                                    <button 
-                                      onClick={(e) => { e.stopPropagation(); setInfoPopupPlayer(rec); }} 
-                                      aria-label="Player Info" 
-                                      title="View player stats"
-                                      className="text-gray-400 hover:text-purple-500 p-1 mr-1 md:mr-2 align-middle inline-block"
-                                    >
-                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                                    </button>
-                                    <button
-                                      onClick={() => { executeTransfer(rec); setActiveTab('planner'); }}
-                                      className="bg-purple-600 hover:bg-purple-700 text-white px-2 md:px-3 py-1 rounded text-xs font-bold transition-colors align-middle inline-block"
-                                    >
-                                      {isEnglish ? 'Select' : 'בחר'}
-                                    </button>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                          {filteredRecs.length === 0 && (
-                            <p className="text-red-500 font-bold p-4 text-center">
-                              {isEnglish ? 'No matching players found in your budget.' : 'לא נמצאו שחקנים מתאימים בתקציב שלך.'}
-                            </p>
-                          )}
-                        </div>
+                              <div className={`flex-1 max-h-[400px] overflow-y-auto rounded-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                                <table className={`w-full text-sm text-start`}>
+                                  <thead className={`sticky top-0 z-10 text-xs uppercase font-bold ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                                    <tr>
+                                      <th className="px-3 py-2">{isEnglish ? 'Player' : 'שחקן'}</th>
+                                      <th className="px-3 py-2 text-center">{isEnglish ? 'Team' : 'קבוצה'}</th>
+                                      <th className="px-3 py-2 text-center">{isEnglish ? 'Price' : 'מחיר'}</th>
+                                      <th className="px-3 py-2 text-center">{isEnglish ? 'Points' : 'נקודות'}</th>
+                                      <th className="px-3 py-2 text-center">xP</th>
+                                      <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : 'משחק'}</th>
+                                      <th className="px-3 py-2 text-center"></th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {[...(searchQuery === '' ? affordableRecs.slice(3) : filteredRecs)].sort((a, b) => b.total_points - a.total_points).map(rec => {
+                                      const isOverBudget = rec.cost > availableBudget;
+                                      const overBudgetDiff = Math.round((rec.cost - availableBudget) * 10) / 10;
+                                      return (
+                                        <tr key={rec.id} className={`border-b last:border-0 ${isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                                          <td className="px-3 py-2 font-bold flex items-center gap-2">
+                                            <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${rec.team_code}-66.webp`} className="w-6 h-auto" />
+                                            <span className={textHighlight}>{rec.name}</span>
+                                          </td>
+                                          <td className={`px-3 py-2 text-center text-xs font-bold ${textMuted}`}>{rec.team}</td>
+                                          <td className={`px-3 py-2 text-center font-bold ${textHighlight}`}>
+                                            <div>£{rec.cost.toFixed(1)}</div>
+                                            {isOverBudget && (
+                                              <span className="inline-block text-[9px] bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 px-1 py-0.2 rounded font-black whitespace-nowrap">
+                                                -£{overBudgetDiff.toFixed(1)}m
+                                              </span>
+                                            )}
+                                          </td>
+                                          <td className={`px-3 py-2 text-center font-bold text-blue-500`}>{rec.total_points}</td>
+                                          <td className="px-3 py-2 text-center text-emerald-500 font-bold">{rec.xp.toFixed(1)}</td>
+                                          <td className="px-3 py-2 text-center">
+                                            <div className={`text-[10px] font-bold py-1 px-2 rounded shadow-sm inline-block whitespace-nowrap ${rec.fixture_diff === 1 ? 'bg-green-800 text-white' : rec.fixture_diff === 2 ? 'bg-green-500 text-white' : rec.fixture_diff === 4 ? 'bg-red-500 text-white' : rec.fixture_diff === 5 ? 'bg-red-800 text-white' : 'bg-gray-200 text-gray-800'}`}>
+                                              {rec.fixture || 'Blank'}
+                                            </div>
+                                          </td>
+                                          <td className="px-1 md:px-3 py-2 text-center whitespace-nowrap">
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); setInfoPopupPlayer(rec); }}
+                                              aria-label="Player Info"
+                                              title="View player stats"
+                                              className="text-gray-400 hover:text-purple-500 p-1 mr-1 md:mr-2 align-middle inline-block"
+                                            >
+                                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                            </button>
+                                            <button
+                                              onClick={() => { executeTransfer(rec); setActiveTab('planner'); }}
+                                              className="bg-purple-600 hover:bg-purple-700 text-white px-2 md:px-3 py-1 rounded text-xs font-bold transition-colors align-middle inline-block"
+                                            >
+                                              {isEnglish ? 'Select' : 'בחר'}
+                                            </button>
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                                {filteredRecs.length === 0 && (
+                                  <p className="text-red-500 font-bold p-4 text-center">
+                                    {isEnglish ? 'No matching players found.' : 'לא נמצאו שחקנים מתאימים.'}
+                                  </p>
+                                )}
+                              </div>
+                            </>
+                          );
+                        })()}
 
                       </div>
                     )}
@@ -1754,7 +1820,7 @@ export default function Home() {
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
                 <span>📊</span> {isEnglish ? 'Squad Analysis & AI Insights' : 'ניתוח סגל ותובנות AI'}
               </h3>
-              
+
               <SquadAnalysisTab data={data} isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} onGoToTransfer={(playerId?: number) => { setActiveTab('transfer'); if (playerId) handlePlayerClick(playerId); }} />
             </div>
           )}
@@ -1776,7 +1842,7 @@ export default function Home() {
             </div>
           )}
 
-          
+
           {appMode !== 'guest' && activeTab === 'drafts' && (
             <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${bgCard}`}>
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
@@ -1791,7 +1857,7 @@ export default function Home() {
               <div className="text-5xl mb-4">🔒</div>
               <h2 className="text-2xl font-black mb-2">{isEnglish ? 'Personalized Feature' : 'פיצ׳ר מותאם אישית'}</h2>
               <p className={`mb-6 ${textMuted}`}>{isEnglish ? 'Connect your FPL Team to unlock this feature and get personalized insights.' : 'התחבר לקבוצת ה-FPL שלך כדי לפתוח פיצ׳ר זה ולקבל תובנות אישיות.'}</p>
-              <button 
+              <button
                 onClick={() => { setAppMode('welcome'); setTeamId(''); }}
                 className="bg-[#01fc7a] text-[#37003c] font-black px-8 py-3 rounded-xl hover:bg-[#00e36d] transition-colors"
               >
@@ -1805,13 +1871,13 @@ export default function Home() {
               <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
                 <span>🗓️</span> {isEnglish ? 'Gameweek Planner' : 'מתכנן מחזורים'}
               </h3>
-              <GWPlannerTab 
-                data={data} 
-                isEnglish={isEnglish} 
-                isDarkMode={isDarkMode} 
-                textMuted={textMuted} 
-                textHighlight={textHighlight} 
-                bgBox={bgBox} 
+              <GWPlannerTab
+                data={data}
+                isEnglish={isEnglish}
+                isDarkMode={isDarkMode}
+                textMuted={textMuted}
+                textHighlight={textHighlight}
+                bgBox={bgBox}
                 onSwap={handleSwapClick}
                 onCaptain={handleSetCaptain}
                 onVice={handleSetViceCaptain}
@@ -1839,7 +1905,7 @@ export default function Home() {
                 onRestorePlayer={handleRestorePlayer}
                 activeChip={activeChip}
                 setActiveChip={setActiveChip}
-                swapSourceId={swapSourceId} 
+                swapSourceId={swapSourceId}
                 onSell={async (   id: number,   targetGw?: number,   removeOnly: boolean = false,   simulatedFt?: number,   transfersBefore?: number ) => {
                   const playerToSell = data.squad.find((p: any) => p.id === id);
                   if (playerToSell && removeOnly) {
@@ -1864,16 +1930,17 @@ export default function Home() {
                       const res = await fetch(`${API_BASE_URL}/api/transfer-lab`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({    
+                        body: JSON.stringify({
                         pos_code: playerToSell.pos_code,
-                        max_budget: budget,                               
+                        max_budget: allowOverBudget ? 100.0 : budget,
+                        actual_budget: budget,
                         current_squad_ids: currentSquadIds,
                         transfer_out_id: playerToSell.is_empty ? null : playerToSell.id,
                         target_gw: targetGw,
                         free_transfers: simulatedFt ?? data.free_transfers,
                         transfers_before: transfersBefore ?? 0,
                         active_chip: activeChip ?? null,
-                        unlimited_budget: true
+                        unlimited_budget: allowOverBudget
                         })
                       });
                       const recs = await res.json();
@@ -1889,27 +1956,46 @@ export default function Home() {
                   }
                 }}
               />
-              
+
               {transferOutId && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                   <div className={`w-full max-w-4xl max-h-[90vh] overflow-hidden p-6 rounded-2xl shadow-2xl flex flex-col ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
                     <div className="flex justify-between items-center mb-4">
-                <div className="flex flex-col-reverse sm:flex-row justify-between items-start sm:items-center w-full mb-4">
-                  <div className={`text-base sm:text-lg font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'} bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 mt-2 sm:mt-0`}>
-                    {isEnglish ? 'Available Budget:' : 'תקציב פנוי:'} £{((data?.bank || 0) + (data?.squad?.find((p: any) => p.id === transferOutId)?.selling_price ?? data?.squad?.find((p: any) => p.id === transferOutId)?.cost ?? 0)).toFixed(1)}M
-                  </div>
-                  <h2 className={`text-xl sm:text-3xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'} text-right flex items-center justify-end gap-2`}>
-                        <span>🧪</span> {isEnglish ? 'Transfer Lab (Planner Mode)' : 'מעבדת העברות (מצב מתכנן)'}
-                      </h2>
-                </div>
-                      <button 
+                      {(() => {
+                        const transferOutPlayer = data?.squad?.find((p: any) => p.id === transferOutId);
+                        const sellVal = transferOutPlayer?.is_empty ? 0 : (transferOutPlayer?.selling_price ?? transferOutPlayer?.cost ?? 0);
+                        const availableBudget = Math.round(((data?.bank ?? 0) + sellVal) * 10) / 10;
+                        return (
+                          <div className="flex flex-col-reverse sm:flex-row justify-between items-start sm:items-center w-full mb-4">
+                            <div className={`text-base sm:text-lg font-bold ${
+                              availableBudget < 0
+                                ? (isDarkMode ? 'text-rose-400 bg-rose-950/30 border-rose-800' : 'text-rose-600 bg-rose-50 border-rose-200')
+                                : (isDarkMode ? 'text-emerald-400 bg-emerald-900/30 border-emerald-800' : 'text-emerald-600 bg-emerald-50 border-emerald-200')
+                            } px-3 py-1 rounded-lg border mt-2 sm:mt-0 flex items-center gap-2`}>
+                              <span>{isEnglish ? 'Available Budget:' : 'תקציב פנוי:'}</span>
+                              <span className="font-black">
+                                {availableBudget < 0 ? `-£${Math.abs(availableBudget).toFixed(1)}m` : `£${availableBudget.toFixed(1)}m`}
+                              </span>
+                              {availableBudget < 0 && (
+                                <span className="text-xs bg-rose-500 text-white px-2 py-0.5 rounded-full font-bold">
+                                  {isEnglish ? 'Deficit' : 'חריגה'}
+                                </span>
+                              )}
+                            </div>
+                            <h2 className={`text-xl sm:text-3xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'} text-right flex items-center justify-end gap-2`}>
+                              <span>🧪</span> {isEnglish ? 'Transfer Lab (Planner Mode)' : 'מעבדת העברות (מצב מתכנן)'}
+                            </h2>
+                          </div>
+                        );
+                      })()}
+                      <button
                         onClick={() => { setTransferOutId(null); setTransferRecs([]); setTransferDecision(null); setSearchQuery(''); }}
                         className={`text-gray-500 hover:text-gray-800 ${isDarkMode ? 'hover:text-white' : ''}`}
                       >
                         ✕
                       </button>
                     </div>
-                    
+
                     {transferError && (
                       <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-4 rounded shadow-sm font-bold text-sm">
                         ⚠️ {transferError}
@@ -1920,14 +2006,14 @@ export default function Home() {
                       <p className={`font-bold animate-pulse ${textMuted}`}>{isEnglish ? 'Calculating smart alternatives...' : 'מחשב אלטרנטיבות חכמות...'}</p>
                     ) : (
                       <div className="flex flex-col h-full overflow-y-auto pr-1">
-                        
+
                         {searchQuery === '' && transferDecision && transferDecision.current_player && (
                           <div className={`mb-6 p-4 rounded-xl border shrink-0 ${isDarkMode ? 'bg-gray-800/80 border-gray-700' : 'bg-white border-gray-200'} shadow-sm`}>
                             <h3 className={`text-sm font-black mb-4 flex items-center gap-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                               <svg className="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                               {isEnglish ? 'TRANSFER DECISION' : 'החלטת העברה'}
                             </h3>
-                            
+
                             <div className="grid grid-cols-2 gap-4 mb-4">
                               <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
                                 <div className={`text-xs font-bold mb-1 ${textMuted}`}>{isEnglish ? 'Current player' : 'שחקן נוכחי'}</div>
@@ -1964,7 +2050,7 @@ export default function Home() {
                                 )}
                               </div>
                             </div>
-                            
+
                             {transferDecision.best_transfer && (
                               <div className={`flex items-center justify-between p-3 rounded-lg border mb-4 ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
                                 <span className={`text-sm font-bold ${textMuted}`}>{isEnglish ? 'Projected difference' : 'הפרש נקודות צפוי'}</span>
@@ -1978,9 +2064,9 @@ export default function Home() {
                               <div className="flex items-center justify-between">
                                 <span className={`text-sm font-bold ${textMuted}`}>{isEnglish ? 'Strategy Decision' : 'החלטת אסטרטגיה'}</span>
                                 <span className={`px-3 py-1 rounded-full text-xs font-black ${
-                                  transferDecision.recommendation === 'TRANSFER' ? 'bg-green-100 text-green-700' : 
-                                  transferDecision.recommendation === 'HOLD' ? 'bg-yellow-100 text-yellow-700' : 
-                                  transferDecision.recommendation === 'CONSIDER' ? 'bg-blue-100 text-blue-700' : 
+                                  transferDecision.recommendation === 'TRANSFER' ? 'bg-green-100 text-green-700' :
+                                  transferDecision.recommendation === 'HOLD' ? 'bg-yellow-100 text-yellow-700' :
+                                  transferDecision.recommendation === 'CONSIDER' ? 'bg-blue-100 text-blue-700' :
                                   'bg-gray-100 text-gray-700'
                                 }`}>
                                   {transferDecision.recommendation}
@@ -1996,132 +2082,170 @@ export default function Home() {
                           </div>
                         )}
 
-                        {searchQuery === '' && transferRecs.length > 0 && (
-                          <div className="mb-6 shrink-0">
-                            <h4 className={`text-sm font-black mb-3 ${textMuted}`}>
-                              {isEnglish ? 'Top 3 Smart Recommendations:' : '3 ההמלצות המובילות של המערכת (לפי xP):'}
-                            </h4>
-                            <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
-                              {transferRecs.slice(0, 3).map((rec, idx) => {
-                                const origPlayer = originalData?.squad?.find((op: any) => op.id === rec.id);
-                                const displayCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : rec.cost;
-                                return (
-                                <button 
-                                  key={rec.id} 
-                                  onClick={() => { executeTransfer(rec); setActiveTab('planner'); }}
-                                  className={`w-full text-center p-1.5 sm:p-3 rounded-xl border flex flex-col items-center gap-1 sm:gap-2 hover:border-purple-500 transition-colors group ${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-700' : 'bg-purple-50/50 border-purple-100 hover:bg-purple-50'}`}
-                                >
-                                  <div className="bg-purple-600 text-white w-4 h-4 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-bold text-[8px] sm:text-xs shadow-sm group-hover:scale-110 transition-transform">
-                                    {idx + 1}
+                        {(() => {
+                          const transferOutPlayer = data?.squad?.find((p: any) => p.id === transferOutId);
+                          const sellVal = transferOutPlayer?.is_empty ? 0 : (transferOutPlayer?.selling_price ?? transferOutPlayer?.cost ?? 0);
+                          const availableBudget = Math.round(((data?.bank ?? 0) + sellVal) * 10) / 10;
+                          return (
+                            <>
+                              {searchQuery === '' && affordableRecs.length > 0 && (
+                                <div className="mb-6 shrink-0">
+                                  <h4 className={`text-sm font-black mb-3 ${textMuted}`}>
+                                    {isEnglish ? 'Top 3 Smart Recommendations:' : '3 ההמלצות המובילות של המערכת (לפי xP):'}
+                                  </h4>
+                                  <div className="grid grid-cols-3 gap-1.5 sm:gap-3">
+                                    {affordableRecs.slice(0, 3).map((rec, idx) => {
+                                      const origPlayer = originalData?.squad?.find((op: any) => op.id === rec.id);
+                                      const displayCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : rec.cost;
+                                      const isOverBudget = displayCost > availableBudget;
+                                      const overBudgetDiff = Math.round((displayCost - availableBudget) * 10) / 10;
+                                      return (
+                                        <button
+                                          key={rec.id}
+                                          onClick={() => { executeTransfer(rec); setActiveTab('planner'); }}
+                                          className={`w-full text-center p-1.5 sm:p-3 rounded-xl border flex flex-col items-center gap-1 sm:gap-2 hover:border-purple-500 transition-colors group ${isDarkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-700' : 'bg-purple-50/50 border-purple-100 hover:bg-purple-50'}`}
+                                        >
+                                          <div className="bg-purple-600 text-white w-4 h-4 sm:w-6 sm:h-6 rounded-full flex items-center justify-center font-bold text-[8px] sm:text-xs shadow-sm group-hover:scale-110 transition-transform">
+                                            {idx + 1}
+                                          </div>
+                                          <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${rec.team_code}-66.webp`} className="w-7 sm:w-10" />
+                                          <div className="w-full relative">
+                                            <div className="flex items-center justify-center gap-1">
+                                              <p className={`font-black text-[9px] sm:text-sm truncate ${textHighlight}`}>{rec.name}</p>
+                                              <button
+                                                className="text-gray-400 hover:text-purple-500 cursor-pointer flex-shrink-0"
+                                                onClick={(e) => { e.stopPropagation(); setInfoPopupPlayer(rec); }}
+                                                aria-label="Player Info"
+                                                title="View player stats"
+                                              >
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                              </button>
+                                            </div>
+                                            <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{rec.team}</p>
+                                          </div>
+                                          <div className={`w-full text-[8px] sm:text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded flex flex-col gap-1 ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
+                                            <div className="flex justify-between w-full">
+                                              <span className={textHighlight}>
+                                                £{displayCost.toFixed(1)}
+                                                {origPlayer && <span className="ml-1 text-[8px] text-purple-400 font-normal">({isEnglish ? 'Owned' : 'בסגל'})</span>}
+                                              </span>
+                                              <span className="text-emerald-500">{rec.xp.toFixed(1)} xP/GW</span>
+                                            </div>
+                                            {isOverBudget && (
+                                              <span className="text-[7px] sm:text-[9px] px-1 py-0.5 rounded text-center font-bold bg-red-100 text-red-700 dark:bg-red-900/60 dark:text-red-300">
+                                                {isEnglish ? `Deficit (-£${overBudgetDiff.toFixed(1)}m)` : `חריגה (-£${overBudgetDiff.toFixed(1)}m)`}
+                                              </span>
+                                            )}
+                                            <span className={`text-[7px] sm:text-[9px] px-1 py-0.5 rounded text-center text-white ${rec.fixture_diff <= 2 ? 'bg-emerald-500' : rec.fixture_diff === 3 ? 'bg-slate-400' : 'bg-rose-500'}`}>
+                                              {rec.fixture}
+                                            </span>
+                                          </div>
+                                        </button>
+                                      );
+                                    })}
                                   </div>
-                                  <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${rec.team_code}-66.webp`} className="w-7 sm:w-10" />
-                                  <div className="w-full relative">
-                                    <div className="flex items-center justify-center gap-1">
-                                      <p className={`font-black text-[9px] sm:text-sm truncate ${textHighlight}`}>{rec.name}</p>
-                                      <button 
-                                        className="text-gray-400 hover:text-purple-500 cursor-pointer flex-shrink-0"
-                                        onClick={(e) => { e.stopPropagation(); setInfoPopupPlayer(rec); }}
-                                        aria-label="Player Info"
-                                        title="View player stats"
-                                      >
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                                      </button>
-                                    </div>
-                                    <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{rec.team}</p>
-                                  </div>
-                                  <div className={`w-full text-[8px] sm:text-xs font-bold px-1 sm:px-2 py-0.5 sm:py-1 rounded flex flex-col gap-1 ${isDarkMode ? 'bg-gray-900' : 'bg-white shadow-sm'}`}>
-                                      <div className="flex justify-between w-full">
-                                        <span className={textHighlight}>
-                                          £{displayCost.toFixed(1)}
-                                          {origPlayer && <span className="ml-1 text-[8px] text-purple-400 font-normal">({isEnglish ? 'Owned' : 'בסגל'})</span>}
-                                        </span>
-                                        <span className="text-emerald-500">{rec.xp.toFixed(1)} xP/GW</span>
-                                      </div>
-                                      <span className={`text-[7px] sm:text-[9px] px-1 py-0.5 rounded text-center text-white ${rec.fixture_diff <= 2 ? 'bg-emerald-500' : rec.fixture_diff === 3 ? 'bg-slate-400' : 'bg-rose-500'}`}>
-                                        {rec.fixture}
-                                      </span>
-                                    </div>
-                                </button>
-                              );
-                            })}
-                            </div>
-                          </div>
-                        )}
+                                </div>
+                              )}
 
-                        <div className="mb-4 shrink-0">
-                          <input 
-                            type="text" 
-                            placeholder={isEnglish ? "Search by name or team..." : "חפש שחקן לפי שם או קבוצה..."} 
-                            value={searchQuery}
-                            onChange={(e) => { setSearchQuery(e.target.value); setTransferError(''); }}
-                            className={`w-full border rounded-lg p-2 focus:outline-none focus:border-purple-500 ${bgCard}`}
-                          />
-                        </div>
+                              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 shrink-0">
+                                <div className="flex-1 w-full sm:w-auto">
+                                  <input
+                                    type="text"
+                                    placeholder={isEnglish ? "Search by name or team..." : "חפש שחקן לפי שם או קבוצה..."}
+                                    value={searchQuery}
+                                    onChange={(e) => { setSearchQuery(e.target.value); setTransferError(''); }}
+                                    className={`w-full border rounded-lg p-2 focus:outline-none focus:border-purple-500 ${bgCard}`}
+                                  />
+                                </div>
+                                <label className="flex items-center gap-2 cursor-pointer select-none bg-purple-50/60 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 px-3 py-2 rounded-lg text-xs font-bold shrink-0">
+                                  <input
+                                    type="checkbox"
+                                    checked={allowOverBudget}
+                                    onChange={(e) => setAllowOverBudget(e.target.checked)}
+                                    className="w-4 h-4 text-purple-600 rounded focus:ring-purple-500 accent-purple-600"
+                                  />
+                                  <span className={isDarkMode ? 'text-purple-200' : 'text-purple-900'}>
+                                    {isEnglish ? 'Show all players (allow budget deficit)' : 'הצג את כל השחקנים (אפשר מינוס בבנק)'}
+                                  </span>
+                                </label>
+                              </div>
 
-                        <div className={`shrink-0 rounded-lg border pb-2 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                          <table className={`w-full text-sm text-start`}>
-                            <thead className={`sticky top-0 z-10 text-xs uppercase font-bold ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
-                              <tr>
-                                <th className="px-3 py-2">{isEnglish ? 'Player' : 'שחקן'}</th>
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Team' : 'קבוצה'}</th>
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Price' : 'מחיר'}</th>
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Points' : 'נקודות'}</th>
-                                <th className="px-3 py-2 text-center">xP</th>
-                                <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : 'משחק'}</th>
-                                <th className="px-3 py-2 text-center"></th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {[...(searchQuery === '' ? transferRecs.slice(3) : filteredRecs)].sort((a, b) => b.total_points - a.total_points).map(rec => {
-                                const origPlayer = originalData?.squad?.find((op: any) => op.id === rec.id);
-                                const displayCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : rec.cost;
-                                return (
-                                <tr key={rec.id} className={`border-b last:border-0 ${isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-200 hover:bg-gray-50'}`}>
-                                  <td className="px-3 py-2 font-bold flex items-center gap-2">
-                                    <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${rec.team_code}-66.webp`} className="w-6 h-auto" />
-                                    <span className={textHighlight}>{rec.name}</span>
-                                    {origPlayer && (
-                                      <span className="text-[10px] bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 px-1.5 py-0.5 rounded font-normal">
-                                        {isEnglish ? 'Owned' : 'בסגל'}
-                                      </span>
-                                    )}
-                                  </td>
-                                  <td className={`px-3 py-2 text-center text-xs font-bold ${textMuted}`}>{rec.team}</td>
-                                  <td className={`px-3 py-2 text-center font-bold ${textHighlight}`}>£{displayCost.toFixed(1)}</td>
-                                  <td className={`px-3 py-2 text-center font-bold text-blue-500`}>{rec.total_points}</td>
-                                  <td className="px-3 py-2 text-center text-emerald-500 font-bold">{rec.xp.toFixed(1)}</td>
-                                  <td className="px-3 py-2 text-center">
-                                    <div className={`text-[10px] font-bold py-1 px-2 rounded shadow-sm inline-block whitespace-nowrap ${rec.fixture_diff === 1 ? 'bg-green-800 text-white' : rec.fixture_diff === 2 ? 'bg-green-500 text-white' : rec.fixture_diff === 4 ? 'bg-red-500 text-white' : rec.fixture_diff === 5 ? 'bg-red-800 text-white' : 'bg-gray-200 text-gray-800'}`}>
-                                      {rec.fixture || 'Blank'}
-                                    </div>
-                                  </td>
-                                  <td className="px-1 md:px-3 py-2 text-center whitespace-nowrap">
-                                    <button 
-                                      onClick={(e) => { e.stopPropagation(); setInfoPopupPlayer(rec); }} 
-                                      aria-label="Player Info" 
-                                      title="View player stats"
-                                      className="text-gray-400 hover:text-purple-500 p-1 mr-1 md:mr-2 align-middle inline-block"
-                                    >
-                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                                    </button>
-                                    <button
-                                      onClick={() => { executeTransfer(rec); setActiveTab('planner'); }}
-                                      className="bg-purple-600 hover:bg-purple-700 text-white px-2 md:px-3 py-1 rounded text-xs font-bold transition-colors align-middle inline-block"
-                                    >
-                                      {isEnglish ? 'Select' : 'בחר'}
-                                    </button>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                            </tbody>
-                          </table>
-                          {filteredRecs.length === 0 && (
-                            <p className="text-red-500 font-bold p-4 text-center">
-                              {isEnglish ? 'No matching players found.' : 'לא נמצאו שחקנים מתאימים.'}
-                            </p>
-                          )}
-                        </div>
+                              <div className={`flex-1 min-h-0 max-h-[360px] overflow-y-auto rounded-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                                <table className={`w-full text-sm text-start`}>
+                                  <thead className={`sticky top-0 z-10 text-xs uppercase font-bold ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                                    <tr>
+                                      <th className="px-3 py-2">{isEnglish ? 'Player' : 'שחקן'}</th>
+                                      <th className="px-3 py-2 text-center">{isEnglish ? 'Team' : 'קבוצה'}</th>
+                                      <th className="px-3 py-2 text-center">{isEnglish ? 'Price' : 'מחיר'}</th>
+                                      <th className="px-3 py-2 text-center">{isEnglish ? 'Points' : 'נקודות'}</th>
+                                      <th className="px-3 py-2 text-center">xP</th>
+                                      <th className="px-3 py-2 text-center">{isEnglish ? 'Fixture' : 'משחק'}</th>
+                                      <th className="px-3 py-2 text-center"></th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {[...(searchQuery === '' ? affordableRecs.slice(3) : filteredRecs)].sort((a, b) => b.total_points - a.total_points).map(rec => {
+                                      const origPlayer = originalData?.squad?.find((op: any) => op.id === rec.id);
+                                      const displayCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : rec.cost;
+                                      const isOverBudget = displayCost > availableBudget;
+                                      const overBudgetDiff = Math.round((displayCost - availableBudget) * 10) / 10;
+                                      return (
+                                        <tr key={rec.id} className={`border-b last:border-0 ${isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-200 hover:bg-gray-50'}`}>
+                                          <td className="px-3 py-2 font-bold flex items-center gap-2">
+                                            <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${rec.team_code}-66.webp`} className="w-6 h-auto" />
+                                            <span className={textHighlight}>{rec.name}</span>
+                                            {origPlayer && (
+                                              <span className="text-[10px] bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300 px-1.5 py-0.5 rounded font-normal">
+                                                {isEnglish ? 'Owned' : 'בסגל'}
+                                              </span>
+                                            )}
+                                          </td>
+                                          <td className={`px-3 py-2 text-center text-xs font-bold ${textMuted}`}>{rec.team}</td>
+                                          <td className={`px-3 py-2 text-center font-bold ${textHighlight}`}>
+                                            <div>£{displayCost.toFixed(1)}</div>
+                                            {isOverBudget && (
+                                              <span className="inline-block text-[9px] bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 px-1 py-0.2 rounded font-black whitespace-nowrap">
+                                                -£{overBudgetDiff.toFixed(1)}m
+                                              </span>
+                                            )}
+                                          </td>
+                                          <td className={`px-3 py-2 text-center font-bold text-blue-500`}>{rec.total_points}</td>
+                                          <td className="px-3 py-2 text-center text-emerald-500 font-bold">{rec.xp.toFixed(1)}</td>
+                                          <td className="px-3 py-2 text-center">
+                                            <div className={`text-[10px] font-bold py-1 px-2 rounded shadow-sm inline-block whitespace-nowrap ${rec.fixture_diff === 1 ? 'bg-green-800 text-white' : rec.fixture_diff === 2 ? 'bg-green-500 text-white' : rec.fixture_diff === 4 ? 'bg-red-500 text-white' : rec.fixture_diff === 5 ? 'bg-red-800 text-white' : 'bg-gray-200 text-gray-800'}`}>
+                                              {rec.fixture || 'Blank'}
+                                            </div>
+                                          </td>
+                                          <td className="px-1 md:px-3 py-2 text-center whitespace-nowrap">
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); setInfoPopupPlayer(rec); }}
+                                              aria-label="Player Info"
+                                              title="View player stats"
+                                              className="text-gray-400 hover:text-purple-500 p-1 mr-1 md:mr-2 align-middle inline-block"
+                                            >
+                                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                            </button>
+                                            <button
+                                              onClick={() => { executeTransfer(rec); setActiveTab('planner'); }}
+                                              className="bg-purple-600 hover:bg-purple-700 text-white px-2 md:px-3 py-1 rounded text-xs font-bold transition-colors align-middle inline-block"
+                                            >
+                                              {isEnglish ? 'Select' : 'בחר'}
+                                            </button>
+                                          </td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                                {filteredRecs.length === 0 && (
+                                  <p className="text-red-500 font-bold p-4 text-center">
+                                    {isEnglish ? 'No matching players found.' : 'לא נמצאו שחקנים מתאימים.'}
+                                  </p>
+                                )}
+                              </div>
+                            </>
+                          );
+                        })()}
 
                       </div>
                     )}
@@ -2138,7 +2262,7 @@ export default function Home() {
           <div className={`w-full max-w-sm overflow-hidden p-6 rounded-2xl shadow-2xl flex flex-col items-center text-center ${isDarkMode ? 'bg-gray-800 border border-gray-700 text-white' : 'bg-white text-gray-900'}`}>
             <div className="text-4xl mb-4">{appAlert.includes("Draft applied") || appAlert.includes("בנה בהצלחה") ? "✅" : "⚠️"}</div>
             <p className="font-bold mb-6">{appAlert}</p>
-            <button 
+            <button
               onClick={() => setAppAlert(null)}
               className="bg-purple-600 hover:bg-purple-700 text-white font-black py-2 px-8 rounded-xl shadow-md transition-colors"
             >
@@ -2153,25 +2277,25 @@ export default function Home() {
           <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
             <span>🏆</span> {isEnglish ? 'Mini-Leagues & H2H' : 'מיני-ליגות והשוואת ראש בראש'}
           </h3>
-          <LeaguesTab 
-            data={data} 
-            isEnglish={isEnglish} 
-            isDarkMode={isDarkMode} 
-            textMuted={textMuted} 
-            textHighlight={textHighlight} 
-            bgBox={bgBox} 
+          <LeaguesTab
+            data={data}
+            isEnglish={isEnglish}
+            isDarkMode={isDarkMode}
+            textMuted={textMuted}
+            textHighlight={textHighlight}
+            bgBox={bgBox}
           />
         </div>
       )}
 
       {activeTab === 'tips' && (
         <div className={`mt-4 relative`}>
-          <TipsTab 
-            isEnglish={isEnglish} 
-            isDarkMode={isDarkMode} 
-            textMuted={textMuted} 
-            textHighlight={textHighlight} 
-            bgBox={bgBox} 
+          <TipsTab
+            isEnglish={isEnglish}
+            isDarkMode={isDarkMode}
+            textMuted={textMuted}
+            textHighlight={textHighlight}
+            bgBox={bgBox}
           />
         </div>
       )}
@@ -2218,11 +2342,11 @@ interface Insight {
 function generateManagerBriefing(data: any, isEnglish: boolean): Insight[] {
   const insights: Insight[] = [];
   if (!data || !data.squad) return insights;
-  
+
   const starters = data.squad.filter((p: any) => p.position <= 11 && !p.is_empty);
   const bench = data.squad.filter((p: any) => p.position > 11 && !p.is_empty);
   const bank = (data.bank || 0);
-  
+
   // 1. CAPTAINCY
   const highestXp = [...starters].sort((a: any, b: any) => (b.xp || 0) - (a.xp || 0))[0];
   const currentCap = starters.find((p: any) => p.is_captain);
@@ -2248,9 +2372,9 @@ function generateManagerBriefing(data: any, isEnglish: boolean): Insight[] {
   }
 
   // 2. TRANSFER WATCH (Weak Links & Upgrade Targets - Premium players >= 8.0m are exempt from fixture difficulty)
-  const transferEligible = starters.filter((p: any) => 
-    p.pos_code !== 1 && 
-    p.element_type !== 1 && 
+  const transferEligible = starters.filter((p: any) =>
+    p.pos_code !== 1 &&
+    p.element_type !== 1 &&
     ((p.cost || 0) < 8.0 || (p.chance_of_playing !== null && p.chance_of_playing < 75))
   );
   const weakLinks = transferEligible.filter((p: any) => ((p.xp || 0) < 3.2 && p.fixture_diff >= 3.0) || (p.xp || 0) < 2.5);
@@ -2306,9 +2430,9 @@ function generateManagerBriefing(data: any, isEnglish: boolean): Insight[] {
       priority: 70
     });
   }
-  
+
   // 5. FORM & CONTEXT (Underlying attacking stats - strictly MID & FWD, EXCLUDING Captaincy pick & high-xP assets)
-  const attackingStarters = starters.filter((p: any) => 
+  const attackingStarters = starters.filter((p: any) =>
     (p.pos_code === 3 || p.pos_code === 4 || p.element_type === 3 || p.element_type === 4) &&
     p.id !== highestXp?.id &&
     (p.xp || 0) < 4.5
@@ -2384,7 +2508,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
   const [selectedPlayerModalId, setSelectedPlayerModalId] = useState<number | null>(null);
   const _starters = data.squad.filter((p: any) => p.position <= 11 && !p.is_empty);
   const _bench = data.squad.filter((p: any) => p.position > 11 && !p.is_empty);
-  
+
   // Premium players (cost >= 8.0m) are fixture-proof and never considered a hard-fixture weakness
   const hardFixtures = _starters.filter((p: any) => p.fixture_diff >= 4 && (p.cost || 0) < 8.0);
   const lowXp = _starters.filter((p: any) => (p.xp || 0) < 2.5 && (p.cost || 0) < 8.0 && (p.chance_of_playing === null || p.chance_of_playing > 0));
@@ -2408,10 +2532,10 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
         {insights.length > 0 && (
           <div className={`p-4 md:p-6 rounded-2xl border shadow-sm ${isDarkMode ? 'bg-indigo-950/20 border-indigo-900/50' : 'bg-indigo-50/50 border-indigo-100'}`}>
             <h3 className={`text-xl font-black mb-4 flex items-center gap-2 tracking-tight ${isDarkMode ? 'text-indigo-300' : 'text-indigo-800'}`}>
-              <span className="text-2xl">⚡</span> 
+              <span className="text-2xl">⚡</span>
               {isEnglish ? "MANAGER\'S BRIEFING" : "תדריך מנג'ר"}
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {insights.map(insight => (
                 <div key={insight.id} className={`flex flex-col p-4 rounded-xl border ${isDarkMode ? 'bg-gray-800/80 border-gray-700' : 'bg-white border-gray-200'} shadow-sm relative overflow-hidden`}>
@@ -2458,8 +2582,8 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
                   {isEnglish ? 'Looking for AI Transfer Recommendations?' : 'מחפש המלצות חילופים של ה-AI?'}
                 </h4>
                 <p className={`text-xs mt-0.5 ${textMuted}`}>
-                  {isEnglish 
-                    ? 'Analyze optimal replacement options for any player in your squad based on xP projections and budget.' 
+                  {isEnglish
+                    ? 'Analyze optimal replacement options for any player in your squad based on xP projections and budget.'
                     : 'נתח חלופות אופטימליות לכל שחקן בסגל על בסיס תחזיות נקודות xP, תקציב ולוח משחקים.'}
                 </p>
               </div>
@@ -2473,7 +2597,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
             </button>
           </div>
         )}
-        
+
         <div className="flex flex-col gap-6">
         <div className={`p-5 rounded-xl border ${bgBox}`}>
         <h4 className="text-lg font-black mb-4 flex items-center gap-2 text-red-500">
@@ -2496,8 +2620,8 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
             <li className={`flex flex-col p-3 rounded-lg border ${isDarkMode ? 'bg-yellow-900/30 border-yellow-900/50' : 'bg-yellow-50 border-yellow-100'}`}>
               <span className={`font-bold text-sm ${isDarkMode ? 'text-yellow-500' : 'text-yellow-700'}`}>{isEnglish ? 'Suboptimal Captain?' : 'קפטן לא אופטימלי?'}</span>
               <span className={`text-xs mt-1 ${textMuted}`}>
-                {isEnglish 
-                  ? `${_currentCap?.name} has ${_currentCap?.xp} xP, but ${highestXpPlayer?.name} is projected for ${highestXpPlayer?.xp} xP.` 
+                {isEnglish
+                  ? `${_currentCap?.name} has ${_currentCap?.xp} xP, but ${highestXpPlayer?.name} is projected for ${highestXpPlayer?.xp} xP.`
                   : `${_currentCap?.name} עם ${_currentCap?.xp} נק', אבל ל-${highestXpPlayer?.name} יש תוחלת של ${highestXpPlayer?.xp} נק'.`}
               </span>
             </li>
@@ -2570,41 +2694,53 @@ function ActionModal({ player, onClose, onSwap, onCaptain, onVice, onSell, onSho
       <div className={`w-full max-w-md ${isDarkMode ? 'bg-gray-800 border-t border-gray-700' : 'bg-white'} rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl transition-transform animate-slide-up flex flex-col gap-3`} onClick={e => e.stopPropagation()}>
         <div className="flex justify-between items-start mb-2">
           <div className="flex items-center gap-4">
-            <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${player.team_code}-66.webp`} className="w-14" />
+            {player.is_empty ? (
+              <div className="w-14 h-14 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center text-2xl font-bold text-gray-500">
+                +
+              </div>
+            ) : (
+              <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${player.team_code}-66.webp`} className="w-14" />
+            )}
             <div>
-              <h3 className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{player.name}</h3>
-              <p className={`text-sm font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{player.team} • {player.pos_name || (player.pos_code === 1 ? 'GKP' : player.pos_code === 2 ? 'DEF' : player.pos_code === 3 ? 'MID' : 'FWD')}</p>
+              <h3 className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{player.is_empty ? (isEnglish ? 'Empty Slot' : 'מקום פנוי') : player.name}</h3>
+              <p className={`text-sm font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{player.is_empty ? (player.pos_code === 1 ? 'GKP' : player.pos_code === 2 ? 'DEF' : player.pos_code === 3 ? 'MID' : 'FWD') : `${player.team} • ${player.pos_name || (player.pos_code === 1 ? 'GKP' : player.pos_code === 2 ? 'DEF' : player.pos_code === 3 ? 'MID' : 'FWD')}`}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={(e) => { e.stopPropagation(); onShowInfo(player.id); }} className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-black transition-colors flex items-center justify-center" title="Player Info">i</button>
+            {!player.is_empty && (
+              <button onClick={(e) => { e.stopPropagation(); onShowInfo(player.id); }} className="w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-black transition-colors flex items-center justify-center" title="Player Info">i</button>
+            )}
             <button onClick={onClose} className="text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-full w-12 h-12 flex items-center justify-center text-2xl font-black ml-2 shadow-sm">✕</button>
           </div>
         </div>
-        
+
         <div className="flex flex-col gap-2 mt-2">
-          <button onClick={() => { onSwap(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
-            <span>🔄</span> {isEnglish ? 'Substitute / Swap' : 'חילוף שחקן'}
-          </button>
-          
-          <button onClick={() => { onCaptain(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
-            <span>©️</span> {isEnglish ? 'Make Captain' : 'הפוך לקפטן'}
-          </button>
-          
-          <button onClick={() => { onVice(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
-            <span>🇻</span> {isEnglish ? 'Make Vice Captain' : 'הפוך לסגן קפטן'}
-          </button>
-          
+          {!player.is_empty && (
+            <>
+              <button onClick={() => { onSwap(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
+                <span>🔄</span> {isEnglish ? 'Substitute / Swap' : 'חילוף שחקן'}
+              </button>
+
+              <button onClick={() => { onCaptain(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
+                <span>©️</span> {isEnglish ? 'Make Captain' : 'הפוך לקפטן'}
+              </button>
+
+              <button onClick={() => { onVice(player.id); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}>
+                <span>🇻</span> {isEnglish ? 'Make Vice Captain' : 'הפוך לסגן קפטן'}
+              </button>
+            </>
+          )}
+
           {onSell && (
             <>
-            <button onClick={() => { onSell(player.id, false); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-red-900/50 hover:bg-red-900/70 text-red-200' : 'bg-red-100 hover:bg-red-200 text-red-700'}`}>
-                  <span>{player.is_empty ? '➕' : '❌'}</span> {player.is_empty ? (isEnglish ? 'Add Player' : 'הוסף שחקן') : (isEnglish ? 'Replace Player' : 'החלף שחקן')}
-            </button>
-                {!player.is_empty && (
-          <button onClick={() => { onSell(player.id, true); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex justify-between items-center ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-300' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}`}>
-            <span>{isEnglish ? 'Remove (Empty Slot)' : 'הסר (פינוי מקום)'}</span> <span>🗑️</span>
-          </button>
-                )}
+              <button onClick={() => { onSell(player.id, false); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex items-center gap-3 ${isDarkMode ? 'bg-purple-900/50 hover:bg-purple-900/70 text-purple-200' : 'bg-purple-100 hover:bg-purple-200 text-purple-700'}`}>
+                <span>{player.is_empty ? '➕' : '🔄'}</span> {player.is_empty ? (isEnglish ? 'Add Player' : 'הוסף שחקן') : (isEnglish ? 'Transfer / Replace' : 'העבר / החלף שחקן')}
+              </button>
+              {!player.is_empty && (
+                <button onClick={() => { onSell(player.id, true); onClose(); }} className={`w-full text-left p-4 rounded-xl font-bold flex justify-between items-center ${isDarkMode ? 'bg-red-900/40 hover:bg-red-900/60 text-red-300' : 'bg-red-50 hover:bg-red-100 text-red-600'}`}>
+                  <span>{isEnglish ? 'Remove (Empty Slot)' : 'הסר (פינוי מקום)'}</span> <span>🗑️</span>
+                </button>
+              )}
             </>
           )}
         </div>
@@ -2613,17 +2749,17 @@ function ActionModal({ player, onClose, onSwap, onCaptain, onVice, onSell, onSho
   );
 }
 
-function PlayerCard({ 
-  player, 
-  isBench = false, 
-  activeId, 
+function PlayerCard({
+  player,
+  isBench = false,
+  activeId,
   onActionClick,
   transferMode = false,
   onCaptainClick,
   onViceClick
-}: { 
-  player: any, 
-  isBench?: boolean, 
+}: {
+  player: any,
+  isBench?: boolean,
   activeId: number | null,
   onActionClick: (id: number) => void,
   transferMode?: boolean,
@@ -2631,7 +2767,7 @@ function PlayerCard({
   onViceClick?: (id: number) => void
 }) {
   const shirtImg = `https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${player.team_code}-66.webp`;
-  
+
   const getDiffColor = (diff: number) => {
     switch(diff) {
       case 1: return 'bg-green-800 text-white';
@@ -2654,7 +2790,7 @@ const availabilityColor =
 
   return (
     <button onClick={() => onActionClick(player.id)} className={`relative flex flex-col items-center w-[46px] min-[400px]:w-[52px] sm:w-[95px] transition-all duration-300 cursor-pointer ${isBench && !isActionMode ? 'opacity-90 hover:opacity-100' : 'hover:scale-105'} ${isSelected ? 'scale-110 z-30 brightness-110' : ''}`}>
-      
+
       <div className="relative">
         {player.is_empty ? (
            <div className="w-7 h-[35px] sm:w-14 sm:h-[70px] bg-gray-300 rounded-t-xl mx-auto drop-shadow-md flex justify-center items-center opacity-60">
@@ -2664,7 +2800,7 @@ const availabilityColor =
           <img src={shirtImg} alt={player.name} className={`w-7 sm:w-14 h-auto drop-shadow-md transition-transform ${isSelected ? 'brightness-110 drop-shadow-xl' : ''}`} />
         )}
       </div>
-      
+
       <div
       className={`text-white text-[9px] min-[400px]:text-[10px] sm:text-sm font-bold px-0.5 sm:px-2 py-0 rounded shadow w-full text-center truncate mt-[-4px] z-10 ${player.is_empty ? 'bg-gray-400 opacity-60' : (isSelected ? 'bg-blue-600' : availabilityColor)}`}
         title={player.news || ''}
@@ -2672,7 +2808,7 @@ const availabilityColor =
       >
         {player.is_empty ? ' ' : player.name}
       </div>
-      
+
       {!player.is_empty && (
       <div className={`w-full text-center text-[7px] min-[400px]:text-[9px] sm:text-xs font-bold py-0 shadow-sm ${getDiffColor(player.fixture_diff)}`}>
         {player.fixture || 'Blank'}
@@ -2771,32 +2907,32 @@ function EliteRadarTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, 
   return (
     <div>
       <p className={`mb-6 text-sm ${textMuted}`}>
-        {isEnglish 
-          ? 'General market recommendations based on global data (MUST HAVE, BUY, DIFFERENTIALS). Not specific to your current squad.' 
+        {isEnglish
+          ? 'General market recommendations based on global data (MUST HAVE, BUY, DIFFERENTIALS). Not specific to your current squad.'
           : 'המלצות שוק כלליות על בסיס נתונים גלובליים (שחקני חובה, שחקנים בכושר שיא, ושחקנים דיפרנציאלים). מתעדכן שבועית ולא קשור ספציפית לסגל שלך.'}
       </p>
 
       {renderPlayerList(
-        radarData.hot_form, 
-        'text-orange-500', 
-        '🔥', 
-        isEnglish ? 'MUST HAVE / BUY (Hot Form)' : 'שחקני חובה / קנייה (בכושר שיא)', 
+        radarData.hot_form,
+        'text-orange-500',
+        '🔥',
+        isEnglish ? 'MUST HAVE / BUY (Hot Form)' : 'שחקני חובה / קנייה (בכושר שיא)',
         isEnglish ? 'Players with the highest Form right now. Proven point scorers over the last 30 days.' : 'השחקנים בכושר הכי טוב בליגה כרגע. מוכיחים את עצמם בעקביות ב-30 הימים האחרונים.'
       )}
 
       {renderPlayerList(
-        radarData.scout_picks, 
-        'text-blue-500', 
-        '🎯', 
-        isEnglish ? 'SCOUT PICKS (Top xP)' : 'בחירות הסקאוט (תוחלת הנקודות הגבוהה ביותר)', 
+        radarData.scout_picks,
+        'text-blue-500',
+        '🎯',
+        isEnglish ? 'SCOUT PICKS (Top xP)' : 'בחירות הסקאוט (תוחלת הנקודות הגבוהה ביותר)',
         isEnglish ? 'Players with the highest expected points (xP) for the upcoming gameweek based on statistical models and fixture difficulty.' : 'שחקנים עם תוחלת הנקודות (xP) הגבוהה ביותר למחזור הקרוב, על בסיס מודלי AI וקושי משחקים.'
       )}
 
       {renderPlayerList(
-        radarData.differentials, 
-        'text-purple-500', 
-        '💎', 
-        isEnglish ? 'DIFFERENTIALS (Hidden Gems)' : 'שחקנים דיפרנציאליים (פנינים נסתרות)', 
+        radarData.differentials,
+        'text-purple-500',
+        '💎',
+        isEnglish ? 'DIFFERENTIALS (Hidden Gems)' : 'שחקנים דיפרנציאליים (פנינים נסתרות)',
         isEnglish ? 'High potential players owned by less than 10% of managers. Great for jumping up the ranks.' : 'שחקנים עם פוטנציאל גבוה שאחוזי הבעלות עליהם נמוכים מ-10%. מצוינים כדי לעקוף מתחרים בליגות.'
       )}
       {selectedPlayerModalId2 && (
@@ -2849,7 +2985,7 @@ function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, te
 
           if (reason) {
             const budget = data.bank + (sp.selling_price ?? sp.cost ?? 0);
-            
+
             const promise = fetch(`${API_BASE_URL}/api/transfer-lab`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -2881,13 +3017,13 @@ function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, te
         }
 
         await Promise.all(promises);
-        
+
         newScenarios.forEach(scenario => {
           if (scenario.sell && scenario.sell.team_code === undefined && scenario.sell.team) {
             scenario.sell.team_code = getTeamCode(scenario.sell.team);
           }
         });
-        
+
         setScenarios(newScenarios);
         setLoading(false);
       } catch (err) {
@@ -2896,7 +3032,7 @@ function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, te
         setLoading(false);
       }
     }
-    
+
     setLoading(true);
     fetchScenarios();
   }, [teamId, data]);
@@ -2917,14 +3053,14 @@ function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, te
   return (
     <div className="space-y-6">
       <p className={`mb-4 text-sm ${textMuted}`}>
-        {isEnglish 
-          ? 'The algorithm has identified the following weak links in your squad based on tough fixtures, poor form, or injury risks. Here are the top affordable replacements.' 
+        {isEnglish
+          ? 'The algorithm has identified the following weak links in your squad based on tough fixtures, poor form, or injury risks. Here are the top affordable replacements.'
           : 'המערכת איתרה את החוליות החלשות בסגל שלך על בסיס משחקים קשים, פציעות או תוחלת נקודות נמוכה. אלו המחליפים הטובים ביותר שתוכל להרשות לעצמך בתקציב הנוכחי.'}
       </p>
 
       {scenarios.map((scenario: any, index: number) => (
         <div key={index} className={`p-4 rounded-xl border ${isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'} shadow-sm flex flex-col md:flex-row gap-6 items-center`}>
-          
+
           <div className={`flex-1 text-center md:text-start flex flex-col items-center md:items-start border-b md:border-b-0 md:border-e pb-4 md:pb-0 md:pe-6 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
             <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded mb-3">{isEnglish ? 'SELL' : 'למכור'}</span>
             <div className="flex items-center gap-4">
@@ -2946,15 +3082,15 @@ function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, te
                   <img src={`https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_${buy.team_code}-66.webp`} className="w-10 mb-2 drop-shadow-sm" />
                   <p className={`font-black text-[9px] sm:text-sm truncate w-full ${textHighlight}`}>{buy.name}</p>
                   <p className={`text-[10px] font-bold ${textMuted}`}>{buy.team}</p>
-                  
+
                   <div className={`flex justify-center w-full mt-2 text-xs border-t pt-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`}>
                     <span className="font-bold text-emerald-500">{buy.xp.toFixed(1)} xP</span>
                   </div>
                   <div className={`mt-1 text-[10px] w-full text-center font-bold px-1 py-0.5 rounded ${isDarkMode ? 'bg-gray-900 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
                     £{buy.cost.toFixed(1)}M
                   </div>
-                  <button 
-                    onClick={() => onTransfer && onTransfer(scenario.sell.id, buy)} 
+                  <button
+                    onClick={() => onTransfer && onTransfer(scenario.sell.id, buy)}
                     className="mt-2 w-full text-[10px] py-1 bg-emerald-500 hover:bg-emerald-600 text-white rounded font-bold transition-colors"
                   >
                     {isEnglish ? 'Execute Transfer' : 'בצע חילוף'}
@@ -2974,7 +3110,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
   const handleSharePitch = async (elementId: string, title: string) => {
     const element = document.getElementById(elementId);
     if (!element) return;
-    
+
     const watermark = document.createElement('div');
     watermark.innerHTML = 'Generated by FPL AI Agent<br/><span style="font-size:10px">fpl-agent-main-five.vercel.app</span>';
     watermark.className = 'absolute bottom-2 left-2 text-white/70 font-black text-xs text-left z-50 pointer-events-none drop-shadow-md bg-black/30 p-2 rounded';
@@ -2982,16 +3118,16 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
     element.appendChild(watermark);
 
     try {
-        const canvas = await html2canvas(element, { 
-            scale: 2, 
-            useCORS: true, 
+        const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
             backgroundColor: isDarkMode ? '#111827' : '#f9fafb'
         });
-        
+
         canvas.toBlob(async (blob) => {
             if (!blob) return;
             const file = new File([blob], `fpl_${title}.png`, { type: 'image/png' });
-            
+
             if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
                     await navigator.share({
@@ -3031,7 +3167,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
       setFtAvailable(data.free_transfers);
     }
   }, [data?.free_transfers]);
-  
+
 
   const isChipAvailable = (chipId: string) => {
     const usedCount = (data.chips_used || []).filter((c: string) => c === chipId).length;
@@ -3066,8 +3202,8 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
   const origPurchaseVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.purchase_price ?? p.cost ?? 0), 0);
   const origSellingVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
   const maxOrigVal = Math.max(origPurchaseVal, origSellingVal);
-  const totalBudget = originalData 
-    ? Math.max(100.0, Math.round(((originalData.bank ?? 0) + maxOrigVal) * 10) / 10) 
+  const totalBudget = originalData
+    ? Math.max(100.0, Math.round(((originalData.bank ?? 0) + maxOrigVal) * 10) / 10)
     : Math.max(100.0, Math.round(((data?.bank ?? 0) + (data?.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0)) * 10) / 10);
   const currentSquadCost = (data?.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0);
   const remainingBank = typeof data?.bank === 'number' ? Math.round(data.bank * 10) / 10 : Math.round((totalBudget - currentSquadCost) * 10) / 10;
@@ -3087,12 +3223,12 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
       fixture_diff: fix0 ? fix0.difficulty : 5,
     };
     return (
-      <PlayerCard 
-        key={p.id} 
-        player={mappedPlayer} 
-        isBench={isBench} 
-        activeId={swapSourceId} 
-        onActionClick={(id: number) => { swapSourceId !== null ? onSwap(id) : setActionPlayer(p) }} 
+      <PlayerCard
+        key={p.id}
+        player={mappedPlayer}
+        isBench={isBench}
+        activeId={swapSourceId}
+        onActionClick={(id: number) => { swapSourceId !== null ? onSwap(id) : setActionPlayer(p) }}
       />
     );
   };
@@ -3105,13 +3241,13 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
       <div className={`p-4 sm:p-6 rounded-xl shadow-sm border mb-6 ${bgBox}`}>
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-            <button 
+            <button
               onClick={onReset}
               className="bg-gray-500 hover:bg-gray-600 text-white font-black py-2.5 px-4 rounded-lg shadow-sm text-sm transition-colors w-full sm:w-auto"
             >
               {isEnglish ? 'Reset Squad' : 'אפס סגל'}
             </button>
-            <button 
+            <button
               onClick={onClearAll}
               className="bg-red-600 hover:bg-red-700 text-white font-black py-2.5 px-4 rounded-lg shadow-sm text-sm transition-colors w-full sm:w-auto"
             >
@@ -3132,8 +3268,8 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
                     disabled={!available}
                     onClick={() => setActiveChip(isActive ? null : chip.id)}
                     className={`font-black text-xs py-2 px-3 rounded-lg shadow-sm transition-colors border-2 ${
-                      !available ? (isDarkMode ? 'bg-gray-700 border-gray-700 text-gray-500 cursor-not-allowed opacity-50' : 'bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed opacity-50') 
-                      : isActive ? 'bg-purple-600 border-purple-600 text-white' 
+                      !available ? (isDarkMode ? 'bg-gray-700 border-gray-700 text-gray-500 cursor-not-allowed opacity-50' : 'bg-gray-200 text-gray-400 border-gray-200 cursor-not-allowed opacity-50')
+                      : isActive ? 'bg-purple-600 border-purple-600 text-white'
                       : isDarkMode ? 'bg-gray-800 border-purple-500 text-purple-400 hover:bg-gray-700' : 'bg-white border-purple-500 text-purple-600 hover:bg-purple-50'
                     }`}
                     title={!available ? (isEnglish ? 'Already used' : 'כבר שומש') : ''}
@@ -3144,18 +3280,18 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
               })}
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <span className={`text-sm font-bold ${textMuted}`}>{isEnglish ? 'Select Gameweek:' : 'בחר מחזור:'}</span>
             <div className="flex items-center gap-1">
-              <button 
+              <button
                 onClick={() => setSelectedGwOffset(Math.max(0, selectedGwOffset - 1))}
                 disabled={selectedGwOffset === 0}
                 className={`w-8 h-8 flex items-center justify-center rounded-lg border font-bold text-lg shadow-sm transition-colors ${selectedGwOffset === 0 ? (isDarkMode ? 'opacity-50 cursor-not-allowed bg-gray-800 text-gray-500 border-gray-700' : 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200') : (isDarkMode ? 'hover:bg-gray-600 bg-gray-700 text-white border-gray-600' : 'hover:bg-purple-100 hover:text-purple-700 bg-white border-gray-300 text-gray-800')}`}
               >
                 &lt;
               </button>
-              <select 
+              <select
                 value={selectedGwOffset}
                 onChange={(e) => setSelectedGwOffset(Number(e.target.value))}
                 className={`border rounded-lg px-3 py-1.5 text-sm font-black shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
@@ -3164,7 +3300,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
                   <option key={offset} value={offset}>GW {data?.next_gw + offset} {offset === 0 ? (isEnglish ? '(Current)' : '(נוכחי)') : ''}</option>
                 ))}
               </select>
-              <button 
+              <button
                 onClick={() => setSelectedGwOffset(Math.min(38 - data?.next_gw, selectedGwOffset + 1))}
                 disabled={selectedGwOffset === Math.max(0, 38 - data?.next_gw)}
                 className={`w-8 h-8 flex items-center justify-center rounded-lg border font-bold text-lg shadow-sm transition-colors ${selectedGwOffset === Math.max(0, 38 - data?.next_gw) ? (isDarkMode ? 'opacity-50 cursor-not-allowed bg-gray-800 text-gray-500 border-gray-700' : 'opacity-50 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200') : (isDarkMode ? 'hover:bg-gray-600 bg-gray-700 text-white border-gray-600' : 'hover:bg-purple-100 hover:text-purple-700 bg-white border-gray-300 text-gray-800')}`}
@@ -3180,9 +3316,18 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
             <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Expected Points (xP)' : 'תוחלת נקודות (xP)'}</span>
             <span className="text-lg sm:text-2xl font-black">{totalXP.toFixed(1)}</span>
           </div>
-          <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+          <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${remainingBank < 0 ? 'border-red-500' : isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
             <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Money Left (ITB)' : 'כסף שנשאר (יתרה בבנק)'}</span>
-            <span className={`text-2xl font-black ${remainingBank < 0 ? 'text-red-500' : ''}`}>£{remainingBank.toFixed(1)}m</span>
+            <div className="flex items-center gap-1.5">
+              <span className={`text-2xl font-black ${remainingBank < 0 ? 'text-red-500' : ''}`}>
+                {remainingBank < 0 ? `-£${Math.abs(remainingBank).toFixed(1)}m` : `£${remainingBank.toFixed(1)}m`}
+              </span>
+              {remainingBank < 0 && (
+                <span className="text-[9px] bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 px-1.5 py-0.5 rounded font-black">
+                  {isEnglish ? 'Deficit' : 'חריגה'}
+                </span>
+              )}
+            </div>
             <span className={`text-[10px] font-semibold mt-0.5 ${textMuted}`}>
               {isEnglish ? `Spent: £${currentSquadCost.toFixed(1)}m` : `הושקע: £${currentSquadCost.toFixed(1)}m`}
             </span>
@@ -3194,14 +3339,14 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
           <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
             <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Available Transfers' : 'חילופים זמינים'}</span>
             <div className="flex items-center gap-2">
-              <button 
+              <button
                 onClick={() => setFtAvailable(Math.max(0, ftAvailable - 1))}
                 className={`w-6 h-6 flex items-center justify-center rounded-full font-bold transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'}`}
               >-</button>
               <span className={`text-2xl font-black ${(activeChip === 'wildcard' || activeChip === 'freehit') ? 'text-purple-500' : (transfersRemaining < 0 ? 'text-red-500' : 'text-emerald-500')}`} title={`Base: ${ftAvailable} + Offset: ${selectedGwOffset}`}>
                 {(activeChip === 'wildcard' || activeChip === 'freehit') ? '∞' : `FT ${transfersRemaining}`}
               </span>
-              <button 
+              <button
                 onClick={() => setFtAvailable(Math.min(5, ftAvailable + 1))}
                 className={`w-6 h-6 flex items-center justify-center rounded-full font-bold transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'}`}
               >+</button>
@@ -3218,16 +3363,16 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
               <div className="absolute top-1/2 left-0 right-0 h-1 bg-white"></div>
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-4 border-white rounded-full"></div>
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-white rounded-full"></div>
-              
+
               <div className="absolute top-0 left-1/4 right-1/4 h-32 border-4 border-t-0 border-white"></div>
               <div className="absolute top-0 left-[35%] right-[35%] h-12 border-4 border-t-0 border-white"></div>
               <div className="absolute top-[8rem] left-1/2 -translate-x-1/2 w-20 h-10 border-4 border-transparent border-b-white rounded-full"></div>
-              
+
               <div className="absolute bottom-0 left-1/4 right-1/4 h-32 border-4 border-b-0 border-white"></div>
               <div className="absolute bottom-0 left-[35%] right-[35%] h-12 border-4 border-b-0 border-white"></div>
               <div className="absolute bottom-[8rem] left-1/2 -translate-x-1/2 w-20 h-10 border-4 border-transparent border-t-white rounded-full"></div>
             </div>
-            
+
             <div className="flex justify-around w-full px-1 sm:px-4 z-10">
               {starters.filter((p: any) => p.pos_code === 1).map((p: any) => renderPlayer(p, false))}
             </div>
@@ -3241,7 +3386,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
               {starters.filter((p: any) => p.pos_code === 4).map((p: any) => renderPlayer(p, false))}
             </div>
           </div>
-          
+
           <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
             {bench.map((p: any) => renderPlayer(p, true))}
           </div>
@@ -3276,7 +3421,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
   const [standings, setStandings] = useState<any[]>([]);
   const [loadingLeague, setLoadingLeague] = useState(false);
   const [leagueSearch, setLeagueSearch] = useState('');
-  
+
   const [compareTeamId, setCompareTeamId] = useState<number | null>(null);
   const [compareData, setCompareData] = useState<any>(null);
   const [loadingCompare, setLoadingCompare] = useState(false);
@@ -3318,7 +3463,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
       const res = await fetch(`${API_BASE_URL}/api/compare/${data?.team_id}/${rivalId}?gw=${Math.max(1, data?.next_gw - 1)}`);
       if (!res.ok) throw new Error(isEnglish ? "Could not fetch rival team." : "לא הצלחתי למשוך את קבוצת היריב.");
       const json = await res.json();
-      
+
       const TEAM_CODES: Record<string, number> = {'ARS': 3, 'AVL': 7, 'BOU': 91, 'BRE': 94, 'BHA': 36, 'CHE': 8, 'COV': 9, 'CRY': 31, 'EVE': 11, 'FUL': 54, 'HUL': 88, 'IPS': 40, 'LEE': 2, 'LIV': 14, 'MCI': 43, 'MUN': 1, 'NEW': 4, 'NFO': 17, 'TOT': 6, 'SUN': 56};
       const mapTeamCode = (playerList: any[]) => {
         if (!playerList) return;
@@ -3348,7 +3493,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
   return (
     <div className="flex flex-col gap-6">
       <p className={`text-sm ${textMuted} text-center`}>
-        {isEnglish 
+        {isEnglish
           ? 'Track your rivals in mini-leagues: see which players they own, who picked which captain, and find the differentials that will make or break your rank.'
           : 'עקוב אחרי יריביך במיני-ליגה: זהה באילו שחקנים הם מחזיקים, מי בחר איזה קפטן, ואתר דיפרנשיאלים שיקפיצו אותך בדירוג.'}
       </p>
@@ -3356,7 +3501,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
       <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-end">
         <div className="flex-1">
           <label className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Select from your leagues:' : 'בחר מתוך המיני-ליגות של הקבוצה שלך:'}</label>
-          <select 
+          <select
             value={selectedLeague?.id || ''}
             onChange={(e) => {
               const league = allLeagues.find((l: any) => l.id === parseInt(e.target.value));
@@ -3373,7 +3518,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
         <div className="flex-1">
           <label className={`block text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Or search by league ID:' : 'או חפש לפי קוד ליגה אחר:'}</label>
           <div className="flex gap-2">
-            <input 
+            <input
               type="number"
               value={leagueSearch}
               onChange={(e) => setLeagueSearch(e.target.value)}
@@ -3434,8 +3579,8 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
                 </thead>
                 <tbody>
                   {standings.map((team: any) => (
-                    <tr 
-                      key={team.entry} 
+                    <tr
+                      key={team.entry}
                       className={`border-b last:border-0 transition-colors ${team.entry === data.team_id ? (isDarkMode ? 'bg-blue-900/30 font-black' : 'bg-blue-50 font-black') : (isDarkMode ? 'border-gray-700 hover:bg-gray-700/50' : 'border-gray-100 hover:bg-gray-50')}`}
                     >
                       <td className="px-4 py-3 font-black">#{team.rank}</td>
@@ -3445,7 +3590,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
                       <td className={`px-4 py-3 text-center text-xs ${textMuted}`}>#{team.entry}</td>
                       <td className="px-4 py-3 text-center">
                         {team.entry !== data.team_id ? (
-                          <button 
+                          <button
                             onClick={() => fetchCompare(team.entry)}
                             className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${compareTeamId === team.entry ? 'bg-purple-600 text-white' : `bg-purple-100 text-purple-700 ${isDarkMode ? 'bg-purple-900/30 text-purple-400' : 'hover:bg-purple-200'}`}`}
                           >
@@ -3467,14 +3612,14 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
       {compareData && (
         <div className={`p-6 rounded-2xl border shadow-lg ${bgCard} relative mt-2`}>
           <button onClick={() => { setCompareData(null); setCompareTeamId(null); }} className={`absolute top-4 ${isEnglish ? 'right-4' : 'left-4'} font-bold text-gray-400 hover:text-red-500 text-lg`}>✕</button>
-          
+
           <h4 className={`text-xl font-black mb-5 ${textHighlight}`}>
             {isEnglish ? '⚔️ Head-to-Head Comparison' : '⚔️ השוואת ראש בראש'}
           </h4>
-          
+
           {loadingCompare && <p className="animate-pulse font-bold text-center p-8">{isEnglish ? 'Loading rivalry...' : 'טוען השוואה...'}</p>}
           {compareError && <p className="text-red-500 font-bold p-8 text-center">{compareError}</p>}
-          
+
           {!loadingCompare && !compareError && compareData && (
             <div className="flex flex-col gap-5">
               <div className={`flex items-center justify-between p-4 rounded-xl ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
@@ -3549,7 +3694,7 @@ function LeaguesTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgB
 
 function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any) {
   const bgCard = isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200';
-  
+
   return (
     <div className="flex flex-col gap-8">
       <div className={`p-6 rounded-2xl border shadow-sm ${bgCard}`}>
@@ -3593,7 +3738,7 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
             {isEnglish ? 'Top 10k Strategic Golden Rules for Long-Term FPL Mastery' : 'עקרונות זהב אסטרטגיים של שחקני טופ 10k עולמי לניהול סגל מנצח לאורך העונה'}
           </p>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {FPL_SUCCESS_TIPS.map((tip) => (
             <div key={tip.num} className={`p-6 rounded-2xl border shadow-sm flex flex-col gap-3 ${bgCard} transition-transform hover:-translate-y-1 hover:shadow-md`}>
@@ -3603,17 +3748,17 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
                   {tip.num}. {isEnglish ? tip.title_en : tip.title_he}
                 </h4>
               </div>
-              
+
               <div className="flex flex-wrap gap-2 mb-2">
                 <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider ${isDarkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>
                   {isEnglish ? tip.tag_en : tip.tag_he}
                 </span>
               </div>
-              
+
               <p className={`text-sm flex-grow leading-relaxed ${textHighlight}`}>
                 {isEnglish ? tip.desc_en : tip.desc_he}
               </p>
-              
+
               <div className={`mt-3 p-3 rounded-lg text-sm font-bold border-l-4 border-yellow-400 ${isDarkMode ? 'bg-yellow-900/20 text-yellow-200' : 'bg-yellow-50 text-yellow-800'}`}>
                 <span className="opacity-80 block text-xs uppercase mb-0 sm:mb-1">{isEnglish ? 'Golden Rule:' : 'כלל מפתח:'}</span>
                 {isEnglish ? tip.rule_en : tip.rule_he}
@@ -3659,8 +3804,8 @@ function PlayerInfoModal({ playerId, preloadedPlayer, onClose, onTransferAction,
 
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
-      <div 
-        className={`w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-5 sm:p-6 shadow-2xl relative ${bgModal}`} 
+      <div
+        className={`w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-5 sm:p-6 shadow-2xl relative ${bgModal}`}
         onClick={e => e.stopPropagation()}
       >
         <button onClick={onClose} className="absolute top-3 right-3 w-10 h-10 flex items-center justify-center rounded-full bg-gray-200/50 hover:bg-gray-200 dark:bg-gray-700/50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-xl transition-colors z-[400]">✕</button>
@@ -3769,7 +3914,7 @@ function PlayerInfoModal({ playerId, preloadedPlayer, onClose, onTransferAction,
                     const oppId = isHome ? f.team_a : f.team_h;
                     const oppName = teams?.[oppId]?.short_name || 'TBD';
                     const bgFdr = diff <= 2 ? 'bg-emerald-500' : diff === 3 ? 'bg-gray-400' : diff === 4 ? 'bg-red-500' : 'bg-red-800';
-                    
+
                     return (
                       <div key={f.id || idx} className={`flex justify-between items-center p-2 px-3 rounded-lg border ${cardBg} ${borderColor}`}>
                         <span className="text-xs font-bold text-gray-400">GW {f.event}</span>
@@ -3832,7 +3977,7 @@ function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onA
     const bench: any[] = [];
     const posCounts = { 1: 0, 2: 0, 3: 0, 4: 0 };
     const mins = { 1: 1, 2: 3, 3: 2, 4: 1 };
-    
+
     for (let pos = 1; pos <= 4; pos++) {
        let needed = (mins as any)[pos];
        const playersInPos = sortedSquad.filter(p => p.element_type === pos);
@@ -3918,7 +4063,7 @@ function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onA
           <div className="absolute bottom-0 left-1/4 right-1/4 h-32 border-4 border-b-0 border-white/30"></div>
           <div className="absolute bottom-0 left-[35%] right-[35%] h-12 border-4 border-b-0 border-white/30"></div>
           <div className="absolute bottom-[8rem] left-1/2 -translate-x-1/2 w-20 h-10 border-4 border-transparent border-t-white/30 rounded-full"></div>
-          
+
           <div className="flex justify-around w-full px-1 sm:px-4 z-10">
             {starters.filter((p: any) => p.element_type === 1).map((p: any) => renderDraftPlayer(p, false))}
           </div>
@@ -3932,11 +4077,11 @@ function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onA
             {starters.filter((p: any) => p.element_type === 4).map((p: any) => renderDraftPlayer(p, false))}
           </div>
         </div>
-        
+
         <div className="bg-[#0e5230] rounded-b-lg p-2 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
           {bench.map((p: any) => renderDraftPlayer(p, true))}
         </div>
-        
+
       </div>
     </div>
   );
