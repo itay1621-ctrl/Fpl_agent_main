@@ -180,7 +180,9 @@ export default function Home() {
 
   const handleApplyDraft = (draftData: any) => {
     const origPurchaseVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.purchase_price ?? p.cost ?? 0), 0);
-    const origBudget = (originalData?.bank ?? 0) + (origPurchaseVal > 0 ? origPurchaseVal : 100.0);
+    const origSellingVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
+    const maxOrigVal = Math.max(origPurchaseVal, origSellingVal);
+    const origBudget = Math.max(100.0, Math.round(((originalData?.bank ?? 0) + maxOrigVal) * 10) / 10);
     
     const draftTotalCost = (draftData.squad || []).reduce((acc: number, p: any) => {
       const origPlayer = originalData?.squad?.find((op: any) => op.id === p.id);
@@ -510,9 +512,21 @@ export default function Home() {
               }
             }
             const origPurchaseVal = (result.squad || []).reduce((sum: number, p: any) => sum + (p.purchase_price ?? p.cost ?? 0), 0);
-            const origBudget = (result.bank || 0) + (origPurchaseVal > 0 ? origPurchaseVal : 100.0);
-            const currentCost = (savedPlan.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0);
-            savedPlan.bank = Math.round((origBudget - currentCost) * 10) / 10;
+            const origSellingVal = (result.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
+            const maxOrigVal = Math.max(origPurchaseVal, origSellingVal);
+            const origBudget = Math.max(100.0, Math.round(((result.bank || 0) + maxOrigVal) * 10) / 10);
+            const isOriginalSquad = (savedPlan.squad || []).length === (result.squad || []).length &&
+              (savedPlan.squad || []).every((sp: any) => {
+                const orig = result.squad?.find((rp: any) => rp.id === sp.id);
+                return orig && !sp.is_empty;
+              });
+
+            if (isOriginalSquad) {
+              savedPlan.bank = result.bank ?? 0;
+            } else if (typeof savedPlan.bank !== 'number' || isNaN(savedPlan.bank)) {
+              const currentCost = (savedPlan.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0);
+              savedPlan.bank = Math.round((origBudget - currentCost) * 10) / 10;
+            }
 
             const savedChip = localStorage.getItem(`fpl_active_chip_${idToFetch}`);
             if (savedChip) setActiveChip(savedChip);
@@ -624,7 +638,7 @@ export default function Home() {
         ...p,
         cost: p.purchase_price ?? p.cost
       }));
-      setData({ ...JSON.parse(JSON.stringify(originalData)), squad: resetSquad });
+      setData({ ...JSON.parse(JSON.stringify(originalData)), bank: originalData.bank ?? 0, squad: resetSquad });
       setSwapSourceId(null);
       setTransferOutId(null);
       setActiveChip(null);
@@ -650,8 +664,13 @@ export default function Home() {
       purchase_price: originalPlayer.purchase_price ?? originalPlayer.cost
     };
     const newSquad = data.squad.map((p: any) => p.position === position ? restoredPlayer : p);
+    const isAllOriginal = newSquad.every((p: any) => {
+      const orig = originalData.squad.find((op: any) => op.id === p.id);
+      return orig && !p.is_empty;
+    });
+    const finalBank = isAllOriginal ? (originalData.bank ?? 0) : newBank;
     
-    setData({ ...data, squad: newSquad, bank: newBank });
+    setData({ ...data, squad: newSquad, bank: finalBank });
   };
 
   const executeTransfer = (newPlayer: any) => {
@@ -1799,7 +1818,9 @@ export default function Home() {
                 onReset={handleReset}
                 onClearAll={() => {
                   const origPurchaseVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.purchase_price ?? p.cost ?? 0), 0);
-                  const totalBudget = (originalData?.bank ?? 0) + (origPurchaseVal > 0 ? origPurchaseVal : 100.0);
+                  const origSellingVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
+                  const maxOrigVal = Math.max(origPurchaseVal, origSellingVal);
+                  const totalBudget = Math.max(100.0, Math.round(((originalData?.bank ?? 0) + maxOrigVal) * 10) / 10);
                   const newSquad = data.squad.map((p: any) => ({
                     ...p,
                     id: p.id > 0 ? -p.id : p.id,
@@ -1812,7 +1833,7 @@ export default function Home() {
                     xp: 0,
                     form: 0
                   }));
-                  setData({ ...data, bank: Math.round(totalBudget * 10) / 10, squad: newSquad });
+                  setData({ ...data, bank: totalBudget, squad: newSquad });
                 }}
                 originalData={originalData}
                 onRestorePlayer={handleRestorePlayer}
@@ -3043,7 +3064,11 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
   const scheduleForGw = data.schedule?.[selectedGwNumber] || [];
 
   const origPurchaseVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.purchase_price ?? p.cost ?? 0), 0);
-  const totalBudget = originalData ? ((originalData.bank ?? 0) + (origPurchaseVal > 0 ? origPurchaseVal : 100.0)) : ((data?.bank ?? 0) + (data?.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0));
+  const origSellingVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
+  const maxOrigVal = Math.max(origPurchaseVal, origSellingVal);
+  const totalBudget = originalData 
+    ? Math.max(100.0, Math.round(((originalData.bank ?? 0) + maxOrigVal) * 10) / 10) 
+    : Math.max(100.0, Math.round(((data?.bank ?? 0) + (data?.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0)) * 10) / 10);
   const currentSquadCost = (data?.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0);
   const remainingBank = typeof data?.bank === 'number' ? Math.round(data.bank * 10) / 10 : Math.round((totalBudget - currentSquadCost) * 10) / 10;
 
