@@ -404,7 +404,7 @@ def get_fpl_context(gw_limit: int = 5, override_next_gw: int = None):
 
 
 @app.get("/api/dashboard/{team_id}")
-def get_dashboard_data(team_id: int):
+def get_dashboard_data(team_id: int, request: Request = None, fpl_cookie: Optional[str] = None):
     try:
         ctx = get_fpl_context(gw_limit=None)
         next_gw = ctx["next_gw"]
@@ -413,7 +413,11 @@ def get_dashboard_data(team_id: int):
         elements = ctx["elements"]
         teams = ctx["teams"]
 
-        picks, bank, team_name, rank, chips_used, leagues, free_transfers = fetch_user_team(team_id, next_gw)
+        cookie = fpl_cookie
+        if not cookie and request:
+            cookie = request.headers.get("x-fpl-cookie")
+
+        picks, bank, team_name, rank, chips_used, leagues, free_transfers, squad_meta = fetch_user_team(team_id, next_gw, cookie=cookie)
         player_prices = calculate_player_prices(team_id, picks, elements, next_gw)
 
         enriched_picks = []
@@ -502,9 +506,12 @@ def get_dashboard_data(team_id: int):
             "squad": enriched_picks,
             "schedule": schedule,
             "chips_used": chips_used,
-        "leagues": leagues,
+            "leagues": leagues,
             "free_transfers": free_transfers,
-        "teams": teams
+            "teams": teams,
+            "squad_meta": squad_meta,
+            "is_live_squad": squad_meta.get("is_live_current", False),
+            "active_chip": squad_meta.get("active_chip")
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -764,9 +771,12 @@ def get_radar():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/budget-scenarios/{team_id}")
-def get_budget_scenarios(team_id: int):
+def get_budget_scenarios(team_id: int, request: Request = None, fpl_cookie: Optional[str] = None):
     try:
-        dashboard_data = get_dashboard_data(team_id)
+        cookie = fpl_cookie
+        if not cookie and request:
+            cookie = request.headers.get("x-fpl-cookie")
+        dashboard_data = get_dashboard_data(team_id, request=request, fpl_cookie=cookie)
         squad = dashboard_data["squad"]
         bank = dashboard_data["bank"]
         next_gw = dashboard_data["next_gw"]

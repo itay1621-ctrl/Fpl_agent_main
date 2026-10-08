@@ -83,41 +83,126 @@ def fetch_bootstrap() -> Dict[str, Any]:
     res.raise_for_status()
     return res.json()
 
-def fetch_user_team(t_id: int, gw: int) -> Tuple[List[Dict[str, Any]], float, str, str, List[str], Dict[str, Any], int]:
-    last_gw = max(1, gw - 1)
-    picks_url = f"{BASE_URL}entry/{t_id}/event/{last_gw}/picks/"
+def fetch_user_team(
+    t_id: int,
+    gw: int,
+    cookie: Optional[str] = None
+) -> Tuple[List[Dict[str, Any]], float, str, str, List[str], Dict[str, Any], int, Dict[str, Any]]:
     entry_url = f"{BASE_URL}entry/{t_id}/"
     history_url = f"{BASE_URL}entry/{t_id}/history/"
     
-    p_res = requests.get(picks_url, headers=API_HEADERS, timeout=12)
-    p_res.raise_for_status()
-    picks_res = p_res.json()
-    
     e_res = requests.get(entry_url, headers=API_HEADERS, timeout=12)
-    e_res.raise_for_status()
-    entry_res = e_res.json()
+    entry_res = e_res.json() if e_res.status_code == 200 else {}
     
     h_res = requests.get(history_url, headers=API_HEADERS, timeout=12)
-    h_res.raise_for_status()
-    history_res = h_res.json()
+    history_res = h_res.json() if h_res.status_code == 200 else {}
+    
+    team_name = entry_res.get("name", f"Team {t_id}") if entry_res else f"Team {t_id}"
+    rank = entry_res.get("summary_overall_rank", "N/A") if entry_res else "N/A"
+    chips_used = [c.get("name") for c in history_res.get("chips", [])] if history_res else []
+    leagues = entry_res.get("leagues", {"classic": [], "h2h": []}) if entry_res else {"classic": [], "h2h": []}
+    free_transfers = calculate_free_transfers(history_res)
+    
+    # Layer 1: Authenticated my-team endpoint if cookie provided
+    if cookie:
+        cookie_clean = cookie.strip()
+        auth_headers = dict(API_HEADERS)
+        if "pl_profile=" in cookie_clean or "=" in cookie_clean:
+            auth_headers["Cookie"] = cookie_clean
+        else:
+            auth_headers["Cookie"] = f"pl_profile={cookie_clean}"
+            
+        try:
+            mt_res = requests.get(f"{BASE_URL}my-team/{t_id}/", headers=auth_headers, timeout=12)
+            if mt_res.status_code == 200:
+                mt_data = mt_res.json()
+                picks = mt_data.get("picks", []) or []
+                transfers_dict = mt_data.get("transfers", {})
+                bank = transfers_dict.get("bank", 0) / 10.0
+                
+                # Active chip detection
+                active_chip = None
+                for c in mt_data.get("chips", []):
+                    if c.get("status_for_entry") == "active" or c.get("status") == "active" or c.get("is_active"):
+                        active_chip = c.get("name")
+                if not active_chip:
+                    if transfers_dict.get("wildcard"):
+                        active_chip = "wildcard"
+                    elif transfers_dict.get("freehit"):
+                        active_chip = "freehit"
+                        
+                if active_chip and active_chip not in chips_used:
+                    chips_used.append(active_chip)
+                    
+                limit = transfers_dict.get("limit", 1)
+                made = transfers_dict.get("made", 0)
+                if active_chip in ["wildcard", "freehit"]:
+                    free_transfers = 99
+                else:
+                    free_transfers = max(0, limit - made)
+                    
+                squad_meta = {
+                    "source": "live_my_team",
+                    "is_live_current": True,
+                    "event": gw,
+                    "active_chip": active_chip,
+                    "pending_deadline_gw": None,
+                    "authenticated": True
+                }
+                return picks, bank, team_name, rank, chips_used, leagues, free_transfers, squad_meta
+        except Exception:
+            pass # Fall through to public layers
+
+    # Layer 2: Public Current Event picks (e.g. if deadline passed or publicly published)
+    curr_picks_url = f"{BASE_URL}entry/{t_id}/event/{gw}/picks/"
+    try:
+        curr_res = requests.get(curr_picks_url, headers=API_HEADERS, timeout=12)
+        if curr_res.status_code == 200:
+            picks_res = curr_res.json()
+            bank = (picks_res.get("entry_history") or {}).get("bank", 0) / 10
+            picks = picks_res.get("picks", []) or []
+            active_chip = picks_res.get("active_chip")
+            if active_chip and active_chip not in chips_used:
+                chips_used.append(active_chip)
+            squad_meta = {
+                "source": "public_current_event",
+                "is_live_current": True,
+                "event": gw,
+                "active_chip": active_chip,
+                "pending_deadline_gw": None,
+                "authenticated": False
+            }
+            return picks, bank, team_name, rank, chips_used, leagues, free_transfers, squad_meta
+    except Exception:
+        pass
+
+    # Layer 3: Completed GW fallback (pre-deadline public privacy)
+    last_gw = max(1, gw - 1)
+    fallback_url = f"{BASE_URL}entry/{t_id}/event/{last_gw}/picks/"
+    fb_res = requests.get(fallback_url, headers=API_HEADERS, timeout=12)
+    fb_res.raise_for_status()
+    picks_res = fb_res.json()
     
     if picks_res.get("active_chip") == "free_hit" and last_gw > 1:
         base_gw = last_gw - 1
         base_url = f"{BASE_URL}entry/{t_id}/event/{base_gw}/picks/"
         b_res = requests.get(base_url, headers=API_HEADERS, timeout=12)
-        b_res.raise_for_status()
-        picks_res = b_res.json()
-        
+        if b_res.status_code == 200:
+            picks_res = b_res.json()
+            
     bank = (picks_res.get("entry_history") or {}).get("bank", 0) / 10
     picks = picks_res.get("picks", []) or []
-    team_name = entry_res.get("name", f"Team {t_id}") if entry_res else f"Team {t_id}"
-    rank = entry_res.get("summary_overall_rank", "N/A") if entry_res else "N/A"
+    active_chip = picks_res.get("active_chip")
     
-    chips_used = [c.get("name") for c in history_res.get("chips", [])] if history_res else []
-    leagues = entry_res.get("leagues", {"classic": [], "h2h": []}) if entry_res else {"classic": [], "h2h": []}
-    free_transfers = calculate_free_transfers(history_res)
-    
-    return picks, bank, team_name, rank, chips_used, leagues, free_transfers
+    squad_meta = {
+        "source": "completed_gw_fallback",
+        "is_live_current": False,
+        "event": last_gw,
+        "pending_deadline_gw": gw,
+        "active_chip": active_chip,
+        "authenticated": False
+    }
+    return picks, bank, team_name, rank, chips_used, leagues, free_transfers, squad_meta
 
 @time_cache(max_age=3600)
 def fetch_fixtures(gw: int) -> List[Dict[str, Any]]:
@@ -182,7 +267,7 @@ def calculate_player_prices(
         if c.get("name") == "freehit" and c.get("event") is not None
     }
     
-    last_gw = max(1, (next_gw or 1) - 1)
+    target_gw = next_gw if next_gw else 38
     
     valid_transfers = []
     for t in transfers:
@@ -191,7 +276,7 @@ def calculate_player_prices(
             ev = int(ev)
             if ev in fh_events:
                 continue
-            if ev <= last_gw:
+            if ev <= target_gw:
                 valid_transfers.append(t)
                 
     # Sort chronologically by transfer time ascending so the latest purchase overwrites older ones
@@ -211,17 +296,27 @@ def calculate_player_prices(
             continue
         el = elements.get(el_id, {})
         now_cost = el.get("now_cost", 0)
-        cost_change_start = el.get("cost_change_start", 0)
         
-        # Player in squad since GW1 was purchased at initial cost: now_cost - cost_change_start
-        initial_cost = now_cost - cost_change_start
-        purch_cost = purchase_lookup.get(el_id, initial_cost)
+        raw_pp = pick.get("purchase_price")
+        raw_sp = pick.get("selling_price")
         
-        # FPL official selling price formula:
-        if now_cost > purch_cost:
-            sell_cost = purch_cost + ((now_cost - purch_cost) // 2)
+        if raw_pp is not None:
+            purch_cost = raw_pp if raw_pp > 30 else int(round(raw_pp * 10))
+            if raw_sp is not None:
+                sell_cost = raw_sp if raw_sp > 30 else int(round(raw_sp * 10))
+            else:
+                if now_cost > purch_cost:
+                    sell_cost = purch_cost + ((now_cost - purch_cost) // 2)
+                else:
+                    sell_cost = now_cost
         else:
-            sell_cost = now_cost
+            cost_change_start = el.get("cost_change_start", 0)
+            initial_cost = now_cost - cost_change_start
+            purch_cost = purchase_lookup.get(el_id, initial_cost)
+            if now_cost > purch_cost:
+                sell_cost = purch_cost + ((now_cost - purch_cost) // 2)
+            else:
+                sell_cost = now_cost
             
         result[el_id] = {
             "purchase_price": round(purch_cost / 10.0, 1),
