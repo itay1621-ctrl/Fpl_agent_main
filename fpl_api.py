@@ -255,22 +255,28 @@ def calculate_player_prices(
     """
     if transfers is None:
         transfers = fetch_user_transfers(team_id)
+    if not isinstance(transfers, list):
+        transfers = []
         
     if history_res is None:
         history_res = fetch_user_history(team_id)
         
     # Free Hit Gameweeks: exclude temporary transfers so they don't corrupt the permanent squad
-    chips = history_res.get("chips", []) if history_res else []
+    chips = history_res.get("chips", []) if isinstance(history_res, dict) else []
+    if not isinstance(chips, list):
+        chips = []
     fh_events = {
         int(c.get("event"))
         for c in chips
-        if c.get("name") == "freehit" and c.get("event") is not None
+        if isinstance(c, dict) and c.get("name") == "freehit" and c.get("event") is not None
     }
     
     target_gw = next_gw if next_gw else 38
     
     valid_transfers = []
     for t in transfers:
+        if not isinstance(t, dict):
+            continue
         ev = t.get("event")
         if ev is not None:
             ev = int(ev)
@@ -284,6 +290,8 @@ def calculate_player_prices(
     
     purchase_lookup = {}
     for t in valid_transfers:
+        if not isinstance(t, dict):
+            continue
         el_in = t.get("element_in")
         in_cost = t.get("element_in_cost")
         if el_in is not None and in_cost is not None:

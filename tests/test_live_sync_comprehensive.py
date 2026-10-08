@@ -124,5 +124,49 @@ class TestLiveSquadSync(unittest.TestCase):
             self.assertIn("selling_price", p)
             self.assertIn("cost", p)
 
+    def test_defensive_transfer_handling(self):
+        """Verify calculate_player_prices safely handles non-list transfers and malformed entries."""
+        picks = [{"element": 1001, "position": 1}]
+        elements = {1001: {"id": 1001, "now_cost": 60, "cost_change_start": 0}}
+
+        # Case 1: transfers is not a list (e.g. dict, string, None)
+        prices_str = calculate_player_prices(1, picks, elements, 6, history_res={}, transfers="invalid_string")
+        self.assertIn(1001, prices_str)
+
+        # Case 2: transfers contains None, numbers, strings, and a valid entry
+        corrupted_transfers = [
+            None,
+            "corrupt_entry",
+            123,
+            [],
+            {"element_in": 1001, "element_in_cost": 55, "event": 5, "time": "2026-09-01T12:00:00Z"}
+        ]
+        prices_corrupt = calculate_player_prices(1, picks, elements, 6, history_res={"chips": "invalid_chips"}, transfers=corrupted_transfers)
+        self.assertEqual(prices_corrupt[1001]["purchase_price"], 5.5)
+
+    def test_dashboard_cookie_via_header_only(self):
+        """Verify that X-FPL-Cookie header is processed by the dashboard endpoint."""
+        with patch("main.fetch_user_team") as mock_fetch:
+            mock_fetch.return_value = (
+                [{"element": 1, "position": 1}],
+                1.0,
+                "Test",
+                100,
+                [],
+                [],
+                1,
+                {"source": "live_my_team", "is_live_current": True, "active_chip": None, "authenticated": True, "event": 6}
+            )
+            # 1. Header transport works
+            resp = self.client.get("/api/dashboard/3450961", headers={"X-FPL-Cookie": "test_token_123"})
+            self.assertEqual(resp.status_code, 200)
+            mock_fetch.assert_called_with(3450961, 6, cookie="test_token_123")
+
+            # 2. Query parameter fpl_cookie is NOT passed to fetch_user_team
+            mock_fetch.reset_mock()
+            resp2 = self.client.get("/api/dashboard/3450961?fpl_cookie=query_token_456")
+            self.assertEqual(resp2.status_code, 200)
+            mock_fetch.assert_called_with(3450961, 6, cookie=None)
+
 if __name__ == '__main__':
     unittest.main()

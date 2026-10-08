@@ -387,15 +387,14 @@ export default function Home() {
     setTransferRecs([]); setTransferDecision(null);
     try {
       const storedCookie = (typeof window !== 'undefined')
-        ? (localStorage.getItem(`fpl_cookie_${idToFetch}`) || localStorage.getItem('fpl_cookie'))
+        ? localStorage.getItem(`fpl_cookie_${idToFetch}`)
         : null;
 
       const headers: Record<string, string> = {};
       if (storedCookie) {
         headers['X-FPL-Cookie'] = storedCookie;
       }
-      const cookieQuery = storedCookie ? `&fpl_cookie=${encodeURIComponent(storedCookie)}` : '';
-      const res = await fetch(`${API_BASE_URL}/api/dashboard/${idToFetch}?t=${Date.now()}${cookieQuery}`, {
+      const res = await fetch(`${API_BASE_URL}/api/dashboard/${idToFetch}?t=${Date.now()}`, {
         cache: 'no-store',
         headers
       });
@@ -700,7 +699,6 @@ export default function Home() {
     setIsSyncing(true);
     try {
       localStorage.removeItem(`fpl_cookie_${data.team_id}`);
-      localStorage.removeItem('fpl_cookie');
       localStorage.removeItem(`fpl_plan_${data.team_id}`);
       setFplCookieInput('');
       await fetchTeam(data.team_id.toString(), appMode as any, true);
@@ -1435,7 +1433,7 @@ export default function Home() {
                     )}
                     <button
                       onClick={() => {
-                        const curCookie = localStorage.getItem(`fpl_cookie_${data.team_id}`) || localStorage.getItem('fpl_cookie') || '';
+                        const curCookie = localStorage.getItem(`fpl_cookie_${data.team_id}`) || '';
                         setFplCookieInput(curCookie);
                         setShowSyncModal(true);
                       }}
@@ -2450,7 +2448,7 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2 justify-end">
-              {data?.team_id && (typeof window !== 'undefined') && (localStorage.getItem(`fpl_cookie_${data.team_id}`) || localStorage.getItem('fpl_cookie')) && (
+              {data?.team_id && (typeof window !== 'undefined') && localStorage.getItem(`fpl_cookie_${data.team_id}`) && (
                 <button
                   type="button"
                   onClick={handleDisconnectSync}
