@@ -10,75 +10,66 @@ from fpl_api import fetch_user_team, calculate_player_prices, fetch_bootstrap
 from main import app
 from fastapi.testclient import TestClient
 
-class TestLiveSquadSync(unittest.TestCase):
+class TestPublicFPLSquadFlow(unittest.TestCase):
 
     def setUp(self):
         self.client = TestClient(app)
         self.bootstrap = fetch_bootstrap()
         self.elements = {p["id"]: p for p in self.bootstrap.get("elements", [])}
 
-    def test_pre_deadline_fallback_when_no_cookie(self):
-        """Pre-deadline unauthenticated query returns latest completed GW gracefully without fabricating data."""
+    def test_pre_deadline_public_fallback(self):
+        """Before deadline when current GW picks return 404, fallback to latest completed GW."""
         team_id = 3450961
-        picks, bank, name, rank, chips_used, leagues, free_transfers, squad_meta = fetch_user_team(team_id, 6)
+        gw_target = 6
+        picks, bank, name, rank, chips_used, leagues, free_transfers, squad_meta = fetch_user_team(team_id, gw_target)
         
         self.assertEqual(len(picks), 15)
         self.assertIn("source", squad_meta)
-        self.assertIn("is_live_current", squad_meta)
-        # Before GW6 deadline without cookie, should be completed_gw_fallback
-        self.assertEqual(squad_meta["source"], "completed_gw_fallback")
-        self.assertFalse(squad_meta["is_live_current"])
-        self.assertEqual(squad_meta["event"], 5)
-        self.assertEqual(squad_meta["pending_deadline_gw"], 6)
+        self.assertIn("is_current_gw", squad_meta)
+        self.assertEqual(squad_meta["source"], "latest_completed_gw")
+        self.assertFalse(squad_meta["is_current_gw"])
+        self.assertEqual(squad_meta["event"], gw_target - 1)
+        self.assertEqual(squad_meta["pending_deadline_gw"], gw_target)
 
-    def test_live_my_team_sync_with_wildcard(self):
-        """When user provides official cookie, my-team endpoint provides live GW6 Wildcard squad."""
+    def test_post_deadline_public_picks_transition(self):
+        """After deadline when current GW picks return 200, use current GW picks directly."""
         team_id = 3450961
-        mock_my_team_data = {
-            "picks": [
-                {"element": 19, "position": 1, "is_captain": True, "is_vice_captain": False, "multiplier": 2, "purchase_price": 58, "selling_price": 58},
-                {"element": 351, "position": 2, "is_captain": False, "is_vice_captain": False, "multiplier": 1, "purchase_price": 155, "selling_price": 155}
-            ] + [{"element": i, "position": i + 1, "is_captain": False, "is_vice_captain": False, "multiplier": 1, "purchase_price": 50, "selling_price": 50} for i in range(3, 16)],
-            "transfers": {
-                "bank": 15,
-                "limit": 1,
-                "made": 5,
-                "wildcard": True
-            },
-            "chips": [
-                {"name": "wildcard", "status_for_entry": "active"}
-            ]
+        gw_target = 6
+        mock_current_picks = {
+            "picks": [{"element": i, "position": i} for i in range(1, 16)],
+            "entry_history": {"bank": 15},
+            "active_chip": "bboost"
         }
 
         with patch("requests.get") as mock_get:
             def side_effect(url, headers=None, timeout=None):
                 mock_resp = MagicMock()
-                if "my-team" in url:
+                if f"entry/{team_id}/event/{gw_target}/picks/" in url:
                     mock_resp.status_code = 200
-                    mock_resp.json.return_value = mock_my_team_data
-                elif "entry/" in url and "/history/" in url:
+                    mock_resp.json.return_value = mock_current_picks
+                elif f"entry/{team_id}/history/" in url:
                     mock_resp.status_code = 200
-                    mock_resp.json.return_value = {"chips": [{"name": "wildcard", "event": 6}]}
-                elif "entry/" in url:
+                    mock_resp.json.return_value = {"chips": []}
+                elif f"entry/{team_id}/" in url:
                     mock_resp.status_code = 200
-                    mock_resp.json.return_value = {"name": "Test FC", "summary_overall_rank": 1000}
+                    mock_resp.json.return_value = {"name": "Test FC", "summary_overall_rank": 500}
                 return mock_resp
 
             mock_get.side_effect = side_effect
-            picks, bank, name, rank, chips_used, leagues, free_transfers, squad_meta = fetch_user_team(team_id, 6, cookie="dummy_pl_profile")
+            picks, bank, name, rank, chips_used, leagues, free_transfers, squad_meta = fetch_user_team(team_id, gw_target)
 
             self.assertEqual(len(picks), 15)
             self.assertEqual(bank, 1.5)
-            self.assertEqual(free_transfers, 99) # Wildcard active = unlimited
-            self.assertEqual(squad_meta["source"], "live_my_team")
-            self.assertTrue(squad_meta["is_live_current"])
-            self.assertEqual(squad_meta["active_chip"], "wildcard")
-            self.assertTrue(squad_meta["authenticated"])
+            self.assertEqual(squad_meta["source"], "public_current_event")
+            self.assertTrue(squad_meta["is_current_gw"])
+            self.assertEqual(squad_meta["event"], gw_target)
+            self.assertIsNone(squad_meta["pending_deadline_gw"])
+            self.assertEqual(squad_meta["active_chip"], "bboost")
 
     def test_purchase_price_preservation_and_selling_rules(self):
         """
-        Verify:
-        1. Player bought on Wildcard at 5.8m rising to 5.9m maintains purchase_price=5.8, selling_price=5.8
+        Verify official FPL price rules:
+        1. Player bought at 5.8m rising to 5.9m maintains purchase_price=5.8, selling_price=5.8
         2. Player rising to 6.0m yields selling_price=5.9 (50% profit rule)
         3. Player dropping to 5.7m yields selling_price=5.7 (100% loss rule)
         """
@@ -108,17 +99,15 @@ class TestLiveSquadSync(unittest.TestCase):
         self.assertEqual(prices[1003]["selling_price"], 5.7)
 
     def test_dashboard_api_data_contract(self):
-        """Verify /api/dashboard returns squad_meta, is_live_squad, and active_chip."""
+        """Verify /api/dashboard returns squad_meta, active_chip and complete squad."""
         resp = self.client.get("/api/dashboard/3450961")
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         self.assertIn("squad_meta", data)
-        self.assertIn("is_live_squad", data)
         self.assertIn("active_chip", data)
         self.assertEqual(data["team_id"], 3450961)
         self.assertIsInstance(data["squad"], list)
         self.assertEqual(len(data["squad"]), 15)
-        # Check purchase_price and selling_price exist on every player
         for p in data["squad"]:
             self.assertIn("purchase_price", p)
             self.assertIn("selling_price", p)
@@ -144,8 +133,8 @@ class TestLiveSquadSync(unittest.TestCase):
         prices_corrupt = calculate_player_prices(1, picks, elements, 6, history_res={"chips": "invalid_chips"}, transfers=corrupted_transfers)
         self.assertEqual(prices_corrupt[1001]["purchase_price"], 5.5)
 
-    def test_dashboard_cookie_via_header_only(self):
-        """Verify that X-FPL-Cookie header is processed by the dashboard endpoint."""
+    def test_dashboard_no_authentication_needed(self):
+        """Verify that dashboard works cleanly without cookies or special authentication headers."""
         with patch("main.fetch_user_team") as mock_fetch:
             mock_fetch.return_value = (
                 [{"element": 1, "position": 1}],
@@ -155,18 +144,11 @@ class TestLiveSquadSync(unittest.TestCase):
                 [],
                 [],
                 1,
-                {"source": "live_my_team", "is_live_current": True, "active_chip": None, "authenticated": True, "event": 6}
+                {"source": "latest_completed_gw", "is_current_gw": False, "active_chip": None, "event": 5, "pending_deadline_gw": 6}
             )
-            # 1. Header transport works
-            resp = self.client.get("/api/dashboard/3450961", headers={"X-FPL-Cookie": "test_token_123"})
+            resp = self.client.get("/api/dashboard/3450961")
             self.assertEqual(resp.status_code, 200)
-            mock_fetch.assert_called_with(3450961, 6, cookie="test_token_123")
-
-            # 2. Query parameter fpl_cookie is NOT passed to fetch_user_team
-            mock_fetch.reset_mock()
-            resp2 = self.client.get("/api/dashboard/3450961?fpl_cookie=query_token_456")
-            self.assertEqual(resp2.status_code, 200)
-            mock_fetch.assert_called_with(3450961, 6, cookie=None)
+            mock_fetch.assert_called_with(3450961, 6)
 
 if __name__ == '__main__':
     unittest.main()

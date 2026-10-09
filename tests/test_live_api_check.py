@@ -25,8 +25,5 @@ def test_fpl_api():
         if t_list:
             print('Latest transfer event:', t_list[0].get('event'), 'time:', t_list[0].get('time'))
 
-    res_my = requests.get(f"https://fantasy.premierleague.com/api/my-team/{team_id}/", headers={'User-Agent': 'Mozilla/5.0'})
-    print('my-team endpoint (no auth): Status', res_my.status_code)
-
 if __name__ == '__main__':
     test_fpl_api()

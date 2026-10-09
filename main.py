@@ -404,7 +404,7 @@ def get_fpl_context(gw_limit: int = 5, override_next_gw: int = None):
 
 
 @app.get("/api/dashboard/{team_id}")
-def get_dashboard_data(team_id: int, request: Request = None):
+def get_dashboard_data(team_id: int):
     try:
         ctx = get_fpl_context(gw_limit=None)
         next_gw = ctx["next_gw"]
@@ -413,9 +413,7 @@ def get_dashboard_data(team_id: int, request: Request = None):
         elements = ctx["elements"]
         teams = ctx["teams"]
 
-        cookie = request.headers.get("x-fpl-cookie") if request else None
-
-        picks, bank, team_name, rank, chips_used, leagues, free_transfers, squad_meta = fetch_user_team(team_id, next_gw, cookie=cookie)
+        picks, bank, team_name, rank, chips_used, leagues, free_transfers, squad_meta = fetch_user_team(team_id, next_gw)
         player_prices = calculate_player_prices(team_id, picks, elements, next_gw)
 
         enriched_picks = []
@@ -508,7 +506,6 @@ def get_dashboard_data(team_id: int, request: Request = None):
             "free_transfers": free_transfers,
             "teams": teams,
             "squad_meta": squad_meta,
-            "is_live_squad": squad_meta.get("is_live_current", False),
             "active_chip": squad_meta.get("active_chip")
         }
     except Exception as e:
@@ -769,9 +766,9 @@ def get_radar():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/budget-scenarios/{team_id}")
-def get_budget_scenarios(team_id: int, request: Request = None):
+def get_budget_scenarios(team_id: int):
     try:
-        dashboard_data = get_dashboard_data(team_id, request=request)
+        dashboard_data = get_dashboard_data(team_id)
         squad = dashboard_data["squad"]
         bank = dashboard_data["bank"]
         next_gw = dashboard_data["next_gw"]
