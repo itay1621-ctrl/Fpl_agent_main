@@ -203,6 +203,60 @@ class TestFPLPricingRules(unittest.TestCase):
             cp = round(now / 10.0, 1)
             self.assertLessEqual(sp, cp, f"Selling price {sp} exceeded market cost {cp}")
 
+    def test_selling_price_multiple_purchases_same_player(self):
+        """
+        Player transferred in, sold, and later bought back at a different price:
+        - GW2: Transferred in at £5.0m (element_in_cost=50) on 2026-08-20T10:00:00Z.
+        - GW5: Transferred out (not in picks).
+        - GW8: Transferred back in at £5.6m (element_in_cost=56) on 2026-10-15T12:00:00Z.
+        - Current now_cost in GW10 is £6.0m (60).
+        
+        The active purchase price must be £5.6m (the latest purchase), NOT £5.0m.
+        Expected profit = 60 - 56 = 4 (+£0.4m) -> half = 2 -> selling price = 56 + 2 = 58 (£5.8m).
+        (If older transfer of 50 were used, profit would be 10 -> SP = 55, which is incorrect).
+        
+        Also verify that even if transfers list is passed in reverse chronological order,
+        the internal chronological sorting prevents the older purchase from overwriting the later one.
+        """
+        picks = [{"element": 201, "position": 1}]
+        elements = {201: {"id": 201, "now_cost": 60, "cost_change_start": 10}}
+        
+        # Pass transfers in reverse chronological order to test that chronological sorting works
+        transfers_reversed = [
+            {"element_in": 201, "element_in_cost": 56, "event": 8, "time": "2026-10-15T12:00:00Z"},
+            {"element_in": 201, "element_in_cost": 50, "event": 2, "time": "2026-08-20T10:00:00Z"},
+        ]
+        
+        prices = calculate_player_prices(1, picks, elements, next_gw=10, history_res={}, transfers=transfers_reversed)
+        
+        self.assertEqual(prices[201]["purchase_price"], 5.6)
+        self.assertEqual(prices[201]["selling_price"], 5.8)
+
+    def test_selling_price_future_transfers_excluded(self):
+        """
+        Transfers made for a future Gameweek (event > target_gw) must be excluded.
+        Scenario:
+        - Target Gameweek is GW6.
+        - Player was transferred in at GW4 at £6.0m (element_in_cost=60) on 2026-09-10T10:00:00Z.
+        - A future transfer is already queued/executed for GW7 at £6.5m (element_in_cost=65) on 2026-09-25T10:00:00Z.
+        - Current now_cost is £6.2m (62).
+        
+        For GW6, the purchase price must be £6.0m (GW4 transfer), NOT £6.5m (GW7 future transfer).
+        Profit = 62 - 60 = 2 -> half = 1 -> selling price = 61 (£6.1m).
+        (If future transfer were included, purch_cost would be 65, and SP would be 62 (loss), which is wrong).
+        """
+        picks = [{"element": 202, "position": 2}]
+        elements = {202: {"id": 202, "now_cost": 62, "cost_change_start": 2}}
+        transfers = [
+            {"element_in": 202, "element_in_cost": 60, "event": 4, "time": "2026-09-10T10:00:00Z"},
+            {"element_in": 202, "element_in_cost": 65, "event": 7, "time": "2026-09-25T10:00:00Z"},
+        ]
+        
+        prices = calculate_player_prices(1, picks, elements, next_gw=6, history_res={}, transfers=transfers)
+        
+        self.assertEqual(prices[202]["purchase_price"], 6.0)
+        self.assertEqual(prices[202]["selling_price"], 6.1)
+
 
 class TestFPLFreeTransfers(unittest.TestCase):
     """
@@ -388,6 +442,121 @@ class TestFPLFreeTransfers(unittest.TestCase):
         }
         # 2 FT - 1 used + 1 awarded = 2 FT entering GW4
         self.assertEqual(calculate_free_transfers(history), 2)
+
+    def test_ft_post_wildcard_consecutive_rollover_up_to_cap(self):
+        """
+        Multi-GW state transition sequence:
+        - GW1: baseline (enters GW2 with 1 FT).
+        - GW2: 0 transfers -> enters GW3 with 2 FT.
+        - GW3: 0 transfers -> enters GW4 with 3 FT.
+        - GW4: Wildcard played (10 transfers) -> banked 3 FT preserved entering GW5.
+        - GW5: Normal GW (0 transfers) -> enters GW6 with 4 FT (3 + 1).
+        - GW6: Normal GW (0 transfers) -> enters GW7 with 5 FT (4 + 1).
+        - GW7: Normal GW (0 transfers) -> enters GW8 with 5 FT (capped at 5).
+        """
+        # Step A: Enters GW5 after Wildcard in GW4 with 3 FT preserved
+        history_post_wc = {
+            "current": [
+                {"event": 1, "event_transfers": 0},
+                {"event": 2, "event_transfers": 0},
+                {"event": 3, "event_transfers": 0},
+                {"event": 4, "event_transfers": 10}
+            ],
+            "chips": [{"name": "wildcard", "event": 4}]
+        }
+        self.assertEqual(calculate_free_transfers(history_post_wc), 3)
+
+        # Step B: Normal GW5 with 0 transfers increments bank to 4 entering GW6
+        history_gw6 = {
+            "current": [
+                {"event": 1, "event_transfers": 0},
+                {"event": 2, "event_transfers": 0},
+                {"event": 3, "event_transfers": 0},
+                {"event": 4, "event_transfers": 10},
+                {"event": 5, "event_transfers": 0}
+            ],
+            "chips": [{"name": "wildcard", "event": 4}]
+        }
+        self.assertEqual(calculate_free_transfers(history_gw6), 4)
+
+        # Step C: Normal GW6 with 0 transfers increments bank to 5 entering GW7
+        history_gw7 = {
+            "current": [
+                {"event": 1, "event_transfers": 0},
+                {"event": 2, "event_transfers": 0},
+                {"event": 3, "event_transfers": 0},
+                {"event": 4, "event_transfers": 10},
+                {"event": 5, "event_transfers": 0},
+                {"event": 6, "event_transfers": 0}
+            ],
+            "chips": [{"name": "wildcard", "event": 4}]
+        }
+        self.assertEqual(calculate_free_transfers(history_gw7), 5)
+
+        # Step D: Normal GW7 with 0 transfers remains capped at 5 entering GW8
+        history_gw8 = {
+            "current": [
+                {"event": 1, "event_transfers": 0},
+                {"event": 2, "event_transfers": 0},
+                {"event": 3, "event_transfers": 0},
+                {"event": 4, "event_transfers": 10},
+                {"event": 5, "event_transfers": 0},
+                {"event": 6, "event_transfers": 0},
+                {"event": 7, "event_transfers": 0}
+            ],
+            "chips": [{"name": "wildcard", "event": 4}]
+        }
+        self.assertEqual(calculate_free_transfers(history_gw8), 5)
+
+    def test_ft_free_hit_preservation_across_multiple_events(self):
+        """
+        Multi-GW Free Hit preservation across consecutive events:
+        - GW1: baseline (1 FT entering GW2).
+        - GW2: 0 transfers -> enters GW3 with 2 FT.
+        - GW3: Free Hit played (making 9 temporary transfers).
+        - Banked 2 FT must be preserved entering GW4.
+        - GW4: Normal GW where manager makes 1 transfer:
+          Available: 2 FT. Spends 1 FT -> 1 remaining + 1 awarded for GW5 = 2 FT entering GW5.
+        - GW5: Normal GW where manager makes 0 transfers:
+          Available: 2 FT. Spends 0 -> 2 + 1 awarded = 3 FT entering GW6.
+        """
+        # Step A: Entering GW4 after Free Hit in GW3
+        history_post_fh = {
+            "current": [
+                {"event": 1, "event_transfers": 0},
+                {"event": 2, "event_transfers": 0},
+                {"event": 3, "event_transfers": 9}
+            ],
+            "chips": [{"name": "freehit", "event": 3}]
+        }
+        self.assertEqual(calculate_free_transfers(history_post_fh), 2)
+
+        # Step B: Entering GW5 after spending 1 of 2 banked FT in GW4
+        history_gw5 = {
+            "current": [
+                {"event": 1, "event_transfers": 0},
+                {"event": 2, "event_transfers": 0},
+                {"event": 3, "event_transfers": 9},
+                {"event": 4, "event_transfers": 1}
+            ],
+            "chips": [{"name": "freehit", "event": 3}]
+        }
+        # 2 FT - 1 transfer = 1 banked + 1 awarded = 2 FT entering GW5
+        self.assertEqual(calculate_free_transfers(history_gw5), 2)
+
+        # Step C: Entering GW6 after 0 transfers in GW5
+        history_gw6 = {
+            "current": [
+                {"event": 1, "event_transfers": 0},
+                {"event": 2, "event_transfers": 0},
+                {"event": 3, "event_transfers": 9},
+                {"event": 4, "event_transfers": 1},
+                {"event": 5, "event_transfers": 0}
+            ],
+            "chips": [{"name": "freehit", "event": 3}]
+        }
+        # 2 FT - 0 transfers = 2 banked + 1 awarded = 3 FT entering GW6
+        self.assertEqual(calculate_free_transfers(history_gw6), 3)
 
     def test_ft_invariant_always_between_one_and_five(self):
         """System Invariant: calculate_free_transfers always returns an integer in [1, 5]."""
