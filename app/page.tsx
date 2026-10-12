@@ -179,11 +179,6 @@ export default function Home() {
   const [adminPassInput, setAdminPassInput] = useState('');
   const [adminPassError, setAdminPassError] = useState('');
 
-  // Live Squad Synchronization State
-  const [showSyncModal, setShowSyncModal] = useState(false);
-  const [fplCookieInput, setFplCookieInput] = useState('');
-  const [isSyncing, setIsSyncing] = useState(false);
-
   const handleApplyDraft = (draftData: any) => {
     const origPurchaseVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.purchase_price ?? p.cost ?? 0), 0);
     const origSellingVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
@@ -386,17 +381,8 @@ export default function Home() {
     setTransferOutId(null);
     setTransferRecs([]); setTransferDecision(null);
     try {
-      const storedCookie = (typeof window !== 'undefined')
-        ? localStorage.getItem(`fpl_cookie_${idToFetch}`)
-        : null;
-
-      const headers: Record<string, string> = {};
-      if (storedCookie) {
-        headers['X-FPL-Cookie'] = storedCookie;
-      }
       const res = await fetch(`${API_BASE_URL}/api/dashboard/${idToFetch}?t=${Date.now()}`, {
-        cache: 'no-store',
-        headers
+        cache: 'no-store'
       });
       if (!res.ok) throw new Error(isEnglish ? 'Team ID not found or FPL API is currently down. Please verify your ID.' : 'מזהה הקבוצה לא נמצא, או ששרתי FPL למטה. אנא ודא שה-ID נכון.');
       const result = await res.json();
@@ -538,7 +524,7 @@ export default function Home() {
                 return orig && !sp.is_empty;
               });
 
-            if (isOriginalSquad || (result.is_live_squad && !savedPlan.is_custom_plan)) {
+            if (isOriginalSquad) {
               localStorage.removeItem(`fpl_plan_${idToFetch}`);
             } else {
               if (typeof savedPlan.bank !== 'number' || isNaN(savedPlan.bank)) {
@@ -672,41 +658,6 @@ export default function Home() {
       setActiveChip(null);
       localStorage.removeItem(`fpl_active_chip_${originalData.team_id}`);
       localStorage.removeItem(`fpl_plan_${originalData.team_id}`);
-    }
-  };
-
-  const handleSaveCookieAndSync = async () => {
-    if (!data?.team_id) return;
-    setIsSyncing(true);
-    try {
-      if (fplCookieInput.trim()) {
-        localStorage.setItem(`fpl_cookie_${data.team_id}`, fplCookieInput.trim());
-      } else {
-        localStorage.removeItem(`fpl_cookie_${data.team_id}`);
-      }
-      localStorage.removeItem(`fpl_plan_${data.team_id}`);
-      await fetchTeam(data.team_id.toString(), appMode as any, true);
-      setShowSyncModal(false);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const handleDisconnectSync = async () => {
-    if (!data?.team_id) return;
-    setIsSyncing(true);
-    try {
-      localStorage.removeItem(`fpl_cookie_${data.team_id}`);
-      localStorage.removeItem(`fpl_plan_${data.team_id}`);
-      setFplCookieInput('');
-      await fetchTeam(data.team_id.toString(), appMode as any, true);
-      setShowSyncModal(false);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsSyncing(false);
     }
   };
 
@@ -1417,32 +1368,12 @@ export default function Home() {
                 {appMode !== 'guest' && (
                   <p className={`text-sm ${textMuted}`}>{t.engineFor} {data?.next_gw} | {appMode === 'demo' ? (isEnglish ? 'Demo Mode' : 'מצב הדגמה') : `${t.teamWord} ${data?.team_id}`}</p>
                 )}
-                {appMode !== 'guest' && appMode !== 'demo' && data?.squad_meta && (
-                  <div className="flex flex-wrap items-center gap-2 mt-2">
-                    {data.squad_meta.is_live_current ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        {isEnglish ? 'Live Squad Synced' : 'סגל חי מסונכרן'}
-                        {data.squad_meta.active_chip ? ` (${data.squad_meta.active_chip.toUpperCase()})` : ''}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300 dark:border-amber-700">
-                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                        {isEnglish ? `GW${data.squad_meta.event} Official Squad (Pre-deadline)` : `סגל רשמי מ-GW${data.squad_meta.event} (לפני דדליין GW${data.squad_meta.pending_deadline_gw || data.next_gw})`}
-                      </span>
-                    )}
-                    <button
-                      onClick={() => {
-                        const curCookie = localStorage.getItem(`fpl_cookie_${data.team_id}`) || '';
-                        setFplCookieInput(curCookie);
-                        setShowSyncModal(true);
-                      }}
-                      className="text-xs px-2.5 py-0.5 rounded border border-indigo-500/30 hover:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold transition-colors"
-                    >
-                      {data.squad_meta.is_live_current
-                        ? (isEnglish ? '⚙️ Sync Settings' : '⚙️ הגדרות סנכרון')
-                        : (isEnglish ? '🔗 Connect Live Squad / Wildcard' : '🔗 סנכרן סגל חי / Wildcard')}
-                    </button>
+                {appMode !== 'guest' && appMode !== 'demo' && data?.squad_meta?.event && data.squad_meta.event < data.next_gw && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
+                      <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+                      {isEnglish ? `Official FPL Squad (GW${data.squad_meta.event})` : `סגל רשמי מ-GW${data.squad_meta.event}`}
+                    </span>
                   </div>
                 )}
               </div>
@@ -2408,73 +2339,6 @@ export default function Home() {
               <span className={`text-[10px] tracking-wide ${activeTab === tab.id ? 'font-bold' : 'font-medium'}`}>{isEnglish ? tab.nameEn : tab.nameHe}</span>
             </button>
           ))}
-        </div>
-      )}
-      {showSyncModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className={`p-6 rounded-2xl w-full max-w-md text-start shadow-2xl relative border ${bgCard}`}>
-            <button
-              onClick={() => setShowSyncModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-200 text-xl font-bold"
-            >
-              ×
-            </button>
-            <h3 className="text-lg font-black mb-2 flex items-center gap-2">
-              <span>🔄</span>
-              {isEnglish ? 'Official FPL Live Squad Synchronization' : 'סנכרון סגל חי מול FPL הרשמי'}
-            </h3>
-            <p className={`text-xs mb-4 leading-relaxed ${textMuted}`}>
-              {isEnglish
-                ? 'Official FPL keeps upcoming transfers and Wildcard squads private until the deadline passes so opponents cannot see your team. To view your live upcoming squad now with true purchase prices and active chips, enter your FPL session cookie (pl_profile).'
-                : 'באתר FPL הרשמי, שינויי סגל ו-Wildcard לפני הדדליין נשמרים פרטיים מפני יריבים ואינם גלויים ב-API הציבורי עד למועד הדדליין. כדי להציג את הסגל החי והמעודכן שלך כעת עם מחירי הרכישה האמיתיים והצ\'יפ הפעיל, הזן את ה-Cookie שלך (pl_profile).'}
-            </p>
-
-            <div className="mb-4">
-              <label className="block text-xs font-bold mb-1">
-                {isEnglish ? 'FPL Session Cookie (pl_profile):' : 'קוד זיהוי FPL Cookie (pl_profile):'}
-              </label>
-              <textarea
-                value={fplCookieInput}
-                onChange={(e) => setFplCookieInput(e.target.value)}
-                placeholder={isEnglish ? 'Paste pl_profile cookie value here...' : 'הדבק כאן את ערך ה-Cookie (pl_profile)...'}
-                rows={3}
-                className="w-full text-xs p-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <p className="text-[10px] text-gray-500 mt-1">
-                {isEnglish
-                  ? 'Found in browser DevTools → Application → Cookies → fantasy.premierleague.com → pl_profile'
-                  : 'ניתן למצוא ב-DevTools של הדפדפן → Application → Cookies → fantasy.premierleague.com → pl_profile'}
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 justify-end">
-              {data?.team_id && (typeof window !== 'undefined') && localStorage.getItem(`fpl_cookie_${data.team_id}`) && (
-                <button
-                  type="button"
-                  onClick={handleDisconnectSync}
-                  disabled={isSyncing}
-                  className="px-3 py-2 rounded-lg border border-red-500/50 text-red-500 hover:bg-red-500/10 text-xs font-bold"
-                >
-                  {isEnglish ? 'Disconnect Live Sync' : 'נתק סנכרון חי'}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setShowSyncModal(false)}
-                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-xs font-bold hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                {isEnglish ? 'Cancel' : 'ביטול'}
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveCookieAndSync}
-                disabled={isSyncing}
-                className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md transition-colors disabled:opacity-50"
-              >
-                {isSyncing ? (isEnglish ? 'Syncing...' : 'מסנכרן...') : (isEnglish ? 'Save & Sync Live Squad' : 'שמור וסנכרן סגל חי')}
-              </button>
-            </div>
-          </div>
         </div>
       )}
     </main>

@@ -85,8 +85,7 @@ def fetch_bootstrap() -> Dict[str, Any]:
 
 def fetch_user_team(
     t_id: int,
-    gw: int,
-    cookie: Optional[str] = None
+    gw: int
 ) -> Tuple[List[Dict[str, Any]], float, str, str, List[str], Dict[str, Any], int, Dict[str, Any]]:
     entry_url = f"{BASE_URL}entry/{t_id}/"
     history_url = f"{BASE_URL}entry/{t_id}/history/"
@@ -103,57 +102,7 @@ def fetch_user_team(
     leagues = entry_res.get("leagues", {"classic": [], "h2h": []}) if entry_res else {"classic": [], "h2h": []}
     free_transfers = calculate_free_transfers(history_res)
     
-    # Layer 1: Authenticated my-team endpoint if cookie provided
-    if cookie:
-        cookie_clean = cookie.strip()
-        auth_headers = dict(API_HEADERS)
-        if "pl_profile=" in cookie_clean or "=" in cookie_clean:
-            auth_headers["Cookie"] = cookie_clean
-        else:
-            auth_headers["Cookie"] = f"pl_profile={cookie_clean}"
-            
-        try:
-            mt_res = requests.get(f"{BASE_URL}my-team/{t_id}/", headers=auth_headers, timeout=12)
-            if mt_res.status_code == 200:
-                mt_data = mt_res.json()
-                picks = mt_data.get("picks", []) or []
-                transfers_dict = mt_data.get("transfers", {})
-                bank = transfers_dict.get("bank", 0) / 10.0
-                
-                # Active chip detection
-                active_chip = None
-                for c in mt_data.get("chips", []):
-                    if c.get("status_for_entry") == "active" or c.get("status") == "active" or c.get("is_active"):
-                        active_chip = c.get("name")
-                if not active_chip:
-                    if transfers_dict.get("wildcard"):
-                        active_chip = "wildcard"
-                    elif transfers_dict.get("freehit"):
-                        active_chip = "freehit"
-                        
-                if active_chip and active_chip not in chips_used:
-                    chips_used.append(active_chip)
-                    
-                limit = transfers_dict.get("limit", 1)
-                made = transfers_dict.get("made", 0)
-                if active_chip in ["wildcard", "freehit"]:
-                    free_transfers = 99
-                else:
-                    free_transfers = max(0, limit - made)
-                    
-                squad_meta = {
-                    "source": "live_my_team",
-                    "is_live_current": True,
-                    "event": gw,
-                    "active_chip": active_chip,
-                    "pending_deadline_gw": None,
-                    "authenticated": True
-                }
-                return picks, bank, team_name, rank, chips_used, leagues, free_transfers, squad_meta
-        except Exception:
-            pass # Fall through to public layers
-
-    # Layer 2: Public Current Event picks (e.g. if deadline passed or publicly published)
+    # Layer 1: Public Current Event picks (available once deadline passes and picks become public)
     curr_picks_url = f"{BASE_URL}entry/{t_id}/event/{gw}/picks/"
     try:
         curr_res = requests.get(curr_picks_url, headers=API_HEADERS, timeout=12)
@@ -166,41 +115,45 @@ def fetch_user_team(
                 chips_used.append(active_chip)
             squad_meta = {
                 "source": "public_current_event",
-                "is_live_current": True,
+                "is_current_gw": True,
                 "event": gw,
                 "active_chip": active_chip,
-                "pending_deadline_gw": None,
-                "authenticated": False
+                "pending_deadline_gw": None
             }
             return picks, bank, team_name, rank, chips_used, leagues, free_transfers, squad_meta
     except Exception:
         pass
 
-    # Layer 3: Completed GW fallback (pre-deadline public privacy)
+    # Layer 2: Completed GW fallback (latest authoritative public squad before deadline)
     last_gw = max(1, gw - 1)
     fallback_url = f"{BASE_URL}entry/{t_id}/event/{last_gw}/picks/"
-    fb_res = requests.get(fallback_url, headers=API_HEADERS, timeout=12)
-    fb_res.raise_for_status()
-    picks_res = fb_res.json()
+    try:
+        fb_res = requests.get(fallback_url, headers=API_HEADERS, timeout=12)
+        picks_res = fb_res.json() if fb_res.status_code == 200 else {}
+    except Exception:
+        picks_res = {}
     
+    # Free Hit reversion if last_gw was a free hit
     if picks_res.get("active_chip") == "free_hit" and last_gw > 1:
         base_gw = last_gw - 1
         base_url = f"{BASE_URL}entry/{t_id}/event/{base_gw}/picks/"
-        b_res = requests.get(base_url, headers=API_HEADERS, timeout=12)
-        if b_res.status_code == 200:
-            picks_res = b_res.json()
+        try:
+            b_res = requests.get(base_url, headers=API_HEADERS, timeout=12)
+            if b_res.status_code == 200:
+                picks_res = b_res.json()
+        except Exception:
+            pass
             
     bank = (picks_res.get("entry_history") or {}).get("bank", 0) / 10
     picks = picks_res.get("picks", []) or []
     active_chip = picks_res.get("active_chip")
     
     squad_meta = {
-        "source": "completed_gw_fallback",
-        "is_live_current": False,
+        "source": "latest_completed_gw",
+        "is_current_gw": False,
         "event": last_gw,
         "pending_deadline_gw": gw,
-        "active_chip": active_chip,
-        "authenticated": False
+        "active_chip": active_chip
     }
     return picks, bank, team_name, rank, chips_used, leagues, free_transfers, squad_meta
 

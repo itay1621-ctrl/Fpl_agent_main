@@ -404,7 +404,7 @@ def get_fpl_context(gw_limit: int = 5, override_next_gw: int = None):
 
 
 @app.get("/api/dashboard/{team_id}")
-def get_dashboard_data(team_id: int, request: Request = None):
+def get_dashboard_data(team_id: int):
     try:
         ctx = get_fpl_context(gw_limit=None)
         next_gw = ctx["next_gw"]
@@ -413,9 +413,7 @@ def get_dashboard_data(team_id: int, request: Request = None):
         elements = ctx["elements"]
         teams = ctx["teams"]
 
-        cookie = request.headers.get("x-fpl-cookie") if request else None
-
-        picks, bank, team_name, rank, chips_used, leagues, free_transfers, squad_meta = fetch_user_team(team_id, next_gw, cookie=cookie)
+        picks, bank, team_name, rank, chips_used, leagues, free_transfers, squad_meta = fetch_user_team(team_id, next_gw)
         player_prices = calculate_player_prices(team_id, picks, elements, next_gw)
 
         enriched_picks = []
@@ -508,7 +506,6 @@ def get_dashboard_data(team_id: int, request: Request = None):
             "free_transfers": free_transfers,
             "teams": teams,
             "squad_meta": squad_meta,
-            "is_live_squad": squad_meta.get("is_live_current", False),
             "active_chip": squad_meta.get("active_chip")
         }
     except Exception as e:
@@ -769,9 +766,9 @@ def get_radar():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/budget-scenarios/{team_id}")
-def get_budget_scenarios(team_id: int, request: Request = None):
+def get_budget_scenarios(team_id: int):
     try:
-        dashboard_data = get_dashboard_data(team_id, request=request)
+        dashboard_data = get_dashboard_data(team_id)
         squad = dashboard_data["squad"]
         bank = dashboard_data["bank"]
         next_gw = dashboard_data["next_gw"]
@@ -850,4 +847,194 @@ def get_player_details(player_id: int):
             "fixtures": data.get("fixtures", [])[:5] # next 5 GWs
         }
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+def build_draft_squad(players: list, forced_players: list = None) -> dict:
+    if forced_players is None:
+        forced_players = []
+
+    squad = list(forced_players)
+    cost = sum(p["now_cost"] for p in squad)
+    team_counts = {}
+    pos_counts = {1: 0, 2: 0, 3: 0, 4: 0}
+
+    for p in squad:
+        team_id = p.get("team")
+        team_counts[team_id] = team_counts.get(team_id, 0) + 1
+        pos_counts[p["element_type"]] += 1
+
+    min_costs = {1: 40, 2: 40, 3: 45, 4: 45}
+    forced_ids = {p["id"] for p in forced_players}
+
+    # 1. Initial Greedy Pick
+    for p in players:
+        if len(squad) == 15:
+            break
+        if any(x["id"] == p["id"] for x in squad):
+            continue
+
+        pos = p["element_type"]
+        team_id = p.get("team")
+
+        needed = False
+        if pos == 1 and pos_counts[1] < 2:
+            needed = True
+        elif pos == 2 and pos_counts[2] < 5:
+            needed = True
+        elif pos == 3 and pos_counts[3] < 5:
+            needed = True
+        elif pos == 4 and pos_counts[4] < 3:
+            needed = True
+
+        if not needed:
+            continue
+        if team_counts.get(team_id, 0) >= 3:
+            continue
+
+        rem_slots_budget = 0
+        for t in range(1, 5):
+            needed_count = (2 if t == 1 else 5 if t == 2 else 5 if t == 3 else 3) - pos_counts[t]
+            if t == pos:
+                needed_count -= 1
+            if needed_count > 0:
+                rem_slots_budget += needed_count * min_costs[t]
+
+        if cost + p["now_cost"] + rem_slots_budget <= 1000:
+            squad.append(p)
+            cost += p["now_cost"]
+            team_counts[team_id] = team_counts.get(team_id, 0) + 1
+            pos_counts[pos] += 1
+
+    # 2. Upgrade Loop to utilize remaining budget
+    upgraded = True
+    available_players = sorted(
+        [p for p in players if not any(x["id"] == p["id"] for x in squad)],
+        key=lambda x: x["xp"],
+        reverse=True
+    )
+
+    while upgraded and cost < 1000:
+        upgraded = False
+        upgrade_candidates = [
+            (idx, p) for idx, p in enumerate(squad)
+            if p["id"] not in forced_ids
+        ]
+        upgrade_candidates.sort(key=lambda item: item[1]["xp"])
+
+        for idx, current in upgrade_candidates:
+            pos = current["element_type"]
+            current_team = current.get("team")
+
+            for candidate in available_players:
+                if any(x["id"] == candidate["id"] for x in squad):
+                    continue
+                if candidate["element_type"] != pos:
+                    continue
+                if candidate["xp"] <= current["xp"]:
+                    continue
+
+                cost_diff = candidate["now_cost"] - current["now_cost"]
+                if cost_diff <= 0 and candidate["xp"] > current["xp"]:
+                    pass
+                elif cost_diff > 0 and cost + cost_diff <= 1000:
+                    pass
+                else:
+                    continue
+
+                candidate_team = candidate.get("team")
+                if candidate_team != current_team:
+                    if team_counts.get(candidate_team, 0) >= 3:
+                        continue
+                    team_counts[current_team] = team_counts.get(current_team, 1) - 1
+                    team_counts[candidate_team] = team_counts.get(candidate_team, 0) + 1
+
+                cost += cost_diff
+                squad[idx] = candidate
+                upgraded = True
+                break
+
+            if upgraded:
+                break
+
+    squad.sort(key=lambda x: (x["element_type"], -x["now_cost"]))
+    return {"squad": squad, "cost": cost}
+
+@app.get("/api/drafts")
+def get_drafts():
+    try:
+        ctx = get_fpl_context(gw_limit=5)
+        next_gw = ctx["next_gw"]
+        upcoming_fixtures_raw = ctx["upcoming_fixtures_raw"]
+        elements = ctx["elements"]
+        teams = ctx["teams"]
+
+        all_players = []
+        for p_id, raw_p in elements.items():
+            if raw_p.get("status") not in ["u", "i", "s"]:
+                proj = calculate_player_projection(raw_p, next_gw, upcoming_fixtures_raw, teams)
+                now_cost_int = int(raw_p.get("now_cost", 0))
+                player_entry = {
+                    "id": proj["id"],
+                    "name": proj["name"],
+                    "first_name": raw_p.get("first_name", ""),
+                    "second_name": raw_p.get("second_name", ""),
+                    "team": raw_p.get("team"),
+                    "team_name": proj["team"],
+                    "team_code": proj["team_code"],
+                    "element_type": proj["pos_code"],
+                    "now_cost": now_cost_int,
+                    "form": proj.get("form", 0.0),
+                    "ep_next": float(raw_p.get("ep_next", 0) or 0),
+                    "xp": proj["xp"],
+                    "selected_by_percent": proj["selected_by_percent"],
+                    "total_points": proj.get("total_points", 0),
+                    "fixture": proj["fixture"],
+                    "fixture_diff": proj["fixture_diff"]
+                }
+                all_players.append(player_entry)
+
+        premiums = sorted([p for p in all_players if p["now_cost"] >= 100], key=lambda x: x["xp"], reverse=True)[:2]
+        others_for_premium = sorted(all_players, key=lambda x: (x["xp"] / max(1, x["now_cost"])), reverse=True)
+        premium_draft = build_draft_squad(others_for_premium, premiums)
+
+        balanced_players = sorted([p for p in all_players if p["now_cost"] <= 95], key=lambda x: x["xp"], reverse=True)
+        balanced_draft = build_draft_squad(balanced_players, [])
+
+        def diff_score(p):
+            bonus = 2 if p["selected_by_percent"] < 10 else (1 if p["selected_by_percent"] < 15 else 0)
+            return p["xp"] + bonus
+
+        differential_players = sorted(all_players, key=diff_score, reverse=True)
+        diff_draft = build_draft_squad(differential_players, [])
+
+        return {
+            "drafts": [
+                {
+                    "id": 1,
+                    "name_en": "Premium Build",
+                    "name_he": "כוכבים יקרים",
+                    "description_en": "A squad built around strong premium players with affordable supporting picks.",
+                    "description_he": "הרכב המבוסס על שחקני פרימיום חזקים יחד עם שחקנים זולים משלימים.",
+                    "data": premium_draft
+                },
+                {
+                    "id": 2,
+                    "name_en": "Balanced Spread",
+                    "name_he": "הרכב מאוזן",
+                    "description_en": "Avoids overly expensive players and provides strong depth across all positions.",
+                    "description_he": "ללא שחקנים יקרים מדי, מאפשר עומק חזק מאוד בכל העמדות במגרש.",
+                    "data": balanced_draft
+                },
+                {
+                    "id": 3,
+                    "name_en": "Differentials",
+                    "name_he": "פנינים נסתרות",
+                    "description_en": "In-form players with lower ownership to help gain an edge over competitors.",
+                    "description_he": "שחקנים בכושר שיא שאחוזי הבחירה שלהם נמוכים, כדי לעקוף מתחרים.",
+                    "data": diff_draft
+                }
+            ]
+        }
+    except Exception as e:
+        logging.error(f"Error generating drafts: {e}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
