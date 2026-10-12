@@ -506,7 +506,8 @@ def get_dashboard_data(team_id: int):
             "free_transfers": free_transfers,
             "teams": teams,
             "squad_meta": squad_meta,
-            "active_chip": squad_meta.get("active_chip")
+            "active_chip": squad_meta.get("active_chip"),
+            "last_gw_chip": squad_meta.get("last_gw_chip")
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

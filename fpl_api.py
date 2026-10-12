@@ -44,7 +44,7 @@ def calculate_free_transfers(history_res: Dict[str, Any]) -> int:
 
         event = int(event)
         transfers = max(0, int(row.get("event_transfers", 0) or 0))
-        chip = chip_by_event.get(event)
+        chip = (chip_by_event.get(event) or "").lower().replace("_", "").replace(" ", "")
 
         # Wildcard and Free Hit do not consume banked FTs.
         # The FT granted for the chip GW is effectively used by the chip,
@@ -118,6 +118,7 @@ def fetch_user_team(
                 "is_current_gw": True,
                 "event": gw,
                 "active_chip": active_chip,
+                "last_gw_chip": None,
                 "pending_deadline_gw": None
             }
             return picks, bank, team_name, rank, chips_used, leagues, free_transfers, squad_meta
@@ -133,8 +134,10 @@ def fetch_user_team(
     except Exception:
         picks_res = {}
     
+    last_gw_chip = picks_res.get("active_chip")
+
     # Free Hit reversion if last_gw was a free hit
-    if picks_res.get("active_chip") == "free_hit" and last_gw > 1:
+    if (last_gw_chip or "").lower().replace("_", "") == "freehit" and last_gw > 1:
         base_gw = last_gw - 1
         base_url = f"{BASE_URL}entry/{t_id}/event/{base_gw}/picks/"
         try:
@@ -146,14 +149,14 @@ def fetch_user_team(
             
     bank = (picks_res.get("entry_history") or {}).get("bank", 0) / 10
     picks = picks_res.get("picks", []) or []
-    active_chip = picks_res.get("active_chip")
     
     squad_meta = {
         "source": "latest_completed_gw",
         "is_current_gw": False,
         "event": last_gw,
         "pending_deadline_gw": gw,
-        "active_chip": active_chip
+        "last_gw_chip": last_gw_chip,
+        "active_chip": None
     }
     return picks, bank, team_name, rank, chips_used, leagues, free_transfers, squad_meta
 

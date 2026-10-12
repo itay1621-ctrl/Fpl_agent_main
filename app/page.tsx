@@ -139,6 +139,33 @@ function getTeamCode(teamShortName: string): number {
   return code;
 }
 
+function getStoredSimulatedChip(teamId: string | number, currentNextGw: number): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(`fpl_active_chip_${teamId}`);
+    if (!raw) return null;
+
+    if (raw.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed.chip === 'string' && parsed.target_gw === currentNextGw) {
+          return parsed.chip;
+        }
+      } catch {
+        // Fall through to remove corrupted item
+      }
+      localStorage.removeItem(`fpl_active_chip_${teamId}`);
+      return null;
+    }
+
+    // Legacy migration: naked string without target_gw must never be silently applied
+    localStorage.removeItem(`fpl_active_chip_${teamId}`);
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export default function Home() {
   const [teamId, setTeamId] = useState('');
   const [data, setData] = useState<any>(null);
@@ -532,8 +559,8 @@ export default function Home() {
                 savedPlan.bank = Math.round((origBudget - currentCost) * 10) / 10;
               }
 
-              const savedChip = localStorage.getItem(`fpl_active_chip_${idToFetch}`);
-              if (savedChip) setActiveChip(savedChip);
+              const savedChip = getStoredSimulatedChip(idToFetch, result.next_gw);
+              setActiveChip(savedChip || null);
               setData(savedPlan);
               setAppMode(targetMode);
               return;
@@ -541,8 +568,8 @@ export default function Home() {
           }
         } catch (e) {}
       }
-      const activeChipToUse = (result.squad_meta?.active_chip) || localStorage.getItem(`fpl_active_chip_${idToFetch}`);
-      if (activeChipToUse) setActiveChip(activeChipToUse);
+      const simulatedChip = getStoredSimulatedChip(idToFetch, result.next_gw);
+      setActiveChip(simulatedChip || null);
       const initialSquad = (result.squad || []).map((p: any) => ({
         ...p,
         cost: p.purchase_price ?? p.cost
@@ -637,9 +664,12 @@ export default function Home() {
   }, [data, originalData]);
 
   useEffect(() => {
-    if (data && data.team_id) {
+    if (data && data.team_id && data.next_gw) {
       if (activeChip) {
-        localStorage.setItem(`fpl_active_chip_${data.team_id}`, activeChip);
+        localStorage.setItem(`fpl_active_chip_${data.team_id}`, JSON.stringify({
+          chip: activeChip,
+          target_gw: data.next_gw
+        }));
       } else {
         localStorage.removeItem(`fpl_active_chip_${data.team_id}`);
       }
@@ -835,10 +865,12 @@ export default function Home() {
     }
   };
 
-  const starters = data?.squad.filter((p: any) => activeChip === 'bboost' ? true : p.position <= 11) || [];
+  const liveChip = data?.squad_meta?.is_current_gw ? (data?.squad_meta?.active_chip || null) : null;
+  const effectivePitchChip = liveChip || activeChip;
+  const starters = data?.squad.filter((p: any) => effectivePitchChip === 'bboost' ? true : p.position <= 11) || [];
   const bench = data?.squad.filter((p: any) => p.position > 11) || [];
 
-  const totalXP = starters.reduce((acc: number, p: any) => { let mult = p.multiplier || 1; if (activeChip === '3xc' && p.is_captain) mult = 3; return acc + (p.xp * mult); }, 0);
+  const totalXP = starters.reduce((acc: number, p: any) => { let mult = p.multiplier || 1; if (effectivePitchChip === '3xc' && p.is_captain) mult = 3; return acc + (p.xp * mult); }, 0);
   const avgFDR = starters.reduce((acc: number, p: any) => acc + (p.fixture_diff || 3), 0) / (starters.length || 1);
   const avgForm = starters.reduce((acc: number, p: any) => acc + (p.form || 0), 0) / (starters.length || 1);
 
@@ -1960,7 +1992,7 @@ export default function Home() {
                         target_gw: targetGw,
                         free_transfers: simulatedFt ?? data.free_transfers,
                         transfers_before: transfersBefore ?? 0,
-                        active_chip: activeChip ?? null,
+                        active_chip: (targetGw === data?.next_gw ? (activeChip ?? null) : null),
                         unlimited_budget: allowOverBudget
                         })
                       });
@@ -3213,9 +3245,10 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
     return 'bg-red-900 text-white';
   };
 
-  const starters = data.squad.filter((p: any) => activeChip === 'bboost' ? true : p.position <= 11);
+  const isChipActiveForSelectedGw = selectedGwOffset === 0 ? activeChip : null;
+  const starters = data.squad.filter((p: any) => isChipActiveForSelectedGw === 'bboost' ? true : p.position <= 11);
   const bench = data.squad.filter((p: any) => p.position > 11).sort((a: any, b: any) => a.position - b.position);
-  const totalXP = starters.reduce((acc: number, p: any) => { let mult = p.multiplier || 1; if (activeChip === '3xc' && p.is_captain) mult = 3; return acc + (p.xp * mult); }, 0);
+  const totalXP = starters.reduce((acc: number, p: any) => { let mult = p.multiplier || 1; if (isChipActiveForSelectedGw === '3xc' && p.is_captain) mult = 3; return acc + (p.xp * mult); }, 0);
 
   const selectedGwNumber = data?.next_gw + selectedGwOffset;
   const scheduleForGw = data.schedule?.[selectedGwNumber] || [];
@@ -3234,7 +3267,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
   const simulatedFt = Math.min(5, ftAvailable + selectedGwOffset);
   const transfersRemaining = Math.max(0, simulatedFt - transfersMade);
   const additionalTransfers = Math.max(0, transfersMade - simulatedFt);
-  const hitPoints = (activeChip === 'wildcard' || activeChip === 'freehit') ? 0 : -(additionalTransfers * 4);
+  const hitPoints = (isChipActiveForSelectedGw === 'wildcard' || isChipActiveForSelectedGw === 'freehit') ? 0 : -(additionalTransfers * 4);
 
   const renderPlayer = (p: any, isBench: boolean = false) => {
     const fix0 = p.upcoming_fixtures?.[selectedGwOffset];
@@ -3364,8 +3397,8 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
                 onClick={() => setFtAvailable(Math.max(0, ftAvailable - 1))}
                 className={`w-6 h-6 flex items-center justify-center rounded-full font-bold transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'}`}
               >-</button>
-              <span className={`text-2xl font-black ${(activeChip === 'wildcard' || activeChip === 'freehit') ? 'text-purple-500' : (transfersRemaining < 0 ? 'text-red-500' : 'text-emerald-500')}`} title={`Base: ${ftAvailable} + Offset: ${selectedGwOffset}`}>
-                {(activeChip === 'wildcard' || activeChip === 'freehit') ? '∞' : `FT ${transfersRemaining}`}
+              <span className={`text-2xl font-black ${(isChipActiveForSelectedGw === 'wildcard' || isChipActiveForSelectedGw === 'freehit') ? 'text-purple-500' : (transfersRemaining < 0 ? 'text-red-500' : 'text-emerald-500')}`} title={`Base: ${ftAvailable} + Offset: ${selectedGwOffset}`}>
+                {(isChipActiveForSelectedGw === 'wildcard' || isChipActiveForSelectedGw === 'freehit') ? '∞' : `FT ${transfersRemaining}`}
               </span>
               <button
                 onClick={() => setFtAvailable(Math.min(5, ftAvailable + 1))}
