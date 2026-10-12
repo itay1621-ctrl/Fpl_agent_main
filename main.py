@@ -606,7 +606,7 @@ class TransferRequest(BaseModel):
     current_squad_ids: Optional[List[int]] = []
     transfer_out_id: Optional[int] = None
     target_gw: Optional[int] = None
-    unlimited_budget: Optional[bool] = True
+    unlimited_budget: Optional[bool] = False
 
 @app.post("/api/transfer-lab")
 def get_transfer_recommendations(req: TransferRequest):
@@ -660,72 +660,91 @@ def get_transfer_recommendations(req: TransferRequest):
                 
         candidates = sorted(candidates, key=decision_engine_score, reverse=True)
         affordable_candidates = [c for c in candidates if c["cost"] <= eval_budget]
-        best_candidate = affordable_candidates[0] if affordable_candidates else (candidates[0] if candidates else None)
 
-        recommendation = "TRANSFER"
-        explanation = ""
-        delta = 0.0
-        raw_gain = None
-        hit_cost = 0
-        net_gain = None
-        transfer_cost = 0.0
-        opportunity_cost = DEFAULT_WEIGHTS["opportunity_cost"]
-        threshold = transfer_cost + opportunity_cost
+        unconstrained_best = candidates[0] if candidates else None
+        affordable_best = affordable_candidates[0] if affordable_candidates else None
+        best_candidate = unconstrained_best if req.unlimited_budget else affordable_best
 
-        if current_player and best_candidate:
-            delta = round(
-              best_candidate["xp"] - current_player["xp"], 2
-             )
-            raw_gain = round(delta * ctx["gw_range"], 2)
+        def compute_transfer_decision(candidate):
+            recommendation = "TRANSFER"
+            explanation = ""
+            delta = 0.0
+            raw_gain = None
+            hit_cost = 0
+            net_gain = None
+            transfer_cost = 0.0
+            opportunity_cost = DEFAULT_WEIGHTS["opportunity_cost"]
+            threshold = transfer_cost + opportunity_cost
 
-            chip = (req.active_chip or "").lower().replace("_", "").replace(" ", "")
-            chip_active = chip in {"wildcard", "freehit"}
-
-            free_transfers = max(0, min(5, int(req.free_transfers or 0)))
-            transfers_before = max(0, int(req.transfers_before or 0))
-
-            hits_before = max(0, transfers_before - free_transfers)
-            hits_after = max(0, transfers_before + 1 - free_transfers)
-            hit_cost = 0 if chip_active else (hits_after - hits_before) * 4
-
-            net_gain = raw_gain - hit_cost
-
-            if net_gain <= opportunity_cost:
-                recommendation = "HOLD"
-                explanation = (
-                    f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
-                    f"with a {hit_cost}-point hit cost. "
-                    "The transfer does not clear the required threshold."
+            if current_player and candidate:
+                delta = round(
+                    candidate["xp"] - current_player["xp"], 2
                 )
+                raw_gain = round(delta * ctx["gw_range"], 2)
+
+                chip = (req.active_chip or "").lower().replace("_", "").replace(" ", "")
+                chip_active = chip in {"wildcard", "freehit"}
+
+                free_transfers = max(0, min(5, int(req.free_transfers or 0)))
+                transfers_before = max(0, int(req.transfers_before or 0))
+
+                hits_before = max(0, transfers_before - free_transfers)
+                hits_after = max(0, transfers_before + 1 - free_transfers)
+                hit_cost = 0 if chip_active else (hits_after - hits_before) * 4
+
+                net_gain = raw_gain - hit_cost
+
+                if net_gain <= opportunity_cost:
+                    recommendation = "HOLD"
+                    explanation = (
+                        f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
+                        f"with a {hit_cost}-point hit cost. "
+                        "The transfer does not clear the required threshold."
+                    )
+                else:
+                    recommendation = "TRANSFER"
+                    explanation = (
+                        f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
+                        f"with a {hit_cost}-point hit cost. "
+                        "The replacement clears the required threshold."
+                    )
             else:
-                recommendation = "TRANSFER"
-                explanation = (
-                    f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
-                    f"with a {hit_cost}-point hit cost. "
-                    "The replacement clears the required threshold."
-                )
-        else:
-            recommendation = "MONITOR"
-            explanation = "Not enough data to form a definitive transfer decision."
+                recommendation = "MONITOR"
+                explanation = "Not enough data to form a definitive transfer decision."
+
+            return {
+                "recommendation": recommendation,
+                "explanation": explanation,
+                "delta": delta,
+                "raw_gain": raw_gain,
+                "hit_cost": hit_cost,
+                "net_gain": net_gain,
+                "threshold": threshold,
+                "best_transfer": candidate
+            }
+
+        main_decision = compute_transfer_decision(best_candidate)
+        affordable_decision = compute_transfer_decision(affordable_best)
 
         if current_player:
-            log_prediction(current_player["id"], current_player["name"], next_gw, current_player["xp"], "Transfer Lab - Current", "HOLD" if recommendation == "HOLD" else "SELL")
+            log_prediction(current_player["id"], current_player["name"], next_gw, current_player["xp"], "Transfer Lab - Current", "HOLD" if main_decision["recommendation"] == "HOLD" else "SELL")
         if best_candidate:
-            log_prediction(best_candidate["id"], best_candidate["name"], next_gw, best_candidate["xp"], "Transfer Lab - Candidate", recommendation)
+            log_prediction(best_candidate["id"], best_candidate["name"], next_gw, best_candidate["xp"], "Transfer Lab - Candidate", main_decision["recommendation"])
 
         return {
-            "recommendation": recommendation,
-            "explanation": explanation,
-            "delta": delta,
-            "raw_gain": raw_gain,
-            "hit_cost": hit_cost,
-            "net_gain": net_gain,
-            "threshold": threshold,
+            "recommendation": main_decision["recommendation"],
+            "explanation": main_decision["explanation"],
+            "delta": main_decision["delta"],
+            "raw_gain": main_decision["raw_gain"],
+            "hit_cost": main_decision["hit_cost"],
+            "net_gain": main_decision["net_gain"],
+            "threshold": main_decision["threshold"],
             "current_player": current_player,
             "current_player_rank": current_player_rank,
             "total_relevant": total_relevant,
             "best_transfer": best_candidate,
-            "candidates": candidates
+            "candidates": candidates,
+            "affordable_decision": affordable_decision
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

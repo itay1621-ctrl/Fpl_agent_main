@@ -841,14 +841,14 @@ export default function Home() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
              pos_code: playerToSell.pos_code,
-             max_budget: allowOverBudget ? 100.0 : budget,
+             max_budget: 100.0,
              actual_budget: budget,
              current_squad_ids: currentSquadIds,
              transfer_out_id: playerToSell.id,
              free_transfers: data.free_transfers,
              transfers_before: 0,
              active_chip: activeChip ?? null,
-             unlimited_budget: allowOverBudget
+             unlimited_budget: true
             })
           });
           const recs = await res.json();
@@ -1016,6 +1016,10 @@ export default function Home() {
     const effectiveCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : p.cost;
     return effectiveCost <= budget;
   });
+
+  const effectiveDecision = (!allowOverBudget && transferDecision?.affordable_decision)
+    ? { ...transferDecision, ...transferDecision.affordable_decision }
+    : transferDecision;
 
   const filteredRecs = affordableRecs.filter(p =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1593,7 +1597,7 @@ export default function Home() {
                     ) : (
                       <div className="flex flex-col h-full">
 
-                        {searchQuery === '' && transferDecision && transferDecision.current_player && (
+                        {searchQuery === '' && effectiveDecision && effectiveDecision.current_player && (
                           <div className={`mb-6 p-4 rounded-xl border ${isDarkMode ? 'bg-gray-800/80 border-gray-700' : 'bg-white border-gray-200'} shadow-sm`}>
                             <h3 className={`text-sm font-black mb-4 flex items-center gap-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                               <svg className="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
@@ -1603,31 +1607,31 @@ export default function Home() {
                             <div className="grid grid-cols-2 gap-4 mb-4">
                               <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
                                 <div className={`text-xs font-bold mb-1 ${textMuted}`}>{isEnglish ? 'Current player' : 'שחקן נוכחי'}</div>
-                                <div className={`font-black text-sm mb-1 ${textHighlight}`}>{transferDecision.current_player.name}</div>
+                                <div className={`font-black text-sm mb-1 ${textHighlight}`}>{effectiveDecision.current_player.name}</div>
                                 <div className={`text-xs ${textMuted}`}>
-                                  {isEnglish ? 'Rank among relevant options:' : 'דירוג מתוך אפשרויות רלוונטיות:'} <span className="font-bold">{transferDecision.current_player_rank ? `${transferDecision.current_player_rank} / ${transferDecision.total_relevant}` : (isEnglish ? 'Rank unavailable' : 'דירוג לא זמין')}</span>
+                                  {isEnglish ? 'Rank among relevant options:' : 'דירוג מתוך אפשרויות רלוונטיות:'} <span className="font-bold">{effectiveDecision.current_player_rank ? `${effectiveDecision.current_player_rank} / ${effectiveDecision.total_relevant}` : (isEnglish ? 'Rank unavailable' : 'דירוג לא זמין')}</span>
                                 </div>
                                 <div className={`text-xs ${textMuted} mt-1`}>
-                                  {isEnglish ? 'Projected:' : 'צפי:'} <span className="font-bold">{transferDecision.current_player.xp} xP/GW</span>
+                                  {isEnglish ? 'Projected:' : 'צפי:'} <span className="font-bold">{effectiveDecision.current_player.xp} xP/GW</span>
                                 </div>
-                                {transferDecision.current_player.expected_minutes !== undefined && (
+                                {effectiveDecision.current_player.expected_minutes !== undefined && (
                                   <div className={`text-xs ${textMuted}`}>
-                                    {isEnglish ? 'Expected Minutes:' : 'דקות צפויות:'} <span className="font-bold">{transferDecision.current_player.expected_minutes}</span>
+                                    {isEnglish ? 'Expected Minutes:' : 'דקות צפויות:'} <span className="font-bold">{effectiveDecision.current_player.expected_minutes}</span>
                                   </div>
                                 )}
                               </div>
 
                               <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-purple-900/20 border-purple-800/30' : 'bg-purple-50/50 border-purple-100'}`}>
                                 <div className={`text-xs font-bold mb-1 text-purple-500`}>{isEnglish ? 'Best alternative' : 'אלטרנטיבה מומלצת'}</div>
-                                {transferDecision.best_transfer ? (
+                                {effectiveDecision.best_transfer ? (
                                   <>
-                                    <div className={`font-black text-sm mb-1 ${textHighlight}`}>{transferDecision.best_transfer.name}</div>
+                                    <div className={`font-black text-sm mb-1 ${textHighlight}`}>{effectiveDecision.best_transfer.name}</div>
                                     <div className={`text-xs ${textMuted} mt-1`}>
-                                      {isEnglish ? 'Projected:' : 'צפי:'} <span className="font-bold text-green-500">{transferDecision.best_transfer.xp} xP/GW</span>
+                                      {isEnglish ? 'Projected:' : 'צפי:'} <span className="font-bold text-green-500">{effectiveDecision.best_transfer.xp} xP/GW</span>
                                     </div>
-                                    {transferDecision.best_transfer.expected_minutes !== undefined && (
+                                    {effectiveDecision.best_transfer.expected_minutes !== undefined && (
                                       <div className={`text-xs ${textMuted}`}>
-                                        {isEnglish ? 'Expected Minutes:' : 'דקות צפויות:'} <span className="font-bold">{transferDecision.best_transfer.expected_minutes}</span>
+                                        {isEnglish ? 'Expected Minutes:' : 'דקות צפויות:'} <span className="font-bold">{effectiveDecision.best_transfer.expected_minutes}</span>
                                       </div>
                                     )}
                                   </>
@@ -1637,23 +1641,23 @@ export default function Home() {
                               </div>
                             </div>
 
-                            {transferDecision.best_transfer && (
+                            {effectiveDecision.best_transfer && (
                               <div className={`flex items-center justify-between p-3 rounded-lg border mb-4 ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
                                 <span className={`text-sm font-bold ${textMuted}`}>{isEnglish ? 'Projected difference' : 'הפרש נקודות צפוי'}</span>
-                                <span className={`font-black ${transferDecision.delta > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                  {transferDecision.delta > 0 ? '+' : ''}{transferDecision.delta} xP/GW
+                                <span className={`font-black ${effectiveDecision.delta > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                  {effectiveDecision.delta > 0 ? '+' : ''}{effectiveDecision.delta} xP/GW
                                 </span>
                               </div>
                             )}
-{transferDecision.raw_gain !== null &&
-  transferDecision.raw_gain !== undefined && (
+{effectiveDecision.raw_gain !== null &&
+  effectiveDecision.raw_gain !== undefined && (
     <div className={`p-3 rounded-lg border mb-4 ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
       <div className="flex justify-between text-sm">
         <span className={textMuted}>
           {isEnglish ? 'Projected gain over horizon' : 'רווח חזוי לאורך אופק התחזית'}
         </span>
         <span className="font-bold">
-          {Number(transferDecision.raw_gain).toFixed(2)} pts
+          {Number(effectiveDecision.raw_gain).toFixed(2)} pts
         </span>
       </div>
       <div className="flex justify-between text-sm mt-2">
@@ -1661,15 +1665,15 @@ export default function Home() {
           {isEnglish ? 'Hit cost' : 'עלות Hit'}
         </span>
         <span className="font-bold text-red-500">
-          -{transferDecision.hit_cost} pts
+          -{effectiveDecision.hit_cost} pts
         </span>
       </div>
       <div className="flex justify-between text-sm font-black mt-2">
         <span className={textMuted}>
           {isEnglish ? 'Net gain after hit' : 'רווח נטו אחרי Hit'}
         </span>
-        <span className={transferDecision.net_gain >= 0 ? 'text-green-500' : 'text-red-500'}>
-          {Number(transferDecision.net_gain).toFixed(2)} pts
+        <span className={effectiveDecision.net_gain >= 0 ? 'text-green-500' : 'text-red-500'}>
+          {Number(effectiveDecision.net_gain).toFixed(2)} pts
         </span>
       </div>
     </div>
@@ -1678,17 +1682,17 @@ export default function Home() {
                               <div className="flex items-center justify-between">
                                 <span className={`text-sm font-bold ${textMuted}`}>{isEnglish ? 'Strategy Decision' : 'החלטת אסטרטגיה'}</span>
                                 <span className={`px-3 py-1 rounded-full text-xs font-black ${
-                                  transferDecision.recommendation === 'TRANSFER' ? 'bg-green-100 text-green-700' :
-                                  transferDecision.recommendation === 'HOLD' ? 'bg-yellow-100 text-yellow-700' :
+                                  effectiveDecision.recommendation === 'TRANSFER' ? 'bg-green-100 text-green-700' :
+                                  effectiveDecision.recommendation === 'HOLD' ? 'bg-yellow-100 text-yellow-700' :
                                   'bg-gray-100 text-gray-700'
                                 }`}>
-                                  {transferDecision.recommendation}
+                                  {effectiveDecision.recommendation}
                                 </span>
                               </div>
-                              {transferDecision.explanation && (
+                              {effectiveDecision.explanation && (
                                 <div className="mt-2">
                                   <span className={`text-xs font-bold block mb-1 ${textMuted}`}>{isEnglish ? 'Why?' : 'למה?'}</span>
-                                  <p className={`text-xs leading-relaxed ${textMuted}`}>{transferDecision.explanation}</p>
+                                  <p className={`text-xs leading-relaxed ${textMuted}`}>{effectiveDecision.explanation}</p>
                                 </div>
                               )}
                             </div>
@@ -1985,7 +1989,7 @@ export default function Home() {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                         pos_code: playerToSell.pos_code,
-                        max_budget: allowOverBudget ? 100.0 : budget,
+                        max_budget: 100.0,
                         actual_budget: budget,
                         current_squad_ids: currentSquadIds,
                         transfer_out_id: playerToSell.is_empty ? null : playerToSell.id,
@@ -1993,7 +1997,7 @@ export default function Home() {
                         free_transfers: simulatedFt ?? data.free_transfers,
                         transfers_before: transfersBefore ?? 0,
                         active_chip: (targetGw === data?.next_gw ? (activeChip ?? null) : null),
-                        unlimited_budget: allowOverBudget
+                        unlimited_budget: true
                         })
                       });
                       const recs = await res.json();
@@ -2060,7 +2064,7 @@ export default function Home() {
                     ) : (
                       <div className="flex flex-col h-full overflow-y-auto pr-1">
 
-                        {searchQuery === '' && transferDecision && transferDecision.current_player && (
+                        {searchQuery === '' && effectiveDecision && effectiveDecision.current_player && (
                           <div className={`mb-6 p-4 rounded-xl border shrink-0 ${isDarkMode ? 'bg-gray-800/80 border-gray-700' : 'bg-white border-gray-200'} shadow-sm`}>
                             <h3 className={`text-sm font-black mb-4 flex items-center gap-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
                               <svg className="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
@@ -2070,31 +2074,31 @@ export default function Home() {
                             <div className="grid grid-cols-2 gap-4 mb-4">
                               <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
                                 <div className={`text-xs font-bold mb-1 ${textMuted}`}>{isEnglish ? 'Current player' : 'שחקן נוכחי'}</div>
-                                <div className={`font-black text-sm mb-1 ${textHighlight}`}>{transferDecision.current_player.name}</div>
+                                <div className={`font-black text-sm mb-1 ${textHighlight}`}>{effectiveDecision.current_player.name}</div>
                                 <div className={`text-xs ${textMuted}`}>
-                                  {isEnglish ? 'Rank among relevant options:' : 'דירוג מתוך אפשרויות רלוונטיות:'} <span className="font-bold">{transferDecision.current_player_rank ? `${transferDecision.current_player_rank} / ${transferDecision.total_relevant}` : (isEnglish ? 'Rank unavailable' : 'דירוג לא זמין')}</span>
+                                  {isEnglish ? 'Rank among relevant options:' : 'דירוג מתוך אפשרויות רלוונטיות:'} <span className="font-bold">{effectiveDecision.current_player_rank ? `${effectiveDecision.current_player_rank} / ${effectiveDecision.total_relevant}` : (isEnglish ? 'Rank unavailable' : 'דירוג לא זמין')}</span>
                                 </div>
                                 <div className={`text-xs ${textMuted} mt-1`}>
-                                  {isEnglish ? 'Projected:' : 'צפי:'} <span className="font-bold">{transferDecision.current_player.xp} xP/GW</span>
+                                  {isEnglish ? 'Projected:' : 'צפי:'} <span className="font-bold">{effectiveDecision.current_player.xp} xP/GW</span>
                                 </div>
-                                {transferDecision.current_player.expected_minutes !== undefined && (
+                                {effectiveDecision.current_player.expected_minutes !== undefined && (
                                   <div className={`text-xs ${textMuted}`}>
-                                    {isEnglish ? 'Expected Minutes:' : 'דקות צפויות:'} <span className="font-bold">{transferDecision.current_player.expected_minutes}</span>
+                                    {isEnglish ? 'Expected Minutes:' : 'דקות צפויות:'} <span className="font-bold">{effectiveDecision.current_player.expected_minutes}</span>
                                   </div>
                                 )}
                               </div>
 
                               <div className={`p-3 rounded-lg border ${isDarkMode ? 'bg-purple-900/20 border-purple-800/30' : 'bg-purple-50/50 border-purple-100'}`}>
                                 <div className={`text-xs font-bold mb-1 text-purple-500`}>{isEnglish ? 'Best alternative' : 'אלטרנטיבה מומלצת'}</div>
-                                {transferDecision.best_transfer ? (
+                                {effectiveDecision.best_transfer ? (
                                   <>
-                                    <div className={`font-black text-sm mb-1 ${textHighlight}`}>{transferDecision.best_transfer.name}</div>
+                                    <div className={`font-black text-sm mb-1 ${textHighlight}`}>{effectiveDecision.best_transfer.name}</div>
                                     <div className={`text-xs ${textMuted} mt-1`}>
-                                      {isEnglish ? 'Projected:' : 'צפי:'} <span className="font-bold text-green-500">{transferDecision.best_transfer.xp} xP/GW</span>
+                                      {isEnglish ? 'Projected:' : 'צפי:'} <span className="font-bold text-green-500">{effectiveDecision.best_transfer.xp} xP/GW</span>
                                     </div>
-                                    {transferDecision.best_transfer.expected_minutes !== undefined && (
+                                    {effectiveDecision.best_transfer.expected_minutes !== undefined && (
                                       <div className={`text-xs ${textMuted}`}>
-                                        {isEnglish ? 'Expected Minutes:' : 'דקות צפויות:'} <span className="font-bold">{transferDecision.best_transfer.expected_minutes}</span>
+                                        {isEnglish ? 'Expected Minutes:' : 'דקות צפויות:'} <span className="font-bold">{effectiveDecision.best_transfer.expected_minutes}</span>
                                       </div>
                                     )}
                                   </>
@@ -2104,11 +2108,11 @@ export default function Home() {
                               </div>
                             </div>
 
-                            {transferDecision.best_transfer && (
+                            {effectiveDecision.best_transfer && (
                               <div className={`flex items-center justify-between p-3 rounded-lg border mb-4 ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
                                 <span className={`text-sm font-bold ${textMuted}`}>{isEnglish ? 'Projected difference' : 'הפרש נקודות צפוי'}</span>
-                                <span className={`font-black ${transferDecision.delta > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                  {transferDecision.delta > 0 ? '+' : ''}{transferDecision.delta} xP/GW
+                                <span className={`font-black ${effectiveDecision.delta > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                  {effectiveDecision.delta > 0 ? '+' : ''}{effectiveDecision.delta} xP/GW
                                 </span>
                               </div>
                             )}
@@ -2117,18 +2121,18 @@ export default function Home() {
                               <div className="flex items-center justify-between">
                                 <span className={`text-sm font-bold ${textMuted}`}>{isEnglish ? 'Strategy Decision' : 'החלטת אסטרטגיה'}</span>
                                 <span className={`px-3 py-1 rounded-full text-xs font-black ${
-                                  transferDecision.recommendation === 'TRANSFER' ? 'bg-green-100 text-green-700' :
-                                  transferDecision.recommendation === 'HOLD' ? 'bg-yellow-100 text-yellow-700' :
-                                  transferDecision.recommendation === 'CONSIDER' ? 'bg-blue-100 text-blue-700' :
+                                  effectiveDecision.recommendation === 'TRANSFER' ? 'bg-green-100 text-green-700' :
+                                  effectiveDecision.recommendation === 'HOLD' ? 'bg-yellow-100 text-yellow-700' :
+                                  effectiveDecision.recommendation === 'CONSIDER' ? 'bg-blue-100 text-blue-700' :
                                   'bg-gray-100 text-gray-700'
                                 }`}>
-                                  {transferDecision.recommendation}
+                                  {effectiveDecision.recommendation}
                                 </span>
                               </div>
-                              {transferDecision.explanation && (
+                              {effectiveDecision.explanation && (
                                 <div className="mt-2">
                                   <span className={`text-xs font-bold block mb-1 ${textMuted}`}>{isEnglish ? 'Why?' : 'למה?'}</span>
-                                  <p className={`text-xs leading-relaxed ${textMuted}`}>{transferDecision.explanation}</p>
+                                  <p className={`text-xs leading-relaxed ${textMuted}`}>{effectiveDecision.explanation}</p>
                                 </div>
                               )}
                             </div>
@@ -3045,18 +3049,20 @@ function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, te
               body: JSON.stringify({
                 pos_code: sp.pos_code,
                 max_budget: budget,
+                actual_budget: budget,
                 current_squad_ids: currentSquadIds,
                 transfer_out_id: sp.id,
                 target_gw: data.next_gw,
                 free_transfers: data.free_transfers,
                 transfers_before: 0,
-                active_chip: activeChip ?? null
+                active_chip: activeChip ?? null,
+                unlimited_budget: false
               })
             })
             .then(res => res.ok ? res.json() : null)
             .then(resData => {
               if (resData && resData.candidates && resData.candidates.length > 0) {
-                const topCandidates = resData.candidates.slice(0, 3);
+                const topCandidates = resData.candidates.filter((c: any) => c.cost <= budget).slice(0, 3);
                 newScenarios.push({
                   sell: sp,
                   reason: reason,
