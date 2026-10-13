@@ -255,14 +255,53 @@ export default function Home() {
     const capId = [...finalStarters].sort((a:any,b:any)=>b.xp - a.xp)[0]?.id;
     const viceId = [...finalStarters].sort((a:any,b:any)=>b.xp - a.xp)[1]?.id;
 
+    const schedule = data?.schedule || originalData?.schedule || {};
+    const teams = data?.teams || originalData?.teams || {};
+    const nextGw = data?.next_gw || originalData?.next_gw || 1;
+
     const mappedSquad = [...finalStarters, ...benchGkp, ...benchOutfield].map((p, index) => {
       const origPlayer = originalData?.squad?.find((op: any) => op.id === p.id);
       const effectiveCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : (p.now_cost ? p.now_cost / 10 : (p.cost || 0));
       const effectiveSellingPrice = origPlayer ? (origPlayer.selling_price ?? origPlayer.cost) : (p.now_cost ? p.now_cost / 10 : (p.cost || 0));
       const effectivePurchasePrice = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : (p.now_cost ? p.now_cost / 10 : (p.cost || 0));
+
+      const teamShort = p.team_name || (typeof p.team === 'string' ? p.team : teams[p.team]?.short_name) || origPlayer?.team || '';
+
+      let upcoming = p.upcoming_fixtures || origPlayer?.upcoming_fixtures;
+      if (!upcoming && schedule && typeof schedule === 'object') {
+        upcoming = [];
+        for (let offset = 0; offset <= 38 - nextGw; offset++) {
+          const gw = nextGw + offset;
+          const gwFixtures = schedule[gw] || [];
+          const teamOpponents: string[] = [];
+          const teamDiffs: number[] = [];
+          for (const match of gwFixtures) {
+            if (match.home_team === teamShort) {
+              teamOpponents.push(`${match.away_team} (H)`);
+              teamDiffs.push(match.home_diff);
+            } else if (match.away_team === teamShort) {
+              teamOpponents.push(`${match.home_team} (A)`);
+              teamDiffs.push(match.away_diff);
+            }
+          }
+          if (teamOpponents.length === 0) {
+            upcoming.push({ gw, opponent: "Blank", difficulty: 5 });
+          } else if (teamOpponents.length === 1) {
+            upcoming.push({ gw, opponent: teamOpponents[0], difficulty: teamDiffs[0] });
+          } else {
+            const avgDiff = Math.round(teamDiffs.reduce((a, b) => a + b, 0) / teamDiffs.length);
+            upcoming.push({ gw, opponent: teamOpponents.join(', '), difficulty: avgDiff });
+          }
+        }
+      }
+
+      const primaryFixture = (upcoming && upcoming[0]?.opponent) ? upcoming[0].opponent : (p.fixture || teamShort || 'Blank');
+      const primaryDiff = (upcoming && upcoming[0]?.difficulty !== undefined) ? upcoming[0].difficulty : (p.fixture_diff ?? 3);
+
       return {
         ...p,
         position: index + 1,
+        team: teamShort || p.team,
         cost: effectiveCost,
         selling_price: effectiveSellingPrice,
         purchase_price: effectivePurchasePrice,
@@ -270,8 +309,9 @@ export default function Home() {
         is_captain: p.id === capId,
         is_vice_captain: p.id === viceId,
         is_empty: false,
-        fixture: p.fixture || p.team_name,
-        fixture_diff: p.fixture_diff || 3
+        fixture: primaryFixture,
+        fixture_diff: primaryDiff,
+        upcoming_fixtures: upcoming
       };
     });
 
@@ -293,7 +333,7 @@ export default function Home() {
 
     let deadline: Date | null = null;
 
-    if (data.deadline_time) {
+    if (data.deadline_time && typeof data.deadline_time === 'string') {
       const parsed = new Date(data.deadline_time);
       if (!isNaN(parsed.getTime())) {
         deadline = parsed;
@@ -301,20 +341,18 @@ export default function Home() {
     }
 
     if (!deadline) {
-      if (!data.schedule || !data.schedule[data?.next_gw] || data.schedule[data?.next_gw].length === 0) return;
+      const rawMatches = data.schedule?.[data?.next_gw] || [];
+      const validMatches = (Array.isArray(rawMatches) ? rawMatches : [])
+        .filter((m: any) => m && m.time && typeof m.time === 'string' && !isNaN(new Date(m.time).getTime()))
+        .sort((a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime());
 
-      // Sort matches to find the earliest kickoff
-      const matches = [...data.schedule[data?.next_gw]].sort((a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime());
-      if (matches.length === 0) return;
-
-      const firstMatchTime = new Date(matches[0]?.time);
-
-      if (isNaN(firstMatchTime.getTime())) {
+      if (validMatches.length === 0) {
         setCountdown("Time unknown");
         return;
       }
 
-      // FPL deadline is 90 mins before the first match
+      // Fallback: approximate deadline is 90 mins before the first match with a valid time
+      const firstMatchTime = new Date(validMatches[0].time);
       deadline = new Date(firstMatchTime.getTime() - 90 * 60000);
     }
 
@@ -576,10 +614,10 @@ export default function Home() {
 
               const savedChip = getStoredSimulatedChip(idToFetch, result.next_gw);
               setActiveChip(savedChip || null);
-              if (result.deadline_time && !savedPlan.deadline_time) {
+              if (result.deadline_time && typeof result.deadline_time === 'string' && !isNaN(new Date(result.deadline_time).getTime()) && savedPlan.next_gw === result.next_gw) {
                 savedPlan.deadline_time = result.deadline_time;
               }
-              if (result.schedule && !savedPlan.schedule) {
+              if (result.schedule && savedPlan.next_gw === result.next_gw) {
                 savedPlan.schedule = result.schedule;
               }
               setData(savedPlan);
@@ -3311,8 +3349,8 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
     const fix0 = p.upcoming_fixtures?.[selectedGwOffset];
     const mappedPlayer = {
       ...p,
-      fixture: fix0 ? fix0.opponent : 'Blank',
-      fixture_diff: fix0 ? fix0.difficulty : 5,
+      fixture: fix0 ? fix0.opponent : (selectedGwOffset === 0 ? (p.fixture || 'Blank') : 'Blank'),
+      fixture_diff: fix0 ? fix0.difficulty : (selectedGwOffset === 0 ? (p.fixture_diff ?? 5) : 5),
     };
     return (
       <PlayerCard

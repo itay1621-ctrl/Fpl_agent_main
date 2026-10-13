@@ -9,7 +9,7 @@ function resolveDeadline(data) {
 
   let deadline = null;
 
-  if (data.deadline_time) {
+  if (data.deadline_time && typeof data.deadline_time === 'string') {
     const parsed = new Date(data.deadline_time);
     if (!isNaN(parsed.getTime())) {
       deadline = parsed;
@@ -17,14 +17,16 @@ function resolveDeadline(data) {
   }
 
   if (!deadline) {
-    if (!data.schedule || !data.schedule[data?.next_gw] || data.schedule[data?.next_gw].length === 0) return null;
+    const rawMatches = data.schedule?.[data?.next_gw] || [];
+    const validMatches = (Array.isArray(rawMatches) ? rawMatches : [])
+      .filter((m) => m && m.time && typeof m.time === 'string' && !isNaN(new Date(m.time).getTime()))
+      .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
 
-    const matches = [...data.schedule[data?.next_gw]].sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
-    if (matches.length === 0) return null;
+    if (validMatches.length === 0) {
+      return null; // sets "Time unknown"
+    }
 
-    const firstMatchTime = new Date(matches[0]?.time);
-    if (isNaN(firstMatchTime.getTime())) return null;
-
+    const firstMatchTime = new Date(validMatches[0].time);
     deadline = new Date(firstMatchTime.getTime() - 90 * 60000);
   }
 
@@ -32,7 +34,7 @@ function resolveDeadline(data) {
 }
 
 /**
- * Mirror of upcoming fixtures generation logic for transfers in app/page.tsx
+ * Mirror of upcoming fixtures generation logic for transfers and drafts in app/page.tsx
  */
 function formatUpcomingFixtures(playerTeam, nextGw, schedule) {
   const upcoming_fixtures = [];
@@ -62,6 +64,35 @@ function formatUpcomingFixtures(playerTeam, nextGw, schedule) {
   return upcoming_fixtures;
 }
 
+/**
+ * Mirror of renderPlayer mapping logic from app/page.tsx
+ */
+function mapPlayerForPitch(p, selectedGwOffset) {
+  const fix0 = p.upcoming_fixtures?.[selectedGwOffset];
+  return {
+    ...p,
+    fixture: fix0 ? fix0.opponent : (selectedGwOffset === 0 ? (p.fixture || 'Blank') : 'Blank'),
+    fixture_diff: fix0 ? fix0.difficulty : (selectedGwOffset === 0 ? (p.fixture_diff ?? 5) : 5),
+  };
+}
+
+/**
+ * Mirror of savedPlan sync logic from fetchTeam in app/page.tsx
+ */
+function syncSavedPlanDeadline(savedPlan, result) {
+  if (result.deadline_time && typeof result.deadline_time === 'string' && !isNaN(new Date(result.deadline_time).getTime()) && savedPlan.next_gw === result.next_gw) {
+    savedPlan.deadline_time = result.deadline_time;
+  }
+  if (result.schedule && savedPlan.next_gw === result.next_gw) {
+    savedPlan.schedule = result.schedule;
+  }
+  return savedPlan;
+}
+
+// -------------------------------------------------------------
+// Test 1: Deadline resolution and fallback behavior
+// -------------------------------------------------------------
+
 test('resolveDeadline uses official deadline_time when present', () => {
   const mockData = {
     next_gw: 10,
@@ -77,13 +108,13 @@ test('resolveDeadline uses official deadline_time when present', () => {
   assert.equal(deadline.toISOString(), '2026-10-24T10:00:00.000Z');
 });
 
-test('resolveDeadline falls back to kickoff minus 90 mins when deadline_time is missing', () => {
+test('resolveDeadline falls back to earliest kickoff with valid time when deadline_time is missing', () => {
   const mockData = {
     next_gw: 10,
     schedule: {
       10: [
-        { time: '2026-10-24T12:30:00Z', home_team: 'ARS', away_team: 'CHE' },
-        { time: '2026-10-24T15:00:00Z', home_team: 'MCI', away_team: 'LIV' }
+        { time: '2026-10-24T15:00:00Z', home_team: 'MCI', away_team: 'LIV' },
+        { time: '2026-10-24T12:30:00Z', home_team: 'ARS', away_team: 'CHE' }
       ]
     }
   };
@@ -93,22 +124,41 @@ test('resolveDeadline falls back to kickoff minus 90 mins when deadline_time is 
   assert.equal(deadline.toISOString(), '2026-10-24T11:00:00.000Z');
 });
 
-test('resolveDeadline falls back when deadline_time is invalid date string', () => {
+test('resolveDeadline ignores null or invalid match times in fallback and does not falsely trigger 1970 epoch', () => {
   const mockData = {
     next_gw: 10,
-    deadline_time: 'not-a-valid-date',
     schedule: {
       10: [
+        { time: null, home_team: 'EVE', away_team: 'AVL' },
+        { time: '', home_team: 'MUN', away_team: 'NEW' },
+        { time: 'TBD', home_team: 'BHA', away_team: 'BRE' },
         { time: '2026-10-24T12:30:00Z', home_team: 'ARS', away_team: 'CHE' }
       ]
     }
   };
 
   const deadline = resolveDeadline(mockData);
+  assert.notEqual(deadline, null);
+  // Must use 12:30 kickoff minus 90 mins, not 1970
   assert.equal(deadline.toISOString(), '2026-10-24T11:00:00.000Z');
 });
 
-test('resolveDeadline returns null when neither deadline_time nor valid schedule is available', () => {
+test('resolveDeadline returns null (Time unknown) when all matches have null or unconfirmed kickoff times', () => {
+  const mockData = {
+    next_gw: 10,
+    schedule: {
+      10: [
+        { time: null, home_team: 'EVE', away_team: 'AVL' },
+        { time: null, home_team: 'MUN', away_team: 'NEW' }
+      ]
+    }
+  };
+
+  const deadline = resolveDeadline(mockData);
+  assert.equal(deadline, null);
+});
+
+test('resolveDeadline returns null (Time unknown) when schedule is empty or missing', () => {
   const mockData = {
     next_gw: 10,
     schedule: {}
@@ -118,37 +168,115 @@ test('resolveDeadline returns null when neither deadline_time nor valid schedule
   assert.equal(deadline, null);
 });
 
-test('formatUpcomingFixtures correctly formats Single Gameweek', () => {
-  const schedule = {
-    10: [
-      { home_team: 'ARS', away_team: 'EVE', home_diff: 2, away_diff: 4 }
-    ]
+// -------------------------------------------------------------
+// Test 2: AI Draft to Planner and renderPlayer fallback
+// -------------------------------------------------------------
+
+test('renderPlayer fallback: draft player with p.fixture displays fixture when upcoming_fixtures is absent at offset 0', () => {
+  const draftPlayer = {
+    id: 10,
+    name: 'Saka',
+    team: 'ARS',
+    fixture: 'AVL (H), CHE (A)',
+    fixture_diff: 3
+    // upcoming_fixtures is absent
   };
-  const fixtures = formatUpcomingFixtures('ARS', 10, schedule);
-  assert.equal(fixtures[0].opponent, 'EVE (H)');
-  assert.equal(fixtures[0].difficulty, 2);
+
+  const mapped = mapPlayerForPitch(draftPlayer, 0);
+  assert.equal(mapped.fixture, 'AVL (H), CHE (A)');
+  assert.equal(mapped.fixture_diff, 3);
 });
 
-test('formatUpcomingFixtures correctly formats Double Gameweek', () => {
+test('renderPlayer fallback: future gameweeks without fixtures display Blank without inventing data', () => {
+  const draftPlayer = {
+    id: 10,
+    name: 'Saka',
+    team: 'ARS',
+    fixture: 'AVL (H), CHE (A)',
+    fixture_diff: 3
+  };
+
+  const mappedGw1 = mapPlayerForPitch(draftPlayer, 1);
+  assert.equal(mappedGw1.fixture, 'Blank');
+  assert.equal(mappedGw1.fixture_diff, 5);
+});
+
+test('formatUpcomingFixtures correctly formats Single, Double and Blank Gameweeks for draft players', () => {
   const schedule = {
     10: [
-      { home_team: 'ARS', away_team: 'EVE', home_diff: 2, away_diff: 4 },
+      { home_team: 'ARS', away_team: 'AVL', home_diff: 2, away_diff: 4 },
       { home_team: 'CHE', away_team: 'ARS', home_diff: 3, away_diff: 4 }
-    ]
+    ],
+    11: [
+      { home_team: 'ARS', away_team: 'LIV', home_diff: 4, away_diff: 2 }
+    ],
+    12: [] // Blank
   };
+
   const fixtures = formatUpcomingFixtures('ARS', 10, schedule);
-  assert.equal(fixtures[0].opponent, 'EVE (H), CHE (A)');
-  // average of 2 and 4 = 3
+  // GW10: DGW
+  assert.equal(fixtures[0].opponent, 'AVL (H), CHE (A)');
   assert.equal(fixtures[0].difficulty, 3);
+
+  // GW11: Single GW
+  assert.equal(fixtures[1].opponent, 'LIV (H)');
+  assert.equal(fixtures[1].difficulty, 4);
+
+  // GW12: Blank
+  assert.equal(fixtures[2].opponent, 'Blank');
+  assert.equal(fixtures[2].difficulty, 5);
 });
 
-test('formatUpcomingFixtures correctly formats Blank Gameweek', () => {
-  const schedule = {
-    10: [
-      { home_team: 'MCI', away_team: 'LIV', home_diff: 3, away_diff: 3 }
-    ]
+// -------------------------------------------------------------
+// Test 3: Saved plan deadline synchronization
+// -------------------------------------------------------------
+
+test('syncSavedPlanDeadline updates savedPlan deadline when server returns fresh valid deadline for matching GW', () => {
+  const savedPlan = {
+    next_gw: 10,
+    deadline_time: '2026-10-24T10:00:00Z',
+    squad: []
   };
-  const fixtures = formatUpcomingFixtures('ARS', 10, schedule);
-  assert.equal(fixtures[0].opponent, 'Blank');
-  assert.equal(fixtures[0].difficulty, 5);
+
+  const serverResult = {
+    next_gw: 10,
+    deadline_time: '2026-10-24T11:00:00Z', // rescheduled official deadline
+    schedule: { 10: [] }
+  };
+
+  const synced = syncSavedPlanDeadline(savedPlan, serverResult);
+  assert.equal(synced.deadline_time, '2026-10-24T11:00:00Z');
+  assert.deepEqual(synced.schedule, { 10: [] });
+});
+
+test('syncSavedPlanDeadline does NOT update deadline if gameweeks do not match', () => {
+  const savedPlan = {
+    next_gw: 9,
+    deadline_time: '2026-10-17T10:00:00Z',
+    squad: []
+  };
+
+  const serverResult = {
+    next_gw: 10,
+    deadline_time: '2026-10-24T10:00:00Z'
+  };
+
+  const synced = syncSavedPlanDeadline(savedPlan, serverResult);
+  assert.equal(synced.deadline_time, '2026-10-17T10:00:00Z');
+});
+
+test('syncSavedPlanDeadline does NOT overwrite with invalid or empty deadline string', () => {
+  const savedPlan = {
+    next_gw: 10,
+    deadline_time: '2026-10-24T10:00:00Z',
+    squad: []
+  };
+
+  const serverResult = {
+    next_gw: 10,
+    deadline_time: 'invalid-date'
+  };
+
+  const synced = syncSavedPlanDeadline(savedPlan, serverResult);
+  assert.equal(synced.deadline_time, '2026-10-24T10:00:00Z');
 });
