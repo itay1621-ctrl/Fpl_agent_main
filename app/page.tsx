@@ -289,19 +289,34 @@ export default function Home() {
   const [isUrgent, setIsUrgent] = useState(false);
 
   useEffect(() => {
-    if (!data || !data.schedule || !data.schedule[data?.next_gw] || data.schedule[data?.next_gw].length === 0) return;
+    if (!data) return;
 
-    // Sort matches to find the earliest kickoff
-    const matches = [...data.schedule[data?.next_gw]].sort((a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime());
-    const firstMatchTime = new Date(matches[0].time);
+    let deadline: Date | null = null;
 
-    if (isNaN(firstMatchTime.getTime())) {
-      setCountdown("Time unknown");
-      return;
+    if (data.deadline_time) {
+      const parsed = new Date(data.deadline_time);
+      if (!isNaN(parsed.getTime())) {
+        deadline = parsed;
+      }
     }
 
-    // FPL deadline is 90 mins before the first match
-    const deadline = new Date(firstMatchTime.getTime() - 90 * 60000);
+    if (!deadline) {
+      if (!data.schedule || !data.schedule[data?.next_gw] || data.schedule[data?.next_gw].length === 0) return;
+
+      // Sort matches to find the earliest kickoff
+      const matches = [...data.schedule[data?.next_gw]].sort((a: any, b: any) => new Date(a.time).getTime() - new Date(b.time).getTime());
+      if (matches.length === 0) return;
+
+      const firstMatchTime = new Date(matches[0]?.time);
+
+      if (isNaN(firstMatchTime.getTime())) {
+        setCountdown("Time unknown");
+        return;
+      }
+
+      // FPL deadline is 90 mins before the first match
+      deadline = new Date(firstMatchTime.getTime() - 90 * 60000);
+    }
 
     const updateTimer = () => {
       const now = new Date();
@@ -561,6 +576,12 @@ export default function Home() {
 
               const savedChip = getStoredSimulatedChip(idToFetch, result.next_gw);
               setActiveChip(savedChip || null);
+              if (result.deadline_time && !savedPlan.deadline_time) {
+                savedPlan.deadline_time = result.deadline_time;
+              }
+              if (result.schedule && !savedPlan.schedule) {
+                savedPlan.schedule = result.schedule;
+              }
               setData(savedPlan);
               setAppMode(targetMode);
               return;
@@ -735,20 +756,24 @@ export default function Home() {
     for (let offset = 0; offset <= 38 - data?.next_gw; offset++) {
       const gw = data?.next_gw + offset;
       const gwFixtures = data.schedule[gw] || [];
-      let found = false;
+      const teamOpponents: string[] = [];
+      const teamDiffs: number[] = [];
       for (const match of gwFixtures) {
         if (match.home_team === newPlayer.team) {
-          upcoming_fixtures.push({ gw, opponent: `${match.away_team} (H)`, difficulty: match.home_diff });
-          found = true;
-          break;
+          teamOpponents.push(`${match.away_team} (H)`);
+          teamDiffs.push(match.home_diff);
         } else if (match.away_team === newPlayer.team) {
-          upcoming_fixtures.push({ gw, opponent: `${match.home_team} (A)`, difficulty: match.away_diff });
-          found = true;
-          break;
+          teamOpponents.push(`${match.home_team} (A)`);
+          teamDiffs.push(match.away_diff);
         }
       }
-      if (!found) {
+      if (teamOpponents.length === 0) {
         upcoming_fixtures.push({ gw, opponent: "Blank", difficulty: 5 });
+      } else if (teamOpponents.length === 1) {
+        upcoming_fixtures.push({ gw, opponent: teamOpponents[0], difficulty: teamDiffs[0] });
+      } else {
+        const avgDiff = Math.round(teamDiffs.reduce((a, b) => a + b, 0) / teamDiffs.length);
+        upcoming_fixtures.push({ gw, opponent: teamOpponents.join(', '), difficulty: avgDiff });
       }
     }
 
@@ -793,20 +818,24 @@ export default function Home() {
     for (let offset = 0; offset <= 38 - data?.next_gw; offset++) {
       const gw = data?.next_gw + offset;
       const gwFixtures = data.schedule[gw] || [];
-      let found = false;
+      const teamOpponents: string[] = [];
+      const teamDiffs: number[] = [];
       for (const match of gwFixtures) {
         if (match.home_team === newPlayer.team) {
-          upcoming_fixtures.push({ gw, opponent: `${match.away_team} (H)`, difficulty: match.home_diff });
-          found = true;
-          break;
+          teamOpponents.push(`${match.away_team} (H)`);
+          teamDiffs.push(match.home_diff);
         } else if (match.away_team === newPlayer.team) {
-          upcoming_fixtures.push({ gw, opponent: `${match.home_team} (A)`, difficulty: match.away_diff });
-          found = true;
-          break;
+          teamOpponents.push(`${match.home_team} (A)`);
+          teamDiffs.push(match.away_diff);
         }
       }
-      if (!found) {
+      if (teamOpponents.length === 0) {
         upcoming_fixtures.push({ gw, opponent: "Blank", difficulty: 5 });
+      } else if (teamOpponents.length === 1) {
+        upcoming_fixtures.push({ gw, opponent: teamOpponents[0], difficulty: teamDiffs[0] });
+      } else {
+        const avgDiff = Math.round(teamDiffs.reduce((a, b) => a + b, 0) / teamDiffs.length);
+        upcoming_fixtures.push({ gw, opponent: teamOpponents.join(', '), difficulty: avgDiff });
       }
     }
 
@@ -1445,7 +1474,10 @@ export default function Home() {
           </div>}
 
           {appMode !== 'guest' && (
-          <div className={`border ${isUrgent ? 'border-red-500' : 'border-green-400'} rounded-xl p-4 mb-8 flex flex-col items-center justify-center ${bgBox}`}>
+          <div
+            title={data?.deadline_time ? `Deadline: ${new Date(data.deadline_time).toLocaleString()}` : undefined}
+            className={`border ${isUrgent ? 'border-red-500' : 'border-green-400'} rounded-xl p-4 mb-8 flex flex-col items-center justify-center ${bgBox}`}
+          >
             <p className={`text-[8px] sm:text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{t.timeUntil} (GW {data?.next_gw})</p>
             <p className={`text-xl font-bold ${isUrgent ? 'text-red-500 animate-pulse' : 'text-green-600'}`}>{countdown}</p>
           </div>

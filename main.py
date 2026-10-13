@@ -195,8 +195,8 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     
     gw_range = min(5, 38 - next_gw + 1)
     
-    next_gw_opponent = "Blank"
-    next_gw_diff = 5
+    next_gw_opponents = []
+    next_gw_diffs = []
     fixtures_found = 0
     
     total_5gw_projection = 0.0
@@ -219,9 +219,10 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
             
             opp_id = f["team_a"] if is_home else f["team_h"]
             
-            if gw_inc == 0 and fixtures_found == 1:
-                next_gw_opponent = f"{teams.get(opp_id, {}).get('short_name', 'UNK')} ({'H' if is_home else 'A'})"
-                next_gw_diff = diff
+            if gw_inc == 0:
+                opp_name = teams.get(opp_id, {}).get('short_name', 'UNK')
+                next_gw_opponents.append(f"{opp_name} ({'H' if is_home else 'A'})")
+                next_gw_diffs.append(diff)
             
             # Split FDR based on Opponent Strength (V2 Logic)
             opp_team = teams.get(opp_id, {})
@@ -299,6 +300,16 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         
     total_5gw_projection = max(0.0, total_5gw_projection)
     
+    if not next_gw_opponents:
+        next_gw_opponent = "Blank"
+        next_gw_diff = 5
+    elif len(next_gw_opponents) == 1:
+        next_gw_opponent = next_gw_opponents[0]
+        next_gw_diff = next_gw_diffs[0]
+    else:
+        next_gw_opponent = ", ".join(next_gw_opponents)
+        next_gw_diff = int(round(sum(next_gw_diffs) / len(next_gw_diffs)))
+    
     # Confidence metrics based on uncertainty
     past_gws = max(0, (next_gw or 1) - 1)
     available_minutes_so_far = past_gws * 90
@@ -375,14 +386,16 @@ def get_fpl_context(gw_limit: int = 5, override_next_gw: int = None):
     """מחזיר bootstrap, teams, elements, next_gw ו-fixtures לטווח נתון — משותף לכל ה-endpoints."""
     bootstrap = fetch_bootstrap()
     events = bootstrap.get("events", [])
-    current_gw = next((e["id"] for e in events if e["is_current"]), None)
-    next_gw = next((e["id"] for e in events if e["is_next"]), None)
+    current_gw = next((e["id"] for e in events if e.get("is_current")), None)
+    next_gw = next((e["id"] for e in events if e.get("is_next")), None)
     if not next_gw and current_gw:
         next_gw = current_gw + 1
     elif not next_gw:
         next_gw = 1
     if override_next_gw:
         next_gw = override_next_gw
+    target_event = next((e for e in events if e.get("id") == next_gw), None)
+    deadline_time = target_event.get("deadline_time") if target_event else None
     all_fixtures = fetch_all_fixtures()
     max_gw = 38
     gw_range = min(gw_limit, max_gw - next_gw + 1) if gw_limit else max(1, max_gw - next_gw + 1)
@@ -400,6 +413,7 @@ def get_fpl_context(gw_limit: int = 5, override_next_gw: int = None):
         "next_gw": next_gw,
         "gw_range": gw_range,
         "upcoming_fixtures_raw": upcoming_fixtures_raw,
+        "deadline_time": deadline_time,
     }
 
 
@@ -430,20 +444,27 @@ def get_dashboard_data(team_id: int):
                     target_gw = next_gw + gw_inc
                     gw_fixs = [f for f in upcoming_fixtures_raw if f.get("event") == target_gw]
                     
-                    found = False
+                    team_gw_opponents = []
+                    team_gw_diffs = []
                     for f in gw_fixs:
                         if f["team_h"] == player["team"]:
                             opp = teams.get(f["team_a"], {}).get("short_name", "UNK")
-                            upcoming_fixtures.append({"gw": target_gw, "opponent": f"{opp} (H)", "difficulty": f["team_h_difficulty"]})
-                            found = True
-                            break
+                            team_gw_opponents.append(f"{opp} (H)")
+                            team_gw_diffs.append(f["team_h_difficulty"])
                         elif f["team_a"] == player["team"]:
                             opp = teams.get(f["team_h"], {}).get("short_name", "UNK")
-                            upcoming_fixtures.append({"gw": target_gw, "opponent": f"{opp} (A)", "difficulty": f["team_a_difficulty"]})
-                            found = True
-                            break
-                    if not found:
+                            team_gw_opponents.append(f"{opp} (A)")
+                            team_gw_diffs.append(f["team_a_difficulty"])
+                    if not team_gw_opponents:
                         upcoming_fixtures.append({"gw": target_gw, "opponent": "Blank", "difficulty": 5})
+                    elif len(team_gw_opponents) == 1:
+                        upcoming_fixtures.append({"gw": target_gw, "opponent": team_gw_opponents[0], "difficulty": team_gw_diffs[0]})
+                    else:
+                        upcoming_fixtures.append({
+                            "gw": target_gw,
+                            "opponent": ", ".join(team_gw_opponents),
+                            "difficulty": int(round(sum(team_gw_diffs) / len(team_gw_diffs)))
+                        })
 
                 enriched_picks.append({
                     "id": player["id"],
@@ -499,6 +520,7 @@ def get_dashboard_data(team_id: int):
             "rank": rank,
             "bank": bank,
             "next_gw": next_gw,
+            "deadline_time": ctx.get("deadline_time"),
             "squad": enriched_picks,
             "schedule": schedule,
             "chips_used": chips_used,
