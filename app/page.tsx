@@ -1773,6 +1773,9 @@ export default function Home() {
                           const transferOutPlayer = data?.squad?.find((p: any) => p.id === transferOutId);
                           const sellVal = transferOutPlayer?.is_empty ? 0 : (transferOutPlayer?.selling_price ?? transferOutPlayer?.cost ?? 0);
                           const availableBudget = Math.round(((data?.bank ?? 0) + sellVal) * 10) / 10;
+                          const tableCandidates = searchQuery === ''
+                            ? (affordableRecs.length > 3 ? affordableRecs.slice(3) : affordableRecs)
+                            : filteredRecs;
                           return (
                             <>
                               {searchQuery === '' && affordableRecs.length > 0 && (
@@ -1853,7 +1856,7 @@ export default function Home() {
                                 </label>
                               </div>
 
-                              <div className={`flex-1 max-h-[400px] overflow-y-auto rounded-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                              <div className={`flex-1 min-h-[300px] max-h-[400px] overflow-y-auto rounded-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                                 <table className={`w-full text-sm text-start`}>
                                   <thead className={`sticky top-0 z-10 text-xs uppercase font-bold ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
                                     <tr>
@@ -1867,7 +1870,7 @@ export default function Home() {
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    {[...(searchQuery === '' ? affordableRecs.slice(3) : filteredRecs)].sort((a, b) => b.total_points - a.total_points).map(rec => {
+                                    {[...tableCandidates].sort((a, b) => b.total_points - a.total_points).map(rec => {
                                       const isOverBudget = rec.cost > availableBudget;
                                       const overBudgetDiff = Math.round((rec.cost - availableBudget) * 10) / 10;
                                       return (
@@ -1913,7 +1916,7 @@ export default function Home() {
                                     })}
                                   </tbody>
                                 </table>
-                                {filteredRecs.length === 0 && (
+                                {tableCandidates.length === 0 && (
                                   <p className="text-red-500 font-bold p-4 text-center">
                                     {isEnglish ? 'No matching players found.' : 'לא נמצאו שחקנים מתאימים.'}
                                   </p>
@@ -2048,6 +2051,8 @@ export default function Home() {
                     return;
                   }
 
+                  setSearchQuery('');
+                  setTransferError('');
                   setTransferOutId(id);
                   if (playerToSell) {
                     setLoadingRecs(true);
@@ -2087,7 +2092,7 @@ export default function Home() {
               {transferOutId && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                   <div className={`w-full max-w-4xl max-h-[90vh] overflow-hidden p-6 rounded-2xl shadow-2xl flex flex-col ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex justify-between items-center mb-4 shrink-0">
                       {(() => {
                         const transferOutPlayer = data?.squad?.find((p: any) => p.id === transferOutId);
                         const sellVal = transferOutPlayer?.is_empty ? 0 : (transferOutPlayer?.selling_price ?? transferOutPlayer?.cost ?? 0);
@@ -2124,7 +2129,7 @@ export default function Home() {
                     </div>
 
                     {transferError && (
-                      <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-4 rounded shadow-sm font-bold text-sm">
+                      <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-4 rounded shadow-sm font-bold text-sm shrink-0">
                         ⚠️ {transferError}
                       </div>
                     )}
@@ -2132,7 +2137,7 @@ export default function Home() {
                     {loadingRecs ? (
                       <p className={`font-bold animate-pulse ${textMuted}`}>{isEnglish ? 'Calculating smart alternatives...' : 'מחשב אלטרנטיבות חכמות...'}</p>
                     ) : (
-                      <div className="flex flex-col h-full overflow-y-auto pr-1">
+                      <div className="flex flex-col flex-1 min-h-0 overflow-y-auto pr-1">
 
                         {searchQuery === '' && effectiveDecision && effectiveDecision.current_player && (
                           <div className={`mb-6 p-4 rounded-xl border shrink-0 ${isDarkMode ? 'bg-gray-800/80 border-gray-700' : 'bg-white border-gray-200'} shadow-sm`}>
@@ -2213,6 +2218,9 @@ export default function Home() {
                           const transferOutPlayer = data?.squad?.find((p: any) => p.id === transferOutId);
                           const sellVal = transferOutPlayer?.is_empty ? 0 : (transferOutPlayer?.selling_price ?? transferOutPlayer?.cost ?? 0);
                           const availableBudget = Math.round(((data?.bank ?? 0) + sellVal) * 10) / 10;
+                          const tableCandidates = searchQuery === ''
+                            ? (affordableRecs.length > 3 ? affordableRecs.slice(3) : affordableRecs)
+                            : filteredRecs;
                           return (
                             <>
                               {searchQuery === '' && affordableRecs.length > 0 && (
@@ -2297,7 +2305,7 @@ export default function Home() {
                                 </label>
                               </div>
 
-                              <div className={`flex-1 min-h-0 max-h-[360px] overflow-y-auto rounded-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                              <div className={`rounded-lg border min-h-[300px] max-h-[420px] overflow-y-auto shrink-0 ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                                 <table className={`w-full text-sm text-start`}>
                                   <thead className={`sticky top-0 z-10 text-xs uppercase font-bold ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
                                     <tr>
@@ -2311,7 +2319,7 @@ export default function Home() {
                                     </tr>
                                   </thead>
                                   <tbody>
-                                    {[...(searchQuery === '' ? affordableRecs.slice(3) : filteredRecs)].sort((a, b) => b.total_points - a.total_points).map(rec => {
+                                    {[...tableCandidates].sort((a, b) => b.total_points - a.total_points).map(rec => {
                                       const origPlayer = originalData?.squad?.find((op: any) => op.id === rec.id);
                                       const displayCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : rec.cost;
                                       const isOverBudget = displayCost > availableBudget;
@@ -2364,7 +2372,7 @@ export default function Home() {
                                     })}
                                   </tbody>
                                 </table>
-                                {filteredRecs.length === 0 && (
+                                {tableCandidates.length === 0 && (
                                   <p className="text-red-500 font-bold p-4 text-center">
                                     {isEnglish ? 'No matching players found.' : 'לא נמצאו שחקנים מתאימים.'}
                                   </p>
