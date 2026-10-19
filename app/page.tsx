@@ -403,7 +403,7 @@ export default function Home() {
       budgetTab: "תרחישי תקציב",
       plannerTab: "מתכנן מחזורים",
       leaguesTab: "מיני-ליגות וראש בראש",
-      tipsTab: "טיפים להצלחה 💡",
+      tipsTab: "טיפים להצלחה",
       cap: "קפטן (C):",
       vcap: "סגן קפטן (VC):",
       enterId: "הזן את מספר הקבוצה שלך",
@@ -429,7 +429,7 @@ export default function Home() {
       budgetTab: "Budget Scenarios",
       plannerTab: "GW Planner",
       leaguesTab: "Mini-Leagues & H2H",
-      tipsTab: "Tips & Tricks 💡",
+      tipsTab: "Tips & Tricks",
       cap: "Captain (C):",
       vcap: "Vice Captain (VC):",
       enterId: "Enter your Team ID",
@@ -1096,20 +1096,22 @@ export default function Home() {
 
 
   const renderFeedbackButton = () => {
-    if (!showFeedback) return null;
+    if (!showFeedback || appMode === 'welcome') return null;
     return (
-      <div className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-[100] flex items-center animate-slide-up">
+      <div className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-[100] flex items-center">
         <a
           href="mailto:itayas@mobileye.com?subject=FPL%20Agent%20Feedback"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-full shadow-lg transition-transform hover:scale-105 flex items-center gap-2 border-2 border-white/20"
+          className="bg-[#37003c] hover:bg-[#4b0852] text-white font-semibold py-2.5 px-3.5 rounded-full shadow-lg transition-transform hover:scale-105 flex items-center gap-2 border border-purple-400/30 text-xs sm:text-sm"
           title={isEnglish ? 'Send Feedback' : 'שלח פידבק'}
         >
-          <span className="text-xl">💬</span>
+          <svg className="w-4 h-4 text-[#01fc7a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
           <span className="hidden sm:inline">{isEnglish ? 'Feedback' : 'פידבק'}</span>
         </a>
         <button
           onClick={() => setShowFeedback(false)}
-          className="bg-gray-800/80 hover:bg-gray-800 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md transition-colors border border-white/40 absolute -top-1 -left-2 md:-left-2"
+          className="bg-slate-800/90 hover:bg-slate-900 text-slate-300 hover:text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-sm transition-colors border border-slate-600 absolute -top-1 -left-1.5"
           title={isEnglish ? 'Dismiss' : 'הסתר'}
         >
           ✕
@@ -1362,52 +1364,52 @@ export default function Home() {
       <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={(id:number) => { handleSwapClick(id); setActionPlayer(null); }} onCaptain={(id:number) => { handleSetCaptain(id); setActionPlayer(null); }} onVice={(id:number) => { handleSetViceCaptain(id); setActionPlayer(null); }} onShowInfo={(id:number) => { const p = data?.squad?.find((x:any) => x.id === id) || originalData?.squad?.find((x:any) => x.id === id); if(p) { setInfoPopupPlayer(p); } setActionPlayer(null); }} isEnglish={isEnglish} isDarkMode={isDarkMode} />
 
       {appMode === 'welcome' && !initLoading && (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-[#37003c] text-white relative">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-[#37003c] text-white py-8 px-4 relative overflow-y-auto">
           <button
             onClick={() => setIsEnglish(!isEnglish)}
-            className="absolute top-4 right-4 text-sm font-bold px-4 py-2 rounded-lg border-2 border-white/30 text-white hover:bg-white/20 transition-all z-50"
+            className="absolute top-4 right-4 text-xs font-semibold px-3 py-1.5 rounded-lg border border-white/20 text-purple-100 hover:bg-white/10 transition-all z-50 backdrop-blur-sm"
           >
             {isEnglish ? 'עברית' : 'English'}
           </button>
 
-          <div className="z-10 flex flex-col items-center w-full max-w-md px-4">
-            <div className="mb-8 text-center">
-              <div className="w-40 h-40 sm:w-56 sm:h-56 mb-8 drop-shadow-2xl hover:scale-105 transition-transform duration-300 rounded-full overflow-hidden border-8 border-[#37003c] bg-white mx-auto flex items-center justify-center">
+          <div className="z-10 flex flex-col items-center w-full max-w-md my-auto">
+            <div className="mb-6 text-center">
+              <div className="w-20 h-20 sm:w-28 sm:h-28 mb-3 rounded-full overflow-hidden border-4 border-white/20 bg-white mx-auto flex items-center justify-center shadow-lg">
                 <img src="/logo.jpg" alt="FPL Strategy Engine Logo" className="w-full h-full object-cover" />
               </div>
-              <h1 className="text-5xl md:text-6xl font-black mb-2 text-[#01fc7a] tracking-tight">FPL Strategy Engine</h1>
-              <p className="text-purple-200 font-medium text-lg">{isEnglish ? 'AI-powered FPL decision making' : 'קבלת החלטות FPL מבוססת בינה מלאכותית'}</p>
+              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#01fc7a] mb-1">FPL Strategy Engine</h1>
+              <p className="text-purple-200/90 font-medium text-sm sm:text-base">{isEnglish ? 'AI-powered FPL decision making' : 'קבלת החלטות FPL מבוססת בינה מלאכותית'}</p>
             </div>
 
-            <div className="bg-white p-8 rounded-2xl shadow-xl w-full text-[#37003c]" dir={isEnglish ? "ltr" : "rtl"}>
-              <h2 className="text-xl font-black mb-6 text-center text-[#37003c]">{t.enterId}</h2>
-              <div className="flex flex-col gap-4">
+            <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-2xl shadow-2xl w-full text-slate-900 dark:text-slate-100 border border-white/10 dark:border-slate-800" dir={isEnglish ? "ltr" : "rtl"}>
+              <h2 className="text-base sm:text-lg font-bold mb-4 text-center text-slate-800 dark:text-slate-100">{t.enterId}</h2>
+              <div className="flex flex-col gap-3">
                 <input
                   type="number"
                   value={teamId}
                   onChange={(e) => setTeamId(e.target.value)}
                   placeholder={t.placeholder}
-                  className="w-full bg-gray-50 border border-gray-300 rounded-xl p-4 text-center text-2xl font-black focus:outline-none focus:ring-2 focus:ring-[#01fc7a] transition-all placeholder:text-gray-400 placeholder:text-lg placeholder:font-medium"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl p-3.5 text-center text-xl sm:text-2xl font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-[#01fc7a]/40 focus:border-[#01fc7a] transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:text-sm sm:placeholder:text-base placeholder:font-normal"
                   onKeyDown={(e) => { if (e.key === 'Enter') fetchTeam(undefined, 'team'); }}
                 />
                 <button
                   onClick={() => { fetchTeam(undefined, 'team'); }}
                   disabled={loading || !teamId}
-                  className="w-full bg-[#01fc7a] hover:bg-[#00e36d] text-[#37003c] px-6 py-4 rounded-xl font-black text-lg shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                  className="w-full bg-[#01fc7a] hover:bg-[#00e36d] text-[#130015] px-6 py-3.5 rounded-xl font-bold text-base shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.99]"
                 >
                   {loading ? t.loading : (isEnglish ? 'Analyze My Team' : 'נתח את הקבוצה שלי')}
                 </button>
 
-                <div className="flex items-center w-full my-3">
-                  <div className="flex-1 h-px bg-gray-200"></div>
-                  <span className="px-3 text-xs font-bold text-gray-400">{isEnglish ? 'OR' : 'או'}</span>
-                  <div className="flex-1 h-px bg-gray-200"></div>
+                <div className="flex items-center w-full my-1.5">
+                  <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800"></div>
+                  <span className="px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{isEnglish ? 'OR' : 'או'}</span>
+                  <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800"></div>
                 </div>
 
                 <button
                   onClick={() => { setTeamId('3450961'); setTimeout(() => fetchTeam('3450961', 'demo'), 100); }}
                   disabled={loading}
-                  className="w-full bg-blue-100 hover:bg-blue-200 text-blue-800 px-6 py-3 rounded-xl font-bold shadow-sm transition-all disabled:opacity-50 active:scale-95 text-sm mb-2 border border-blue-200"
+                  className="w-full bg-purple-50 hover:bg-purple-100 text-[#37003c] dark:bg-purple-950/40 dark:hover:bg-purple-900/50 dark:text-purple-200 px-5 py-2.5 rounded-xl font-semibold shadow-xs transition-all disabled:opacity-50 active:scale-[0.99] text-sm border border-purple-200 dark:border-purple-800/60"
                 >
                   {isEnglish ? 'Try Demo Team' : 'נסה קבוצת הדגמה'}
                 </button>
@@ -1415,21 +1417,20 @@ export default function Home() {
                 <button
                   onClick={() => { setAppMode('guest'); setActiveTab('radar'); setData(null); }}
                   disabled={loading}
-                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold shadow-sm transition-all disabled:opacity-50 active:scale-95 text-sm"
+                  className="w-full bg-slate-50 hover:bg-slate-100 text-slate-700 dark:bg-slate-800/60 dark:hover:bg-slate-800 dark:text-slate-300 px-5 py-2.5 rounded-xl font-semibold shadow-xs transition-all disabled:opacity-50 active:scale-[0.99] text-sm border border-slate-200 dark:border-slate-700"
                 >
                   {isEnglish ? 'Explore Without a Team' : 'היכנס כאורח ללא קבוצה'}
                 </button>
               </div>
-              {error && <p className="text-red-400 mt-4 text-center font-bold bg-red-900/40 p-2 rounded-lg">{error}</p>}
+              {error && <p className="text-rose-600 dark:text-rose-400 mt-3 text-center text-xs font-semibold bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 p-2.5 rounded-lg">{error}</p>}
             </div>
 
-            <div className="mt-12 h-24 w-full flex flex-col items-center justify-center text-center px-4 opacity-80">
-              <span className="text-2xl mb-2">{FPL_SUCCESS_TIPS[tipIndex]?.icon}</span>
-              <p className="text-sm font-medium text-purple-200 max-w-sm">
-                {isEnglish ? FPL_SUCCESS_TIPS[tipIndex]?.title_en : FPL_SUCCESS_TIPS[tipIndex]?.title_he}
+            <div className="mt-6 w-full flex flex-col items-center justify-center text-center px-4 opacity-90">
+              <p className="text-xs font-semibold text-[#01fc7a] uppercase tracking-wider mb-1">
+                {isEnglish ? 'FPL Strategy Rule' : 'כלל מפתח ב-FPL'}
               </p>
-              <p className="text-xs text-white/60 mt-1 max-w-sm hidden md:block">
-                {isEnglish ? FPL_SUCCESS_TIPS[tipIndex]?.desc_en : FPL_SUCCESS_TIPS[tipIndex]?.desc_he}
+              <p className="text-xs sm:text-sm font-medium text-purple-100 max-w-sm">
+                {isEnglish ? FPL_SUCCESS_TIPS[tipIndex]?.title_en : FPL_SUCCESS_TIPS[tipIndex]?.title_he}
               </p>
             </div>
           </div>
@@ -1447,9 +1448,14 @@ export default function Home() {
 
 
           {appMode === 'demo' && (
-             <div className="bg-purple-600 text-white p-3 rounded-lg mb-4 text-center text-sm font-bold shadow-md flex items-center justify-between">
-               <span>👀 {isEnglish ? 'You are viewing a Demo Team. Connect your own team to unlock personalized analysis.' : 'אתה צופה בקבוצת הדגמה. הזן את ה-ID שלך למעבר לניתוח אישי.'}</span>
-               <button onClick={() => { setData(null); setTeamId(''); localStorage.removeItem('fpl_team_id'); setAppMode('welcome'); }} className="bg-white text-purple-600 px-3 py-1 rounded text-xs ml-4 min-w-[90px]">
+             <div className="bg-[#37003c] text-white p-3 sm:p-3.5 rounded-xl mb-4 text-sm font-medium shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-purple-800/40">
+               <div className="flex items-center gap-2.5">
+                 <svg className="w-4 h-4 text-[#01fc7a] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                 </svg>
+                 <span className="text-xs sm:text-sm text-purple-100">{isEnglish ? 'You are viewing a Demo Team. Connect your own team to unlock personalized analysis.' : 'אתה צופה בקבוצת הדגמה. הזן את ה-ID שלך למעבר לניתוח אישי.'}</span>
+               </div>
+               <button onClick={() => { setData(null); setTeamId(''); localStorage.removeItem('fpl_team_id'); setAppMode('welcome'); }} className="bg-white hover:bg-purple-50 text-[#37003c] font-semibold px-3.5 py-1.5 rounded-lg text-xs transition-colors shrink-0 shadow-xs">
                  {isEnglish ? 'Connect Team' : 'חבר קבוצה'}
                </button>
              </div>
@@ -1484,53 +1490,60 @@ export default function Home() {
           </div>
 
           {appMode !== 'guest' && <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className={`border-2 border-red-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
-              <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.overallRank}</p>
-              <p className="text-lg sm:text-2xl font-black">{data.rank.toLocaleString()}</p>
+            <div className={`border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col justify-between ${bgBox} shadow-xs items-start`}>
+              <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${textMuted}`}>{t.overallRank}</p>
+              <p className="text-xl sm:text-2xl font-bold font-mono tabular-nums tracking-tight">{data.rank.toLocaleString()}</p>
             </div>
-            <div className={`border-2 ${data.bank < 0 ? 'border-red-500' : 'border-orange-300'} rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
+            <div className={`border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col justify-between ${bgBox} shadow-xs items-start`}>
               <div className="flex items-center justify-between w-full">
-                <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.bank}</p>
+                <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${textMuted}`}>{t.bank}</p>
                 {data.bank < 0 && (
-                  <span className="text-[9px] bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 px-1.5 py-0.5 rounded font-black">
+                  <span className="text-[10px] bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 px-2 py-0.5 rounded-md font-bold">
                     {isEnglish ? 'Deficit' : 'חריגה'}
                   </span>
                 )}
               </div>
-              <p className={`text-lg sm:text-2xl font-black ${data.bank < 0 ? 'text-red-500' : ''}`}>
+              <p className={`text-xl sm:text-2xl font-bold font-mono tabular-nums tracking-tight ${data.bank < 0 ? 'text-rose-600 dark:text-rose-400' : ''}`}>
                 {data.bank < 0 ? `-£${Math.abs(data.bank).toFixed(1)}m` : `£${data.bank.toFixed(1)}m`}
               </p>
             </div>
-            <div className={`border-2 border-blue-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
-              <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.xp}</p>
-              <p className="text-lg sm:text-2xl font-black">{totalXP.toFixed(1)} <span className="text-xs text-gray-500 font-normal">xP (5 GWs)</span></p>
+            <div className={`border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col justify-between ${bgBox} shadow-xs items-start`}>
+              <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${textMuted}`}>{t.xp}</p>
+              <p className="text-xl sm:text-2xl font-bold font-mono tabular-nums tracking-tight">{totalXP.toFixed(1)} <span className={`text-xs font-normal ${textMuted}`}>xP (5 GWs)</span></p>
             </div>
-            <div title={isEnglish ? "Based on projected points (xP), form, fixture difficulty, and squad risk over the next 5 GWs." : "מבוסס על נקודות צפויות (xP), כושר, קושי משחקים וסיכון רוטציה לאורך 5 המחזורים הקרובים."} className={`border-2 border-green-300 rounded-xl p-2 sm:p-4 flex flex-col justify-between ${bgBox} items-start`}>
-              <p className={`text-[8px] sm:text-xs font-bold ${textMuted}`}>{t.squadScore}</p>
-              <p className="text-lg sm:text-2xl font-black" dir="ltr">{calculatedSquadScore || 0} <span className={`text-sm ${textMuted}`}>/ 100</span></p>
+            <div title={isEnglish ? "Based on projected points (xP), form, fixture difficulty, and squad risk over the next 5 GWs." : "מבוסס על נקודות צפויות (xP), כושר, קושי משחקים וסיכון רוטציה לאורך 5 המחזורים הקרובים."} className={`border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:p-4 flex flex-col justify-between ${bgBox} shadow-xs items-start`}>
+              <p className={`text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${textMuted}`}>{t.squadScore}</p>
+              <p className="text-xl sm:text-2xl font-bold font-mono tabular-nums tracking-tight" dir="ltr">{calculatedSquadScore || 0} <span className={`text-xs font-normal ${textMuted}`}>/ 100</span></p>
             </div>
           </div>}
 
           {appMode !== 'guest' && (
           <div
             title={data?.deadline_time ? `Deadline: ${new Date(data.deadline_time).toLocaleString()}` : undefined}
-            className={`border ${isUrgent ? 'border-red-500' : 'border-green-400'} rounded-xl p-4 mb-8 flex flex-col items-center justify-center ${bgBox}`}
+            className={`border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 mb-6 flex items-center justify-between shadow-xs ${bgBox}`}
           >
-            <p className={`text-[8px] sm:text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{t.timeUntil} (GW {data?.next_gw})</p>
-            <p className={`text-xl font-bold ${isUrgent ? 'text-red-500 animate-pulse' : 'text-green-600'}`}>{countdown}</p>
+            <div className="flex items-center gap-2">
+              <svg className={`w-4 h-4 ${isUrgent ? 'text-rose-500 animate-pulse' : 'text-emerald-600 dark:text-emerald-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className={`text-xs sm:text-sm font-medium ${textMuted}`}>{t.timeUntil} (GW {data?.next_gw})</span>
+            </div>
+            <span className={`text-sm sm:text-base font-bold font-mono tabular-nums ${isUrgent ? 'text-rose-600 dark:text-rose-400 animate-pulse' : 'text-emerald-600 dark:text-emerald-400'}`}>
+              {countdown}
+            </span>
           </div>
           )}
 
-          <div className="hidden md:flex overflow-x-auto gap-6 border-b border-gray-200 mb-6 pb-2 text-sm font-bold whitespace-nowrap scrollbar-hide">
-            <button onClick={() => setActiveTab('pitch')} className={`${activeTab === 'pitch' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.pitchTab}</button>
-            <button onClick={() => setActiveTab('transfer')} className={`${activeTab === 'transfer' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.transferTab}</button>
-            <button onClick={() => setActiveTab('analysis')} className={`${activeTab === 'analysis' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.analysisTab}</button>
-            <button onClick={() => setActiveTab('radar')} className={`${activeTab === 'radar' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.radarTab}</button>
-            <button onClick={() => setActiveTab('budget')} className={`${activeTab === 'budget' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.budgetTab}</button>
-            <button onClick={() => setActiveTab('drafts')} className={`${activeTab === 'drafts' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{isEnglish ? "Drafts" : "הרכבים"}</button>
-            <button onClick={() => setActiveTab('planner')} className={`${activeTab === 'planner' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.plannerTab}</button>
-            <button onClick={() => setActiveTab('leagues')} className={`${activeTab === 'leagues' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.leaguesTab}</button>
-            <button onClick={() => setActiveTab('tips')} className={`${activeTab === 'tips' ? `${textHighlight} border-b-2 border-red-500` : `${textMuted} hover:opacity-80`}`}>{t.tipsTab}</button>
+          <div className="hidden md:flex overflow-x-auto gap-6 border-b border-slate-200 dark:border-slate-800 mb-6 pb-2.5 text-sm font-semibold whitespace-nowrap scrollbar-hide">
+            <button onClick={() => setActiveTab('pitch')} className={`transition-colors ${activeTab === 'pitch' ? 'text-[#37003c] dark:text-[#01fc7a] border-b-2 border-purple-700 dark:border-[#01fc7a] font-bold -mb-3 pb-2.5' : `${textMuted} hover:text-slate-900 dark:hover:text-slate-200`}`}>{t.pitchTab}</button>
+            <button onClick={() => setActiveTab('transfer')} className={`transition-colors ${activeTab === 'transfer' ? 'text-[#37003c] dark:text-[#01fc7a] border-b-2 border-purple-700 dark:border-[#01fc7a] font-bold -mb-3 pb-2.5' : `${textMuted} hover:text-slate-900 dark:hover:text-slate-200`}`}>{t.transferTab}</button>
+            <button onClick={() => setActiveTab('analysis')} className={`transition-colors ${activeTab === 'analysis' ? 'text-[#37003c] dark:text-[#01fc7a] border-b-2 border-purple-700 dark:border-[#01fc7a] font-bold -mb-3 pb-2.5' : `${textMuted} hover:text-slate-900 dark:hover:text-slate-200`}`}>{t.analysisTab}</button>
+            <button onClick={() => setActiveTab('radar')} className={`transition-colors ${activeTab === 'radar' ? 'text-[#37003c] dark:text-[#01fc7a] border-b-2 border-purple-700 dark:border-[#01fc7a] font-bold -mb-3 pb-2.5' : `${textMuted} hover:text-slate-900 dark:hover:text-slate-200`}`}>{t.radarTab}</button>
+            <button onClick={() => setActiveTab('budget')} className={`transition-colors ${activeTab === 'budget' ? 'text-[#37003c] dark:text-[#01fc7a] border-b-2 border-purple-700 dark:border-[#01fc7a] font-bold -mb-3 pb-2.5' : `${textMuted} hover:text-slate-900 dark:hover:text-slate-200`}`}>{t.budgetTab}</button>
+            <button onClick={() => setActiveTab('drafts')} className={`transition-colors ${activeTab === 'drafts' ? 'text-[#37003c] dark:text-[#01fc7a] border-b-2 border-purple-700 dark:border-[#01fc7a] font-bold -mb-3 pb-2.5' : `${textMuted} hover:text-slate-900 dark:hover:text-slate-200`}`}>{isEnglish ? "Drafts" : "הרכבים"}</button>
+            <button onClick={() => setActiveTab('planner')} className={`transition-colors ${activeTab === 'planner' ? 'text-[#37003c] dark:text-[#01fc7a] border-b-2 border-purple-700 dark:border-[#01fc7a] font-bold -mb-3 pb-2.5' : `${textMuted} hover:text-slate-900 dark:hover:text-slate-200`}`}>{t.plannerTab}</button>
+            <button onClick={() => setActiveTab('leagues')} className={`transition-colors ${activeTab === 'leagues' ? 'text-[#37003c] dark:text-[#01fc7a] border-b-2 border-purple-700 dark:border-[#01fc7a] font-bold -mb-3 pb-2.5' : `${textMuted} hover:text-slate-900 dark:hover:text-slate-200`}`}>{t.leaguesTab}</button>
+            <button onClick={() => setActiveTab('tips')} className={`transition-colors ${activeTab === 'tips' ? 'text-[#37003c] dark:text-[#01fc7a] border-b-2 border-purple-700 dark:border-[#01fc7a] font-bold -mb-3 pb-2.5' : `${textMuted} hover:text-slate-900 dark:hover:text-slate-200`}`}>{t.tipsTab}</button>
           </div>
 
           {appMode !== 'guest' && activeTab === 'pitch' && (
@@ -1579,7 +1592,7 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
+              <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t border-white/20 border-dashed">
                 {bench.sort((a: any, b: any) => a.position - b.position).map((p: any) => (
                   <PlayerCard key={p.id} player={p} isBench activeId={swapSourceId} onActionClick={(id: number) => { if (swapSourceId !== null) { handleSwapClick(id); } else { setActionPlayer([...starters, ...bench].find((p:any) => p.id === id)); } }} />
                 ))}
@@ -1643,7 +1656,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
+                  <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t border-white/20 border-dashed">
                     {bench.sort((a: any, b: any) => a.position - b.position).map((p: any) => (
                       <PlayerCard key={p.id} player={p} isBench activeId={transferOutId} onActionClick={handlePlayerClick} transferMode />
                     ))}
@@ -1651,14 +1664,17 @@ export default function Home() {
                 </div>
 
                 {transferOutId ? (
-                  <div className={`flex-1 p-4 rounded-xl border ${bgBox} shadow-lg border-t-4 border-t-purple-500 flex flex-col`}>
+                  <div className={`flex-1 p-4 sm:p-5 rounded-xl border border-slate-200 dark:border-slate-800 ${bgBox} shadow-sm flex flex-col`}>
                     <h3 className={`text-xl font-black mb-4 flex items-center gap-2 ${textHighlight}`}>
-                      <span>🧪</span> {isEnglish ? 'Transfer Lab' : 'מעבדת העברות'}
+                      <svg className="w-5 h-5 text-purple-600 dark:text-[#01fc7a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                      </svg>
+                      {isEnglish ? 'Transfer Lab' : 'מעבדת העברות'}
                     </h3>
 
                     {transferError && (
-                      <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-4 rounded shadow-sm font-bold text-sm">
-                        ⚠️ {transferError}
+                      <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 p-3 mb-4 rounded-xl shadow-xs font-semibold text-sm flex items-center gap-2">
+                        <span>⚠️</span> {transferError}
                       </div>
                     )}
 
@@ -1931,7 +1947,11 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className={`flex-1 p-8 rounded-xl border flex flex-col items-center justify-center text-center ${bgBox}`}>
-                    <div className="text-6xl mb-4 opacity-50">💸</div>
+                    <div className="w-16 h-16 rounded-2xl bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-[#01fc7a] flex items-center justify-center mb-4 shadow-xs">
+                      <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                      </svg>
+                    </div>
                     <h3 className={`text-xl font-black mb-2 ${textHighlight}`}>
                       {isEnglish ? 'Ready to make a transfer?' : 'מוכן לבצע העברה?'}
                     </h3>
@@ -1947,8 +1967,13 @@ export default function Home() {
 
           {appMode !== 'guest' && activeTab === 'analysis' && (
             <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${bgCard}`}>
-              <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
-                <span>📊</span> {isEnglish ? 'Squad Analysis & AI Insights' : 'ניתוח סגל ותובנות AI'}
+              <h3 className={`text-2xl font-black mb-6 flex items-center gap-3 ${textHighlight}`}>
+                <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                {isEnglish ? 'Squad Analysis & AI Insights' : 'ניתוח סגל ותובנות AI'}
               </h3>
 
               <SquadAnalysisTab data={data} isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} onGoToTransfer={(playerId?: number) => { setActiveTab('transfer'); if (playerId) handlePlayerClick(playerId); }} />
@@ -1957,34 +1982,55 @@ export default function Home() {
 
           {activeTab === 'radar' && (
             <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${bgCard}`}>
-              <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
-                <span>📡</span> {isEnglish ? 'Elite Transfer Radar' : 'רדאר רכש עילית'}
+              <h3 className={`text-2xl font-black mb-6 flex items-center gap-3 ${textHighlight}`}>
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <circle cx="12" cy="12" r="9" />
+                    <circle cx="12" cy="12" r="5" />
+                    <circle cx="12" cy="12" r="1" />
+                  </svg>
+                </div>
+                {isEnglish ? 'Elite Transfer Radar' : 'רדאר רכש עילית'}
               </h3>
               <EliteRadarTab data={data} isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} />
             </div>
           )}
           {appMode !== 'guest' && activeTab === 'budget' && (
             <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${bgCard}`}>
-              <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
-                <span>💰</span> {isEnglish ? 'Budget Scenarios' : 'תרחישי תקציב (המלצות מבוססות AI)'}
+              <h3 className={`text-2xl font-black mb-6 flex items-center gap-3 ${textHighlight}`}>
+                <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                {isEnglish ? 'Budget Scenarios' : 'תרחישי תקציב (המלצות מבוססות AI)'}
               </h3>
               <BudgetScenariosTab data={data} teamId={data?.team_id} isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} activeChip={activeChip} onTransfer={executeVirtualTransfer}  />
             </div>
           )}
 
 
-          {appMode !== 'guest' && activeTab === 'drafts' && (
+          {activeTab === 'drafts' && (
             <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${bgCard}`}>
-              <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
-                <span>📋</span> {isEnglish ? 'Recommended Drafts' : 'הרכבים מומלצים'}
+              <h3 className={`text-2xl font-black mb-6 flex items-center gap-3 ${textHighlight}`}>
+                <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 flex items-center justify-center shrink-0">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                </div>
+                {isEnglish ? 'Recommended Drafts' : 'הרכבים מומלצים'}
               </h3>
               <DraftsTab isEnglish={isEnglish} isDarkMode={isDarkMode} textMuted={textMuted} textHighlight={textHighlight} bgBox={bgBox} onApplyDraft={handleApplyDraft} />
             </div>
           )}
 
-          {appMode === 'guest' && (activeTab === 'pitch' || activeTab === 'planner' || activeTab === 'transfer' || activeTab === 'leagues' || activeTab === 'budget' || activeTab === 'analysis' || activeTab === 'drafts') && (
+          {appMode === 'guest' && (activeTab === 'pitch' || activeTab === 'planner' || activeTab === 'transfer' || activeTab === 'leagues' || activeTab === 'budget' || activeTab === 'analysis') && (
             <div className={`mt-8 p-12 text-center rounded-2xl border border-dashed border-gray-300 ${bgCard}`}>
-              <div className="text-5xl mb-4">🔒</div>
+              <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center mb-4 mx-auto shadow-xs">
+                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
               <h2 className="text-2xl font-black mb-2">{isEnglish ? 'Personalized Feature' : 'פיצ׳ר מותאם אישית'}</h2>
               <p className={`mb-6 ${textMuted}`}>{isEnglish ? 'Connect your FPL Team to unlock this feature and get personalized insights.' : 'התחבר לקבוצת ה-FPL שלך כדי לפתוח פיצ׳ר זה ולקבל תובנות אישיות.'}</p>
               <button
@@ -1998,8 +2044,13 @@ export default function Home() {
 
           {appMode !== 'guest' && activeTab === 'planner' && (
             <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${bgCard} relative`}>
-              <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
-                <span>🗓️</span> {isEnglish ? 'Gameweek Planner' : 'מתכנן מחזורים'}
+              <h3 className={`text-2xl font-black mb-6 flex items-center gap-3 ${textHighlight}`}>
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                {isEnglish ? 'Gameweek Planner' : 'מתכנן מחזורים'}
               </h3>
               <GWPlannerTab
                 data={data}
@@ -2115,7 +2166,10 @@ export default function Home() {
                               )}
                             </div>
                             <h2 className={`text-xl sm:text-3xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'} text-right flex items-center justify-end gap-2`}>
-                              <span>🧪</span> {isEnglish ? 'Transfer Lab (Planner Mode)' : 'מעבדת העברות (מצב מתכנן)'}
+                              <svg className="w-6 h-6 text-purple-600 dark:text-[#01fc7a]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                              </svg>
+                              {isEnglish ? 'Transfer Lab (Planner Mode)' : 'מעבדת העברות (מצב מתכנן)'}
                             </h2>
                           </div>
                         );
@@ -2129,8 +2183,8 @@ export default function Home() {
                     </div>
 
                     {transferError && (
-                      <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-4 rounded shadow-sm font-bold text-sm shrink-0">
-                        ⚠️ {transferError}
+                      <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 p-3 mb-4 rounded-xl shadow-xs font-semibold text-sm shrink-0 flex items-center gap-2">
+                        <span>⚠️</span> {transferError}
                       </div>
                     )}
 
@@ -2409,8 +2463,13 @@ export default function Home() {
 
       {appMode !== 'guest' && activeTab === 'leagues' && (
         <div className={`mt-4 p-3 md:p-6 rounded-2xl shadow-sm border ${bgCard} relative`}>
-          <h3 className={`text-2xl font-black mb-6 flex items-center gap-2 ${textHighlight}`}>
-            <span>🏆</span> {isEnglish ? 'Mini-Leagues & H2H' : 'מיני-ליגות והשוואת ראש בראש'}
+          <h3 className={`text-2xl font-black mb-6 flex items-center gap-3 ${textHighlight}`}>
+            <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+            </div>
+            {isEnglish ? 'Mini-Leagues & H2H' : 'מיני-ליגות והשוואת ראש בראש'}
           </h3>
           <LeaguesTab
             data={data}
@@ -2436,7 +2495,7 @@ export default function Home() {
       )}
 
       {(data || appMode === 'guest') && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#37003c] z-[100] flex overflow-x-auto scrollbar-hide shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.3)]">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#37003c] border-t border-purple-900/60 z-[100] flex overflow-x-auto scrollbar-hide shadow-lg">
           {[
             { id: 'pitch', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="18" rx="2" ry="2"></rect><line x1="2" y1="12" x2="22" y2="12"></line><circle cx="12" cy="12" r="3"></circle></svg>, nameEn: 'Pitch', nameHe: 'מגרש' },
             { id: 'transfer', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>, nameEn: 'Transfers', nameHe: 'העברות' },
@@ -2448,8 +2507,8 @@ export default function Home() {
             { id: 'leagues', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>, nameEn: 'Leagues', nameHe: 'ליגות' },
             { id: 'tips', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></svg>, nameEn: 'Tips', nameHe: 'טיפים' }
           ].map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-shrink-0 flex flex-col items-center justify-center w-[72px] py-3 gap-1.5 transition-colors ${activeTab === tab.id ? 'text-[#01fc7a]' : 'text-purple-200/70'}`}>
-              <div className={`transition-transform duration-300 ${activeTab === tab.id ? 'scale-110 drop-shadow-[0_0_8px_rgba(1,252,122,0.5)]' : ''}`}>{tab.icon}</div>
+            <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-shrink-0 flex flex-col items-center justify-center min-w-[68px] min-h-[48px] py-2 px-1 gap-1 transition-colors ${activeTab === tab.id ? 'text-[#01fc7a]' : 'text-purple-200/70 hover:text-white'}`}>
+              <div className={`transition-transform duration-200 ${activeTab === tab.id ? 'scale-105' : ''}`}>{tab.icon}</div>
               <span className={`text-[10px] tracking-wide ${activeTab === tab.id ? 'font-bold' : 'font-medium'}`}>{isEnglish ? tab.nameEn : tab.nameHe}</span>
             </button>
           ))}
@@ -2664,10 +2723,14 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
     return (
       <div className="flex flex-col gap-6 mt-4">
-        {insights.length > 0 && (
-          <div className={`p-4 md:p-6 rounded-2xl border shadow-sm ${isDarkMode ? 'bg-indigo-950/20 border-indigo-900/50' : 'bg-indigo-50/50 border-indigo-100'}`}>
-            <h3 className={`text-xl font-black mb-4 flex items-center gap-2 tracking-tight ${isDarkMode ? 'text-indigo-300' : 'text-indigo-800'}`}>
-              <span className="text-2xl">⚡</span>
+          {insights.length > 0 && (
+          <div className={`p-4 md:p-6 rounded-2xl border shadow-sm ${isDarkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-slate-50/80 border-slate-200'}`}>
+            <h3 className={`text-xl font-black mb-4 flex items-center gap-2.5 tracking-tight ${textHighlight}`}>
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
               {isEnglish ? "MANAGER\'S BRIEFING" : "תדריך מנג'ר"}
             </h3>
 
@@ -2697,7 +2760,7 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
                       onClick={() => onGoToTransfer(insight.playerId)}
                       className="mt-3 w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
                       {isEnglish ? 'Explore Replacements' : 'צפה בחלופות מומלצות'}
                     </button>
                   )}
@@ -2707,10 +2770,12 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
           </div>
         )}
         {onGoToTransfer && (
-          <div className={`p-4 md:p-5 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm ${isDarkMode ? 'bg-gradient-to-r from-purple-950/40 to-indigo-950/40 border-purple-900/50' : 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-100'}`}>
+          <div className={`p-4 md:p-5 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm ${isDarkMode ? 'bg-purple-950/20 border-purple-900/40' : 'bg-purple-50/60 border-purple-100'}`}>
             <div className="flex items-center gap-3.5 text-center sm:text-start">
-              <div className="w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center text-xl shrink-0">
-                🔄
+              <div className="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
               </div>
               <div>
                 <h4 className={`text-sm sm:text-base font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -2986,7 +3051,7 @@ function EliteRadarTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, 
       });
   }, []);
 
-  if (loading) return <div className="text-center p-10 font-bold">{isEnglish ? 'Loading Elite Radar...' : 'טוען רדאר עילית...'} 📡</div>;
+  if (loading) return <div className="text-center p-10 font-medium text-slate-500 animate-pulse">{isEnglish ? 'Loading Elite Radar...' : 'טוען רדאר עילית...'}</div>;
   if (error) return <div className="text-center p-10 font-bold text-red-500">{isEnglish ? error : 'שגיאה בטעינת הנתונים'}</div>;
 
   const renderPlayerList = (players: any[], colorClass: string, icon: string, titleStr: string, descStr: string) => {
@@ -3450,18 +3515,18 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
-            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Expected Points (xP)' : 'תוחלת נקודות (xP)'}</span>
-            <span className="text-lg sm:text-2xl font-black">{totalXP.toFixed(1)}</span>
+          <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-xs ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+            <span className={`text-xs font-semibold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Expected Points (xP)' : 'תוחלת נקודות (xP)'}</span>
+            <span className="text-lg sm:text-2xl font-bold font-mono tabular-nums tracking-tight">{totalXP.toFixed(1)}</span>
           </div>
-          <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${remainingBank < 0 ? 'border-red-500' : isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
-            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Money Left (ITB)' : 'כסף שנשאר (יתרה בבנק)'}</span>
+          <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-xs ${remainingBank < 0 ? 'border-rose-400 dark:border-rose-800' : isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+            <span className={`text-xs font-semibold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Money Left (ITB)' : 'כסף שנשאר (יתרה בבנק)'}</span>
             <div className="flex items-center gap-1.5">
-              <span className={`text-2xl font-black ${remainingBank < 0 ? 'text-red-500' : ''}`}>
+              <span className={`text-2xl font-bold font-mono tabular-nums tracking-tight ${remainingBank < 0 ? 'text-rose-600 dark:text-rose-400' : ''}`}>
                 {remainingBank < 0 ? `-£${Math.abs(remainingBank).toFixed(1)}m` : `£${remainingBank.toFixed(1)}m`}
               </span>
               {remainingBank < 0 && (
-                <span className="text-[9px] bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 px-1.5 py-0.5 rounded font-black">
+                <span className="text-[10px] bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 px-2 py-0.5 rounded-md font-bold">
                   {isEnglish ? 'Deficit' : 'חריגה'}
                 </span>
               )}
@@ -3470,18 +3535,18 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
               {isEnglish ? `Spent: £${currentSquadCost.toFixed(1)}m` : `הושקע: £${currentSquadCost.toFixed(1)}m`}
             </span>
           </div>
-          <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
-            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Hit Points' : 'קנס נקודות (Hits)'}</span>
-            <span className={`text-2xl font-black ${hitPoints < 0 ? 'text-red-500' : 'text-gray-500'}`}>{hitPoints}</span>
+          <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-xs ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+            <span className={`text-xs font-semibold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Hit Points' : 'קנס נקודות (Hits)'}</span>
+            <span className={`text-2xl font-bold font-mono tabular-nums tracking-tight ${hitPoints < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400'}`}>{hitPoints}</span>
           </div>
-          <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-sm ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
-            <span className={`text-xs font-bold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Available Transfers' : 'חילופים זמינים'}</span>
+          <div className={`border rounded-xl p-2 sm:p-4 flex flex-col justify-center items-center shadow-xs ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'}`}>
+            <span className={`text-xs font-semibold mb-0 sm:mb-1 ${textMuted}`}>{isEnglish ? 'Available Transfers' : 'חילופים זמינים'}</span>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setFtAvailable(Math.max(0, ftAvailable - 1))}
                 className={`w-6 h-6 flex items-center justify-center rounded-full font-bold transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'}`}
               >-</button>
-              <span className={`text-2xl font-black ${(isChipActiveForSelectedGw === 'wildcard' || isChipActiveForSelectedGw === 'freehit') ? 'text-purple-500' : (transfersRemaining < 0 ? 'text-red-500' : 'text-emerald-500')}`} title={`Base: ${ftAvailable} + Offset: ${selectedGwOffset}`}>
+              <span className={`text-2xl font-bold font-mono tabular-nums tracking-tight ${(isChipActiveForSelectedGw === 'wildcard' || isChipActiveForSelectedGw === 'freehit') ? 'text-[#37003c] dark:text-[#01fc7a]' : (transfersRemaining < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400')}`} title={`Base: ${ftAvailable} + Offset: ${selectedGwOffset}`}>
                 {(isChipActiveForSelectedGw === 'wildcard' || isChipActiveForSelectedGw === 'freehit') ? '∞' : `FT ${transfersRemaining}`}
               </span>
               <button
@@ -3525,7 +3590,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
             </div>
           </div>
 
-          <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
+          <div className="bg-[#0e5230] rounded-b-lg p-1 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t border-white/20 border-dashed">
             {bench.map((p: any) => renderPlayer(p, true))}
           </div>
         </div>
@@ -3836,8 +3901,13 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
   return (
     <div className="flex flex-col gap-8">
       <div className={`p-6 rounded-2xl border shadow-sm ${bgCard}`}>
-        <h3 className={`text-xl font-black mb-4 flex items-center gap-2 ${textHighlight}`}>
-          <span>⏱️</span> {isEnglish ? '60-Second Pre-Deadline Checklist:' : 'צ\'ק-ליסט 60 שניות לפני דדליין המחזור:'}
+        <h3 className={`text-xl font-black mb-4 flex items-center gap-2.5 ${textHighlight}`}>
+          <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          {isEnglish ? '60-Second Pre-Deadline Checklist:' : 'צ\'ק-ליסט 60 שניות לפני דדליין המחזור:'}
         </h3>
         <div className="flex flex-col gap-3">
           <label className="flex items-start gap-3 cursor-pointer group">
@@ -3897,9 +3967,9 @@ function TipsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox }: any
                 {isEnglish ? tip.desc_en : tip.desc_he}
               </p>
 
-              <div className={`mt-3 p-3 rounded-lg text-sm font-bold border-l-4 border-yellow-400 ${isDarkMode ? 'bg-yellow-900/20 text-yellow-200' : 'bg-yellow-50 text-yellow-800'}`}>
-                <span className="opacity-80 block text-xs uppercase mb-0 sm:mb-1">{isEnglish ? 'Golden Rule:' : 'כלל מפתח:'}</span>
-                {isEnglish ? tip.rule_en : tip.rule_he}
+              <div className={`mt-3 p-3.5 rounded-xl text-sm font-medium border ${isDarkMode ? 'bg-amber-950/20 border-amber-900/40 text-amber-200' : 'bg-amber-50/80 border-amber-200/80 text-amber-900'}`}>
+                <span className="opacity-75 block text-[11px] font-bold uppercase tracking-wider mb-1 text-amber-700 dark:text-amber-400">{isEnglish ? 'Golden Rule:' : 'כלל מפתח:'}</span>
+                <p className="font-semibold text-xs sm:text-sm leading-snug">{isEnglish ? tip.rule_en : tip.rule_he}</p>
               </div>
             </div>
           ))}
@@ -4167,8 +4237,7 @@ function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onA
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex justify-between items-center bg-purple-900 text-white rounded-xl p-4 shadow-sm relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-800 to-indigo-900 opacity-50"></div>
+      <div className="flex justify-between items-center bg-[#37003c] text-white rounded-2xl p-4 sm:p-5 shadow-xs relative overflow-hidden border border-purple-800/40">
         <button onClick={() => setCurrentDraftIndex(prev => prev > 0 ? prev - 1 : drafts.length - 1)} className="z-10 p-2 hover:bg-white/20 rounded-full transition-colors flex items-center gap-1">
           <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         </button>
@@ -4187,8 +4256,8 @@ function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onA
       </div>
 
       <div className="text-center -mt-2">
-        <span className="text-xl sm:text-2xl font-black text-[#01fc7a]">£{(draft.data.cost / 10).toFixed(1)}m</span>
-        <div className={`text-xs font-bold ${textMuted}`}>{isEnglish ? 'Total Cost' : 'עלות כוללת'}</div>
+        <span className="text-xl sm:text-2xl font-bold font-mono tabular-nums tracking-tight text-slate-900 dark:text-[#01fc7a]">£{(draft.data.cost / 10).toFixed(1)}m</span>
+        <div className={`text-xs font-semibold uppercase tracking-wider ${textMuted}`}>{isEnglish ? 'Total Cost' : 'עלות כוללת'}</div>
       </div>
 
       <div className={`relative rounded-xl overflow-hidden shadow-sm mx-auto w-full max-w-3xl ${isDarkMode ? 'border border-gray-700' : 'border border-gray-200'}`}>
@@ -4216,7 +4285,7 @@ function DraftsTab({ isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onA
           </div>
         </div>
 
-        <div className="bg-[#0e5230] rounded-b-lg p-2 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t-2 border-white/20 border-dashed">
+        <div className="bg-[#0e5230] rounded-b-lg p-2 md:p-4 flex justify-around w-full shadow-md z-20 relative border-t border-white/20 border-dashed">
           {bench.map((p: any) => renderDraftPlayer(p, true))}
         </div>
 
