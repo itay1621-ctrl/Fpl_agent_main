@@ -66,7 +66,7 @@ class TestDraftsEndpoint(unittest.TestCase):
                 "expected_goals_per_90": 0.0, "expected_assists_per_90": 0.0,
                 "expected_goals_conceded_per_90": 1.0, "saves_per_90": 3.0 + i * 0.5,
                 "defensive_contribution_per_90": 0.0, "chance_of_playing_next_round": 100,
-                "selected_by_percent": 10.0 + i * 5.0, "total_points": 50 + i * 10, "status": "a"
+                "selected_by_percent": 3.0 + i * 2.0, "total_points": 50 + i * 10, "status": "a"
             })
             pid += 1
 
@@ -80,7 +80,7 @@ class TestDraftsEndpoint(unittest.TestCase):
                 "expected_goals_per_90": 0.05 + (i * 0.01), "expected_assists_per_90": 0.1,
                 "expected_goals_conceded_per_90": 0.9, "saves_per_90": 0.0,
                 "defensive_contribution_per_90": 6.0, "chance_of_playing_next_round": 100,
-                "selected_by_percent": 5.0 + i * 2.0, "total_points": 60 + i * 5, "status": "a"
+                "selected_by_percent": 3.0 + i * 1.5, "total_points": 60 + i * 5, "status": "a"
             })
             pid += 1
 
@@ -95,7 +95,7 @@ class TestDraftsEndpoint(unittest.TestCase):
                 "expected_goals_per_90": 0.3 + (i * 0.05), "expected_assists_per_90": 0.25,
                 "expected_goals_conceded_per_90": 1.2, "saves_per_90": 0.0,
                 "defensive_contribution_per_90": 4.0, "chance_of_playing_next_round": 100,
-                "selected_by_percent": 8.0 + i * 3.0, "total_points": 70 + i * 10, "status": "a"
+                "selected_by_percent": 3.0 + i * 2.0, "total_points": 70 + i * 10, "status": "a"
             })
             pid += 1
 
@@ -110,7 +110,7 @@ class TestDraftsEndpoint(unittest.TestCase):
                 "expected_goals_per_90": 0.5 + (i * 0.1), "expected_assists_per_90": 0.15,
                 "expected_goals_conceded_per_90": 1.5, "saves_per_90": 0.0,
                 "defensive_contribution_per_90": 2.0, "chance_of_playing_next_round": 100,
-                "selected_by_percent": 12.0 + i * 8.0, "total_points": 80 + i * 15, "status": "a"
+                "selected_by_percent": 4.0 + i * 3.0, "total_points": 80 + i * 15, "status": "a"
             })
             pid += 1
 
@@ -310,7 +310,82 @@ class TestDraftsEndpoint(unittest.TestCase):
         self.assertIn("FPL API Connection Timeout", res.json()["detail"])
 
     # -------------------------------------------------------------
-    # 8. Vercel Adapter Static Integrity Verification
+    # 8. Differentials Universe & Distinction from Balanced Spread
+    # -------------------------------------------------------------
+    @patch("main.fetch_bootstrap")
+    @patch("main.fetch_all_fixtures")
+    def test_differentials_squad_distinct_from_balanced_spread(self, mock_fixtures, mock_bootstrap):
+        mock_bootstrap.return_value = self.mock_bootstrap
+        mock_fixtures.return_value = self.mock_fixtures
+
+        res = self.client.get("/api/drafts")
+        self.assertEqual(res.status_code, 200)
+        drafts = res.json()["drafts"]
+
+        balanced_squad = drafts[1]["data"]["squad"]
+        diff_squad = drafts[2]["data"]["squad"]
+
+        balanced_ids = set(p["id"] for p in balanced_squad)
+        diff_ids = set(p["id"] for p in diff_squad)
+
+        # Asserts Balanced Spread and Differentials are NOT identical
+        self.assertNotEqual(balanced_ids, diff_ids, "Balanced Spread and Differentials must not have identical 15 players")
+        overlap = balanced_ids.intersection(diff_ids)
+        self.assertLess(len(overlap), 15, "Differentials squad must contain unique differential players not in Balanced Spread")
+
+    @patch("main.fetch_bootstrap")
+    @patch("main.fetch_all_fixtures")
+    def test_differentials_squad_respects_differential_universe_threshold(self, mock_fixtures, mock_bootstrap):
+        mock_bootstrap.return_value = self.mock_bootstrap
+        mock_fixtures.return_value = self.mock_fixtures
+
+        res = self.client.get("/api/drafts")
+        self.assertEqual(res.status_code, 200)
+        diff_squad = res.json()["drafts"][2]["data"]["squad"]
+
+        from main import DIFFERENTIAL_OWNERSHIP_THRESHOLD
+        self.assertEqual(DIFFERENTIAL_OWNERSHIP_THRESHOLD, 15.0)
+
+        for p in diff_squad:
+            self.assertLessEqual(
+                p["selected_by_percent"], DIFFERENTIAL_OWNERSHIP_THRESHOLD,
+                f"Player {p['name']} has ownership {p['selected_by_percent']}% exceeding {DIFFERENTIAL_OWNERSHIP_THRESHOLD}%"
+            )
+
+    @patch("main.fetch_bootstrap")
+    @patch("main.fetch_all_fixtures")
+    def test_differentials_strictly_enforces_threshold_even_if_pool_is_starved(self, mock_fixtures, mock_bootstrap):
+        # Artificially set all MIDs to high ownership (> 20%) so under-15% pool cannot form 5 MIDs
+        starved_elements = []
+        for el in self.mock_elements:
+            copied = dict(el)
+            if copied.get("element_type") == 3:
+                copied["selected_by_percent"] = 25.0
+            starved_elements.append(copied)
+
+        starved_bootstrap = {
+            "events": self.mock_events,
+            "teams": self.mock_teams,
+            "elements": starved_elements
+        }
+        mock_bootstrap.return_value = starved_bootstrap
+        mock_fixtures.return_value = self.mock_fixtures
+
+        res = self.client.get("/api/drafts")
+        self.assertEqual(res.status_code, 200)
+        drafts = res.json()["drafts"]
+
+        # Product Rule: Under NO circumstances may any player above 15.0% enter Differentials
+        from main import DIFFERENTIAL_OWNERSHIP_THRESHOLD
+        diff_squad = drafts[2]["data"]["squad"]
+        for p in diff_squad:
+            self.assertLessEqual(
+                p["selected_by_percent"], DIFFERENTIAL_OWNERSHIP_THRESHOLD,
+                f"Player {p['name']} has ownership {p['selected_by_percent']}% exceeding strict ceiling {DIFFERENTIAL_OWNERSHIP_THRESHOLD}%"
+            )
+
+    # -------------------------------------------------------------
+    # 9. Vercel Adapter Static Integrity Verification
     # -------------------------------------------------------------
     def test_vercel_adapter_contains_no_duplicate_math(self):
         adapter_path = os.path.abspath(

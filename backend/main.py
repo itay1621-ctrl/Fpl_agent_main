@@ -776,12 +776,23 @@ def get_drafts():
         balanced_players = sorted([p for p in all_players if p["cost"] <= 9.5], key=lambda x: x["xp"], reverse=True)
         balanced_draft = build_squad(balanced_players, [])
         
+        DIFFERENTIAL_OWNERSHIP_THRESHOLD = 15.0
+
         def diff_score(p):
-            bonus = 2 if p["selected_by_percent"] < 10 else 1 if p["selected_by_percent"] < 15 else 0
+            bonus = 2 if p["selected_by_percent"] < 10.0 else 1
             return p["xp"] + bonus
-            
-        differential_players = sorted(all_players, key=diff_score, reverse=True)
+
+        diff_universe = [
+            p for p in all_players
+            if p["selected_by_percent"] <= DIFFERENTIAL_OWNERSHIP_THRESHOLD
+        ]
+        differential_players = sorted(diff_universe, key=diff_score, reverse=True)
         diff_draft = build_squad(differential_players, [])
+
+        # If greedy ordering encountered club limits, perform a secondary fill pass strictly within diff_universe
+        if len(diff_draft["squad"]) < 15:
+            budget_fillers = sorted(diff_universe, key=lambda p: (p.get("cost", 0), -p.get("xp", 0)))
+            diff_draft = build_squad(differential_players + budget_fillers, [])
         
         return {
             "drafts": [

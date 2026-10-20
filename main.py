@@ -1001,6 +1001,8 @@ def build_draft_squad(players: list, forced_players: list = None) -> dict:
     squad.sort(key=lambda x: (x["element_type"], -x["now_cost"]))
     return {"squad": squad, "cost": cost}
 
+DIFFERENTIAL_OWNERSHIP_THRESHOLD = 15.0
+
 @app.get("/api/drafts")
 def get_drafts():
     try:
@@ -1042,12 +1044,25 @@ def get_drafts():
         balanced_players = sorted([p for p in all_players if p["now_cost"] <= 95], key=lambda x: x["xp"], reverse=True)
         balanced_draft = build_draft_squad(balanced_players, [])
 
+        # Draft 3: Differentials
+        # Product Rule: Low-ownership assets (<= 15.0%) are targeted to provide rank differentiation.
+        # Optimization occurs strictly within the rigid Differential Player Universe (ownership <= 15.0%).
+        # The ownership threshold is never relaxed under any circumstances.
         def diff_score(p):
-            bonus = 2 if p["selected_by_percent"] < 10 else (1 if p["selected_by_percent"] < 15 else 0)
+            bonus = 2 if p["selected_by_percent"] < 10.0 else 1
             return p["xp"] + bonus
 
-        differential_players = sorted(all_players, key=diff_score, reverse=True)
+        diff_universe = [
+            p for p in all_players
+            if p["selected_by_percent"] <= DIFFERENTIAL_OWNERSHIP_THRESHOLD
+        ]
+        differential_players = sorted(diff_universe, key=diff_score, reverse=True)
         diff_draft = build_draft_squad(differential_players, [])
+
+        # If greedy ordering encountered club limits, perform a secondary fill pass strictly within diff_universe
+        if len(diff_draft["squad"]) < 15:
+            budget_fillers = sorted(diff_universe, key=lambda p: (p["now_cost"], -p["xp"]))
+            diff_draft = build_draft_squad(differential_players + budget_fillers, [])
 
         return {
             "drafts": [
