@@ -2541,26 +2541,30 @@ function generateManagerBriefing(data: any, isEnglish: boolean): Insight[] {
   const bench = data.squad.filter((p: any) => p.position > 11 && !p.is_empty);
   const bank = (data.bank || 0);
 
-  // 1. CAPTAINCY
-  const highestXp = [...starters].sort((a: any, b: any) => (b.xp || 0) - (a.xp || 0))[0];
+  // 1. CAPTAINCY - Evaluated based on the upcoming gameweek projection (xp_next)
+  const getNextXp = (p: any) => (p?.xp_next !== undefined && p?.xp_next !== null ? p.xp_next : (p?.xp || 0));
+  const highestXp = [...starters].sort((a: any, b: any) => getNextXp(b) - getNextXp(a))[0];
   const currentCap = starters.find((p: any) => p.is_captain);
-  if (highestXp && currentCap && highestXp.id !== currentCap.id && (highestXp.xp - currentCap.xp > 0.5)) {
+  const nextXpHighest = highestXp ? getNextXp(highestXp) : 0;
+  const nextXpCurrent = currentCap ? getNextXp(currentCap) : 0;
+
+  if (highestXp && currentCap && highestXp.id !== currentCap.id && (nextXpHighest - nextXpCurrent > 0.5)) {
     insights.push({
       id: 'cap',
       category: 'CAPTAINCY',
       title: highestXp.name,
       mainInsight: isEnglish ? `${highestXp.name} projects significantly higher than your current captain.` : `${highestXp.name} צפוי להשיג משמעותית יותר נקודות מהקפטן הנוכחי שלך.`,
-      whyItMatters: isEnglish ? `He has an XP of ${highestXp.xp?.toFixed(1)} compared to ${currentCap.name}'s ${currentCap.xp?.toFixed(1)}, supported by favorable fixtures.` : `הוא מחזיק ב-XP של ${highestXp.xp?.toFixed(1)} לעומת ${currentCap.xp?.toFixed(1)} של ${currentCap.name}, בזכות משחקים נוחים.`,
+      whyItMatters: isEnglish ? `He has an XP of ${nextXpHighest.toFixed(1)} compared to ${currentCap.name}'s ${nextXpCurrent.toFixed(1)}, supported by favorable fixtures.` : `הוא מחזיק ב-XP של ${nextXpHighest.toFixed(1)} לעומת ${nextXpCurrent.toFixed(1)} של ${currentCap.name}, בזכות משחקים נוחים.`,
       action: isEnglish ? `Consider switching the armband to ${highestXp.name}.` : `שקול להעביר את סרט הקפטן ל-${highestXp.name}.`,
       priority: 85
     });
-  } else if (highestXp && highestXp.xp > 5.0) {
+  } else if (highestXp && nextXpHighest > 5.0) {
      insights.push({
       id: 'cap_solid',
       category: 'CAPTAINCY',
       title: highestXp.name,
       mainInsight: isEnglish ? `${highestXp.name} is a very strong captaincy option.` : `${highestXp.name} הוא אופציית קפטן מצוינת לשבוע הקרוב.`,
-      whyItMatters: isEnglish ? `Projecting at ${highestXp.xp?.toFixed(1)} XP, his underlying metrics and fixture make him a standout.` : `עם צפי של ${highestXp.xp?.toFixed(1)} נקודות, הנתונים והלו"ז הופכים אותו לבחירה מעולה.`,
+      whyItMatters: isEnglish ? `Projecting at ${nextXpHighest.toFixed(1)} XP, his underlying metrics and fixture make him a standout.` : `עם צפי של ${nextXpHighest.toFixed(1)} נקודות, הנתונים והלו"ז הופכים אותו לבחירה מעולה.`,
       priority: 60
     });
   }
@@ -2703,12 +2707,18 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
   const _starters = data.squad.filter((p: any) => p.position <= 11 && !p.is_empty);
   const _bench = data.squad.filter((p: any) => p.position > 11 && !p.is_empty);
 
-  // Premium players (cost >= 8.0m) are fixture-proof and never considered a hard-fixture weakness
-  const hardFixtures = _starters.filter((p: any) => p.fixture_diff >= 4 && (p.cost || 0) < 8.0);
-  const lowXp = _starters.filter((p: any) => (p.xp || 0) < 2.5 && (p.cost || 0) < 8.0 && (p.chance_of_playing === null || p.chance_of_playing > 0));
-  const highestXpPlayer = [..._starters].sort((a: any, b: any) => b.xp - a.xp)[0];
+  const getNextXp = (p: any) => (p?.xp_next !== undefined && p?.xp_next !== null ? p.xp_next : (p?.xp || 0));
+  // High-performing assets (cost >= 8.0m, form >= 5.5, or next xP >= 4.0) are fixture-proof and not flagged
+  const hardFixtures = _starters.filter((p: any) =>
+    p.fixture_diff >= 4 &&
+    (p.cost || 0) < 8.0 &&
+    getNextXp(p) < 4.0 &&
+    parseFloat(p.form || '0') < 5.5
+  );
+  const lowXp = _starters.filter((p: any) => getNextXp(p) < 2.5 && (p.cost || 0) < 8.0 && (p.chance_of_playing === null || p.chance_of_playing > 0));
+  const highestXpPlayer = [..._starters].sort((a: any, b: any) => getNextXp(b) - getNextXp(a))[0];
   const _currentCap = _starters.find((p: any) => p.is_captain);
-  const capSuboptimal = _currentCap && highestXpPlayer && _currentCap.id !== highestXpPlayer.id && (highestXpPlayer.xp - _currentCap.xp > 0.5);
+  const capSuboptimal = _currentCap && highestXpPlayer && _currentCap.id !== highestXpPlayer.id && (getNextXp(highestXpPlayer) - getNextXp(_currentCap) > 0.5);
 
   const teamCounts = data.squad.reduce((acc: any, p: any) => {
     acc[p.team] = (acc[p.team] || 0) + 1;
@@ -2800,8 +2810,8 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
 
         <div className="flex flex-col gap-6">
         <div className={`p-5 rounded-xl border ${bgBox}`}>
-        <h4 className="text-lg font-black mb-4 flex items-center gap-2 text-red-500">
-          <span>⚠️</span> {isEnglish ? 'Urgent Weaknesses' : 'נקודות תורפה דחופות (בהרכב)'}
+        <h4 className={`text-lg font-black mb-4 flex items-center gap-2 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
+          <span>⚠️</span> {isEnglish ? 'Fixture & Squad Watch' : 'מעקב סגל ולוח משחקים'}
         </h4>
         <ul className="space-y-4">
           {hardFixtures.length > 0 && (
@@ -2821,8 +2831,8 @@ function SquadAnalysisTab({ data, isEnglish, isDarkMode, textMuted, textHighligh
               <span className={`font-bold text-sm ${isDarkMode ? 'text-yellow-500' : 'text-yellow-700'}`}>{isEnglish ? 'Suboptimal Captain?' : 'קפטן לא אופטימלי?'}</span>
               <span className={`text-xs mt-1 ${textMuted}`}>
                 {isEnglish
-                  ? `${_currentCap?.name} has ${_currentCap?.xp} xP, but ${highestXpPlayer?.name} is projected for ${highestXpPlayer?.xp} xP.`
-                  : `${_currentCap?.name} עם ${_currentCap?.xp} נק', אבל ל-${highestXpPlayer?.name} יש תוחלת של ${highestXpPlayer?.xp} נק'.`}
+                  ? `${_currentCap?.name} has ${getNextXp(_currentCap)?.toFixed(1)} xP, but ${highestXpPlayer?.name} is projected for ${getNextXp(highestXpPlayer)?.toFixed(1)} xP.`
+                  : `${_currentCap?.name} עם ${getNextXp(_currentCap)?.toFixed(1)} נק', אבל ל-${highestXpPlayer?.name} יש תוחלת של ${getNextXp(highestXpPlayer)?.toFixed(1)} נק'.`}
               </span>
             </li>
           )}

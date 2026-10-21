@@ -228,11 +228,15 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     fixtures_found = 0
     
     total_5gw_projection = 0.0
+    next_gw_projection = 0.0
     
     for gw_inc in range(gw_range):
 
         # Dynamic Expected Minutes & Injury Recovery Model
-        current_cop = min(1.0, base_cop + (gw_inc * 0.25))
+        if gw_inc == 0:
+            current_cop = base_cop
+        else:
+            current_cop = min(1.0, base_cop + (gw_inc * 0.25)) if base_cop > 0 else 0.0
         dyn_expected_minutes = base_expected_minutes * current_cop
         target_gw = next_gw + gw_inc
         gw_fixs = [f for f in upcoming_fixtures_raw if f.get("event") == target_gw]
@@ -251,26 +255,21 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
                 next_gw_opponent = f"{teams.get(opp_id, {}).get('short_name', 'UNK')} ({'H' if is_home else 'A'})"
                 next_gw_diff = diff
             
-            # Split FDR based on Opponent Strength (V2 Logic)
-            opp_team = teams.get(opp_id, {})
-            avg_strength = 1100.0 # Baseline FPL strength index
+            # Robust FDR-based Opponent Strength & Home Advantage
+            home_adv = 1.05 if is_home else 0.95
             
-            if is_home:
-                opp_defence_strength = opp_team.get("strength_defence_away", avg_strength)
-                opp_attack_strength = opp_team.get("strength_attack_away", avg_strength)
-                home_adv = 1.05
-            else:
-                opp_defence_strength = opp_team.get("strength_defence_home", avg_strength)
-                opp_attack_strength = opp_team.get("strength_attack_home", avg_strength)
-                home_adv = 0.95
-                
-            att_multiplier = (avg_strength / opp_defence_strength) * home_adv if opp_defence_strength > 0 else 1.0
-            def_multiplier = (avg_strength / opp_attack_strength) * home_adv if opp_attack_strength > 0 else 1.0
+            # Attacking multiplier: baseline FDR 3 = 1.0 (FDR 2 -> +10%, FDR 4 -> -10%, FDR 5 -> -20%)
+            fdr_att_factor = 1.0 + (3 - diff) * 0.10
+            att_multiplier = max(0.65, min(1.40, fdr_att_factor * home_adv))
+            
+            # Defending multiplier on opponent goal threat (FDR 2 -> 0.82, FDR 4 -> 1.18, FDR 5 -> 1.36)
+            fdr_def_factor = 1.0 + (diff - 3) * 0.18
+            def_multiplier = max(0.65, min(1.60, fdr_def_factor / home_adv))
             
             match_xAtt = xAtt_90 * (dyn_expected_minutes / 90.0) * att_multiplier
             
             # Clean sheet
-            match_xgc = (xgc_90 * (dyn_expected_minutes / 90.0)) / def_multiplier
+            match_xgc = (xgc_90 * (dyn_expected_minutes / 90.0)) * def_multiplier
             match_cs_prob = math.exp(-match_xgc) if match_xgc > 0 else 0.5
             match_xDef = match_cs_prob * cs_pts
             
@@ -283,6 +282,8 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
             
             gw_proj += match_xAtt + match_xDef + match_xSave + match_xDefcon + appearance_pts
             
+        if gw_inc == 0:
+            next_gw_projection = gw_proj
         total_5gw_projection += gw_proj
         
     total_5gw_projection = max(0.0, total_5gw_projection)
@@ -317,6 +318,7 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         "pos_code": pos_code,
         "cost": p["now_cost"] / 10,
         "xp": round(total_5gw_projection / max(1, gw_range), 2),
+        "xp_next": round(next_gw_projection, 2),
         "form": form_val,
         "total_points": p.get("total_points", 0),
         "selected_by_percent": float(p.get("selected_by_percent", 0) or 0),
@@ -440,6 +442,7 @@ def get_dashboard_data(team_id: int):
                     "is_vice_captain": pick.get("is_vice_captain", False),
                     "multiplier": pick.get("multiplier", 1),
                     "xp": proj["xp"],
+                    "xp_next": proj.get("xp_next", proj["xp"]),
                     "form": float(player.get("form", 0) or 0),
                     "chance_of_playing": player.get("chance_of_playing_next_round"),
                     "news": player.get("news"),
@@ -743,7 +746,8 @@ def build_squad(players, forced_players=[]):
             "team_code": p.get("team_code", p.get("team")),
             "element_type": p["pos_code"],
             "now_cost": int(p["cost"] * 10),
-            "xp": p["xp"]
+            "xp": p["xp"],
+            "xp_next": p.get("xp_next", p["xp"])
         })
     return {"squad": formatted, "cost": int(cost * 10)}
 
