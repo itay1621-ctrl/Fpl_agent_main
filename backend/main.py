@@ -153,10 +153,16 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     # 2. Expected Minutes (Realistic Model)
     total_mins = p.get("minutes", 0)
     starts = p.get("starts", 0)
+    cost = p.get("now_cost", 0) / 10.0
+    own_pct = float(p.get("selected_by_percent", 0) or 0)
     
     # Safe calculation for xMins
     if starts > 0:
         mins_per_app = min(90, total_mins / starts)
+        # If very low sample size (<180 mins / 1-2 starts) and NOT a premium proven asset (cost < 7.0 and own < 5.0%):
+        # temper minutes toward ~60 mins to account for bench/rotation volatility
+        if total_mins < 180 and cost < 7.0 and own_pct < 5.0:
+            mins_per_app = min(mins_per_app, 60.0)
     elif total_mins > 0:
         mins_per_app = 20 # sub appearances only
     else:
@@ -180,11 +186,19 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     raw_xa_90 = float(p.get("expected_assists_per_90", 0) or 0)
     raw_xgc_90 = float(p.get("expected_goals_conceded_per_90", 0) or 0)
     raw_defcon_90 = float(p.get("defensive_contribution_per_90", 0) or 0)
+
+    # Reality caps: Prevent extreme small-sample noise from exceeding world-class ceilings
+    max_xg_cap = 0.30 if pos_code in [1, 2] else (0.65 if pos_code == 3 else 0.95)
+    max_xa_cap = 0.50
+    raw_xg_90 = min(raw_xg_90, max_xg_cap)
+    raw_xa_90 = min(raw_xa_90, max_xa_cap)
     
     # Shrinkage factor based on total_mins to avoid SSS (Small Sample Size) bias
-    # If a player played 10 mins, weight is 10/450 = 0.02. We trust baseline 98%.
-    # If a player played 450+ mins, weight is 1.0. We trust their stats 100%.
-    weight = min(1.0, total_mins / 450.0) 
+    # If a player played < 180 mins (<2 full games), use a smooth progressive curve
+    if total_mins < 180:
+        weight = (total_mins / 450.0) ** 1.4
+    else:
+        weight = min(1.0, total_mins / 450.0)
     
     baseline_xg = 0.05 if pos_code in [1, 2] else (0.15 if pos_code == 3 else 0.3)
     baseline_xa = 0.05 if pos_code == 1 else 0.1
@@ -619,14 +633,23 @@ def get_transfer_recommendations(req: TransferRequest):
         delta = 0.0
         threshold = DEFAULT_WEIGHTS["opportunity_cost"]
         explanation = ""
-                    # Transfer cost awareness
-            # 0 FT means the move normally costs -4 points.
-            hit_cost = 0 if req.free_transfers > 0 else 4
-            net_gain_after_hit = raw_gain - hit_cost
+
         if current_player and best_candidate:
             raw_gain = round(best_candidate["xp"] - current_player["xp"], 2)
             delta = raw_gain
-                        # ---------------------------------------------------------
+            hit_cost = 0 if req.free_transfers > 0 else 4
+            net_gain = raw_gain * ctx["gw_range"] - hit_cost
+
+            # Elite Asset Protection
+            curr_p_raw = next((p for p in elements if p["id"] == req.transfer_out_id), None)
+            curr_form = float(curr_p_raw.get("form", 0) or 0) if curr_p_raw else 0.0
+            curr_pts = int(curr_p_raw.get("total_points", 0) or 0) if curr_p_raw else 0
+            curr_starts = int(curr_p_raw.get("starts", 0) or 0) if curr_p_raw else 0
+            curr_cop = curr_p_raw.get("chance_of_playing_next_round") if curr_p_raw else None
+            is_healthy = curr_cop is None or curr_cop == 100
+            is_elite = curr_form >= 5.0 and curr_pts >= 45 and curr_starts >= 4 and is_healthy
+
+            # ---------------------------------------------------------
             # BUDGET ENABLER PROTECTION
             # Cheap £4.0m-ish goalkeepers are usually structural
             # budget enablers, not players that need upgrading.
@@ -651,10 +674,13 @@ def get_transfer_recommendations(req: TransferRequest):
                     "A similar-priced goalkeeper does not provide enough additional "
                     "projected value to justify using a transfer."
                 )
-                delta = raw_gain
-                        if is_like_for_like_gk:
-                pass
-
+            elif is_elite and net_gain <= 6.0:
+                recommendation = "HOLD"
+                explanation = (
+                    f"{current_player['name']} is in elite form ({curr_form:.1f}) and among the league's top scorers ({curr_pts} pts). "
+                    f"A marginal projection difference (+{raw_gain * ctx['gw_range']:.2f} pts over {ctx['gw_range']} GWs) does not justify transferring out a firing talisman. "
+                    "Hold your transfer or target weaker squad positions."
+                )
             elif raw_gain <= 0:
                 recommendation = "HOLD"
                 explanation = "השחקן הנוכחי צפוי להביא יותר או אותו מספר נקודות מאשר האלטרנטיבות, כך שאין צורך בחילוף."
