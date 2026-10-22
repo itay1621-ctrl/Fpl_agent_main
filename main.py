@@ -702,15 +702,13 @@ def get_transfer_recommendations(req: TransferRequest):
         best_candidate = unconstrained_best if req.unlimited_budget else affordable_best
 
         def compute_transfer_decision(candidate):
-            recommendation = "TRANSFER"
+            recommendation = "HOLD"
             explanation = ""
             delta = 0.0
             raw_gain = None
             hit_cost = 0
             net_gain = None
-            transfer_cost = 0.0
-            opportunity_cost = DEFAULT_WEIGHTS["opportunity_cost"]
-            threshold = transfer_cost + opportunity_cost
+            threshold = 0.0
 
             if current_player and candidate:
                 delta = round(
@@ -730,39 +728,110 @@ def get_transfer_recommendations(req: TransferRequest):
 
                 net_gain = raw_gain - hit_cost
 
-                # Elite Asset Protection:
-                # If current_player is healthy, an established starter, in top form (>=5.0) and high total points (>=45):
-                # sideways transfers for marginal gains carry high risk. Require a higher threshold (6.0 pts net over 5 GWs).
+                # Universal Player Vitality Metrics
                 curr_form = float(curr_p_raw.get("form", 0) or 0) if curr_p_raw else 0.0
                 curr_pts = int(curr_p_raw.get("total_points", 0) or 0) if curr_p_raw else 0
                 curr_starts = int(curr_p_raw.get("starts", 0) or 0) if curr_p_raw else 0
+                curr_mins = int(curr_p_raw.get("minutes", 0) or 0) if curr_p_raw else 0
                 curr_cop = curr_p_raw.get("chance_of_playing_next_round") if curr_p_raw else None
-                is_healthy = curr_cop is None or curr_cop == 100
-                is_elite = curr_form >= 5.0 and curr_pts >= 45 and curr_starts >= 4 and is_healthy
+                curr_cost = current_player.get("cost", 0.0)
+                curr_diff = current_player.get("fixture_diff", 3)
+                cand_diff = candidate.get("fixture_diff", 3)
 
-                if is_elite:
-                    threshold = max(threshold, 6.0)
+                is_flagged = curr_cop is not None and curr_cop < 75
+                is_healthy = curr_cop is None or curr_cop >= 75
 
-                if net_gain <= threshold:
+                is_established_starter = is_healthy and (
+                    (curr_starts >= 3 and curr_mins >= 220) or
+                    (curr_mins >= 350)
+                )
+
+                is_elite_asset = is_established_starter and (
+                    (curr_form >= 4.5 and (curr_pts >= 35 or curr_cost >= 8.0)) or
+                    (curr_form >= 5.5 and curr_pts >= 28) or
+                    (curr_form >= 6.0)
+                )
+
+                is_in_form_starter = is_established_starter and (
+                    curr_form >= 3.5 or
+                    (curr_form >= 3.0 and curr_pts >= 25)
+                )
+
+                curr_xp_next = current_player.get("xp_next", current_player["xp"])
+                cand_xp_next = candidate.get("xp_next", candidate["xp"])
+
+                # 1. IMMEDIATE FIXTURE GATEKEEPER
+                # If current player is healthy, an established starter, has an upcoming match (xp_next > 0)
+                # and projects higher or equal for immediate GW, selling them this week incurs an immediate points loss.
+                has_immediate_match_advantage = (
+                    is_healthy and
+                    is_established_starter and
+                    curr_xp_next > 0 and
+                    (curr_xp_next >= cand_xp_next) and
+                    raw_gain < 8.0
+                )
+
+                # 2. STATUS-BASED DYNAMIC HURDLE RATE
+                if is_flagged or (curr_mins < 120 and curr_starts == 0):
+                    hurdle = 2.0
+                    tier = "URGENT"
+                elif is_elite_asset:
+                    hurdle = 7.5
+                    tier = "ELITE"
+                elif is_in_form_starter:
+                    hurdle = 5.5
+                    tier = "STARTER"
+                elif is_established_starter:
+                    hurdle = 4.0
+                    tier = "REGULAR"
+                else:
+                    hurdle = 3.0
+                    tier = "ROTATION"
+
+                # Fixture swing adjustment: if current player faces severe run (diff >= 4) vs easy candidate (diff <= 2)
+                if curr_diff >= 4 and cand_diff <= 2:
+                    hurdle = max(2.0, hurdle - 1.0)
+
+                threshold = hurdle + hit_cost
+
+                if has_immediate_match_advantage:
                     recommendation = "HOLD"
-                    if is_elite:
+                    explanation = (
+                        f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
+                        f"with a {hit_cost}-point hit cost. "
+                        f"Hold for GW{ctx['next_gw']}: {current_player['name']} projects higher or equal for the immediate match "
+                        f"({curr_xp_next:.1f} vs {candidate['name']}'s {cand_xp_next:.1f} xP). "
+                        "Do not sacrifice immediate points for a speculative medium-term move."
+                    )
+                elif raw_gain <= threshold:
+                    recommendation = "HOLD"
+                    if tier == "ELITE":
                         explanation = (
-                            f"{current_player['name']} is in elite form ({curr_form:.1f}) and among the league's top scorers ({curr_pts} pts). "
-                            f"A marginal projection difference (+{raw_gain:.2f} pts over {ctx['gw_range']} GWs) does not justify transferring out a firing talisman. "
+                            f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
+                            f"with a {hit_cost}-point hit cost. "
+                            f"{current_player['name']} is in elite form ({curr_form:.1f}, {curr_pts} pts). "
+                            f"A 5-GW difference does not justify transferring out a firing talisman for a threshold of {threshold:.1f} points. "
                             "Hold your transfer or target weaker squad positions."
+                        )
+                    elif tier == "STARTER":
+                        explanation = (
+                            f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
+                            f"with a {hit_cost}-point hit cost. "
+                            f"{current_player['name']} is an established starter in solid form ({curr_form:.1f}). "
+                            f"The projected gain is too marginal to clear the required threshold of {threshold:.1f} points."
                         )
                     else:
                         explanation = (
                             f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
                             f"with a {hit_cost}-point hit cost. "
-                            "The transfer does not clear the required threshold."
+                            f"The transfer does not clear the required threshold of {threshold:.1f} points."
                         )
                 else:
                     recommendation = "TRANSFER"
                     explanation = (
                         f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
                         f"with a {hit_cost}-point hit cost. "
-                        "The replacement clears the required threshold."
+                        f"Replacing with {candidate['name']} clears the required threshold of {threshold:.1f} points."
                     )
             else:
                 recommendation = "MONITOR"

@@ -60,10 +60,10 @@ DEFAULT_WEIGHTS = {
 # --- DECISION ENGINE LAYER ---
 def decision_engine_score(c):
     score = c["xp"]
-    if "Rotation Risk / Bench" in c.get("reason", ""):
-        score *= 0.75
     if "Low (Minutes Uncertainty)" in c.get("confidence", ""):
         score *= 0.60
+    elif "Rotation Risk / Bench" in c.get("reason", ""):
+        score *= 0.75
     return score
 
 import datetime
@@ -138,6 +138,26 @@ def log_transfer_decision(gw, player_sold, player_bought, net_gain, recommendati
             f.write(json.dumps(entry) + "\n")
     except Exception as e:
         print(f"Failed to log transfer: {e}")
+
+def calculate_poisson_xsave(lambda_val: float) -> float:
+    """
+    Computes expected FPL goalkeeper save points:
+    E[floor(S / 3)] where S ~ Poisson(lambda_val).
+    Equivalently: sum_{k=3}^60 floor(k / 3) * P(S = k).
+    Uses a numerically stable recurrence avoiding large factorials or exponents.
+    """
+    if lambda_val <= 0.0 or math.isnan(lambda_val) or math.isinf(lambda_val):
+        return 0.0
+    prob = math.exp(-lambda_val)
+    expected_save_pts = 0.0
+    for k in range(1, 61):
+        prob *= lambda_val / k
+        if k >= 3:
+            pts = k // 3
+            expected_save_pts += pts * prob
+        if prob < 1e-12 and k > lambda_val:
+            break
+    return expected_save_pts
 
 def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weights=None):
     if weights is None:
@@ -217,12 +237,17 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     xa_90 *= form_multiplier
 
     # FPL Rule 2024/2025: Defensive Contributions points
-    # Defenders need 10 actions, Mid/Fwd need 12 actions for +2 points.
+    # Goalkeepers do NOT earn Defensive Contribution points (FPL Rule).
+    # Defenders need 10 actions (CBIT), Mid/Fwd need 12 actions (CBIRT) for +2 points.
     import math
-    defcon_threshold = 10 if pos_code == 2 else 12
-    defcon_std = max(defcon_90 * 0.35, 1.0)
-    z = (defcon_90 - defcon_threshold) / defcon_std
-    prob_cross_threshold = 1 / (1 + math.exp(-1.7 * z)) if defcon_90 > 0 else 0
+    if pos_code == 1:
+        xDefcon_90 = 0.0
+    else:
+        defcon_threshold = 10 if pos_code == 2 else 12
+        defcon_std = max(defcon_90 * 0.35, 1.0)
+        z = (defcon_90 - defcon_threshold) / defcon_std
+        prob_cross_threshold = 1 / (1 + math.exp(-1.7 * z)) if defcon_90 > 0 else 0
+        xDefcon_90 = prob_cross_threshold * 2.0
     
     goal_pts = {1: 6, 2: 6, 3: 5, 4: 4}.get(pos_code, 4)
     assist_pts = 3
@@ -230,15 +255,12 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     xAtt_90 = (xg_90 * goal_pts) + (xa_90 * assist_pts)
     cs_pts = {1: 4, 2: 4, 3: 1, 4: 0}.get(pos_code, 0)
     cs_prob_90 = math.exp(-xgc_90) if xgc_90 > 0 else 0.5
-    xSave_90 = (float(p.get("saves_per_90", 0) or 0) / 3.0) * 1 if pos_code == 1 else 0
-    
-    # 2 points awarded for crossing Defensive Contribution threshold
-    xDefcon_90 = prob_cross_threshold * 2.0
+    saves_per_90 = float(p.get("saves_per_90", 0) or 0) if pos_code == 1 else 0.0
     
     gw_range = min(5, 38 - next_gw + 1)
     
-    next_gw_opponent = "Blank"
-    next_gw_diff = 5
+    next_gw_opponents = []
+    next_gw_diffs = []
     fixtures_found = 0
     
     total_5gw_projection = 0.0
@@ -247,6 +269,7 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
     for gw_inc in range(gw_range):
 
         # Dynamic Expected Minutes & Injury Recovery Model
+        # Immediate GW uses base_cop; subsequent gameweeks model gradual recovery
         if gw_inc == 0:
             current_cop = base_cop
         else:
@@ -265,9 +288,10 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
             
             opp_id = f["team_a"] if is_home else f["team_h"]
             
-            if gw_inc == 0 and fixtures_found == 1:
-                next_gw_opponent = f"{teams.get(opp_id, {}).get('short_name', 'UNK')} ({'H' if is_home else 'A'})"
-                next_gw_diff = diff
+            if gw_inc == 0:
+                opp_name = teams.get(opp_id, {}).get('short_name', 'UNK')
+                next_gw_opponents.append(f"{opp_name} ({'H' if is_home else 'A'})")
+                next_gw_diffs.append(diff)
             
             # Robust FDR-based Opponent Strength & Home Advantage
             home_adv = 1.05 if is_home else 0.95
@@ -284,17 +308,53 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
             
             # Clean sheet
             match_xgc = (xgc_90 * (dyn_expected_minutes / 90.0)) * def_multiplier
-            match_cs_prob = math.exp(-match_xgc) if match_xgc > 0 else 0.5
-            match_xDef = match_cs_prob * cs_pts
+            team_match_xgc = xgc_90 * def_multiplier
+            team_cs_prob = (
+                math.exp(-team_match_xgc)
+                if team_match_xgc > 0
+                else 0.5
+            )
+            prob_60_mins = (
+                max(
+                    0.0,
+                    min(
+                        1.0,
+                        (dyn_expected_minutes - 30.0) / 60.0
+                    )
+                )
+                if dyn_expected_minutes > 30
+                else 0.0
+            )
+            match_xDef = prob_60_mins * team_cs_prob * cs_pts
             
-            match_xSave = xSave_90 * (dyn_expected_minutes / 90.0) * def_multiplier
+            # Goalkeeper Expected Saves (Poisson model: E[floor(S / 3)])
+            match_lambda_saves = (
+                saves_per_90 * (dyn_expected_minutes / 90.0) * def_multiplier
+                if (pos_code == 1 and dyn_expected_minutes > 0)
+                else 0.0
+            )
+            match_xSave = calculate_poisson_xsave(match_lambda_saves)
             match_xDefcon = xDefcon_90 * (dyn_expected_minutes / 90.0)
+            
+            match_gc_penalty = 0.0
+            if pos_code in [1, 2] and match_xgc > 0:
+                match_gc_penalty = -(
+                    (match_xgc / 2.0)
+                    - (1.0 - math.exp(-2.0 * match_xgc)) / 4.0
+                )
             
             appearance_pts = 0
             if dyn_expected_minutes >= 60: appearance_pts = 2 * current_cop
             elif dyn_expected_minutes > 0: appearance_pts = 1 * current_cop
             
-            gw_proj += match_xAtt + match_xDef + match_xSave + match_xDefcon + appearance_pts
+            gw_proj += (
+                match_xAtt
+                + match_xDef
+                + match_xSave
+                + match_xDefcon
+                + match_gc_penalty
+                + appearance_pts
+            )
             
         if gw_inc == 0:
             next_gw_projection = gw_proj
@@ -302,11 +362,25 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         
     total_5gw_projection = max(0.0, total_5gw_projection)
     
+    if not next_gw_opponents:
+        next_gw_opponent = "Blank"
+        next_gw_diff = 5
+    elif len(next_gw_opponents) == 1:
+        next_gw_opponent = next_gw_opponents[0]
+        next_gw_diff = next_gw_diffs[0]
+    else:
+        next_gw_opponent = ", ".join(next_gw_opponents)
+        next_gw_diff = int(round(sum(next_gw_diffs) / len(next_gw_diffs)))
+    
     # Confidence metrics based on uncertainty
+    past_gws = max(0, (next_gw or 1) - 1)
+    available_minutes_so_far = past_gws * 90
+    minutes_ratio = (total_mins / available_minutes_so_far) if available_minutes_so_far > 0 else 0.0
+
     confidence = "Medium"
     if availability_prob < 0.9 or expected_minutes < 45:
         confidence = "Low (Minutes Uncertainty)"
-    elif total_mins > 500 and availability_prob == 1.0 and fixtures_found >= gw_range:
+    elif minutes_ratio >= 0.75 and availability_prob == 1.0 and fixtures_found >= gw_range:
         confidence = "High (Nailed Starter)"
         
     reasons = []
@@ -324,7 +398,7 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         
     reason_str = "\n".join(reasons)
     
-    proj_result = {
+    return {
         "id": p["id"],
         "name": p["web_name"],
         "team": teams.get(p["team"], {}).get("short_name", "UNK"),
@@ -344,20 +418,17 @@ def calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams, weight
         "news": p.get("news", ""),
         "xg": float(p.get("expected_goals", 0) or 0),
         "xa": float(p.get("expected_assists", 0) or 0),
-        "expected_minutes": round(expected_minutes, 1),
         "expected_goals": float(p.get("expected_goals", 0) or 0),
         "expected_assists": float(p.get("expected_assists", 0) or 0),
         "expected_goals_conceded": float(p.get("expected_goals_conceded", 0) or 0),
+        "xgc": float(p.get("expected_goals_conceded", 0) or 0),
         "defensive_contribution": p.get("defensive_contribution_per_90", 0.0),
         "clean_sheets": p.get("clean_sheets", 0),
         "goals_conceded": p.get("goals_conceded", 0),
-        "minutes": p.get("minutes", 0)
+        "minutes": p.get("minutes", 0),
+        "expected_minutes": round(expected_minutes, 1),
+        "start_probability": round(base_cop * 100, 1)
     }
-    
-    # Global Logging Hook
-    log_prediction(proj_result, next_gw, "Model Evaluation")
-    
-    return proj_result
 
 def enrich_picks(picks_ids, squad):
     enriched = []
@@ -590,12 +661,16 @@ def compare_teams(team_a: int, team_b: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 class TransferRequest(BaseModel):
+    free_transfers: Optional[int] = 1
+    transfers_before: int = 0
+    active_chip: Optional[str] = None
     pos_code: int
     max_budget: float
-    current_squad_ids: List[int]
+    actual_budget: Optional[float] = None
+    current_squad_ids: Optional[List[int]] = []
     transfer_out_id: Optional[int] = None
     target_gw: Optional[int] = None
-    free_transfers: int = 1
+    unlimited_budget: Optional[bool] = False
 
 @app.post("/api/transfer-lab")
 def get_transfer_recommendations(req: TransferRequest):
@@ -613,106 +688,215 @@ def get_transfer_recommendations(req: TransferRequest):
                 current_player = calculate_player_projection(curr_p_raw, next_gw, upcoming_fixtures_raw, teams)
                 
         team_counts = {}
+        current_squad_set = set(req.current_squad_ids or [])
         for p in elements:
-            if p["id"] in req.current_squad_ids and p["id"] != req.transfer_out_id:
+            if p["id"] in current_squad_set and p["id"] != req.transfer_out_id:
                 t = p["team"]
                 team_counts[t] = team_counts.get(t, 0) + 1
 
         candidates = []
-        for p in elements:
-            if p["element_type"] == req.pos_code and p["id"] not in req.current_squad_ids:
-                if (p["now_cost"] / 10) <= req.max_budget:
-                    if team_counts.get(p["team"], 0) < 3:
-                        c = calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams)
-                        candidates.append(c)
-                    
-        candidates = sorted(candidates, key=decision_engine_score, reverse=True)
-        best_candidate = candidates[0] if candidates else None
+        all_evaluations = []
+        eval_budget = req.actual_budget if req.actual_budget is not None else req.max_budget
         
-        recommendation = "HOLD"
-        delta = 0.0
-        threshold = DEFAULT_WEIGHTS["opportunity_cost"]
-        explanation = ""
+        for p in elements:
+            if p["element_type"] == req.pos_code:
+                if p["id"] not in current_squad_set or p["id"] == req.transfer_out_id:
+                    within_budget = (p["now_cost"] / 10) <= eval_budget
+                    if within_budget or req.unlimited_budget:
+                        c_team_count = team_counts.get(p["team"], 0)
+                        if c_team_count < 3 or p["id"] == req.transfer_out_id:
+                            c = calculate_player_projection(p, next_gw, upcoming_fixtures_raw, teams)
+                            if c:
+                                all_evaluations.append(c)
 
-        if current_player and best_candidate:
-            raw_gain = round(best_candidate["xp"] - current_player["xp"], 2)
-            delta = raw_gain
-            hit_cost = 0 if req.free_transfers > 0 else 4
-            net_gain = raw_gain * ctx["gw_range"] - hit_cost
-
-            # Elite Asset Protection
-            curr_p_raw = next((p for p in elements if p["id"] == req.transfer_out_id), None)
-            curr_form = float(curr_p_raw.get("form", 0) or 0) if curr_p_raw else 0.0
-            curr_pts = int(curr_p_raw.get("total_points", 0) or 0) if curr_p_raw else 0
-            curr_starts = int(curr_p_raw.get("starts", 0) or 0) if curr_p_raw else 0
-            curr_cop = curr_p_raw.get("chance_of_playing_next_round") if curr_p_raw else None
-            is_healthy = curr_cop is None or curr_cop == 100
-            is_elite = curr_form >= 5.0 and curr_pts >= 45 and curr_starts >= 4 and is_healthy
-
-            # ---------------------------------------------------------
-            # BUDGET ENABLER PROTECTION
-            # Cheap £4.0m-ish goalkeepers are usually structural
-            # budget enablers, not players that need upgrading.
-            # Do not recommend like-for-like GK swaps for tiny gains.
-            # ---------------------------------------------------------
-            is_budget_gk = (
-                current_player["pos_code"] == 1
-                and current_player["cost"] <= 4.2
-            )
-
-            is_like_for_like_gk = (
-                is_budget_gk
-                and best_candidate["pos_code"] == 1
-                and best_candidate["cost"] <= 4.2
-                and raw_gain < 1.5
-            )
-
-            if is_like_for_like_gk:
-                recommendation = "HOLD"
-                explanation = (
-                    "Hold: this goalkeeper is functioning as a budget enabler. "
-                    "A similar-priced goalkeeper does not provide enough additional "
-                    "projected value to justify using a transfer."
-                )
-            elif is_elite and net_gain <= 6.0:
-                recommendation = "HOLD"
-                explanation = (
-                    f"{current_player['name']} is in elite form ({curr_form:.1f}) and among the league's top scorers ({curr_pts} pts). "
-                    f"A marginal projection difference (+{raw_gain * ctx['gw_range']:.2f} pts over {ctx['gw_range']} GWs) does not justify transferring out a firing talisman. "
-                    "Hold your transfer or target weaker squad positions."
-                )
-            elif raw_gain <= 0:
-                recommendation = "HOLD"
-                explanation = "השחקן הנוכחי צפוי להביא יותר או אותו מספר נקודות מאשר האלטרנטיבות, כך שאין צורך בחילוף."
-
-            elif raw_gain <= 1.0:
-                recommendation = "HOLD"
-                explanation = f"המחליף ({best_candidate['name']}) צפוי להביא רק {raw_gain} נקודות יותר למחזור בממוצע. פער כה קטן לא מצדיק שריפת חילוף, אלא אם כן השחקן שלך פצוע."
-
-            elif raw_gain <= 2.0:
-                recommendation = "CONSIDER"
-                explanation = f"שדרוג סביר. {best_candidate['name']} צפוי להביא {raw_gain} נקודות יותר. מומלץ לבצע את החילוף רק אם יש לך חילופים חינמיים עודפים ואין בעיות דחופות יותר."
-
-            else:
-                recommendation = "TRANSFER"
-                explanation = f"חילוף מצוין! {best_candidate['name']} משדרג אותך משמעותית עם פער של {raw_gain} נקודות צפויות למחזור."
+        all_evaluations = sorted(all_evaluations, key=decision_engine_score, reverse=True)
+        
+        current_player_rank = None
+        total_relevant = len(all_evaluations)
+        
+        for idx, c in enumerate(all_evaluations):
+            if current_player and c["id"] == current_player["id"]:
+                current_player_rank = idx + 1
+            if c["id"] != req.transfer_out_id:
+                c["within_budget"] = (c["cost"] <= eval_budget)
+                c["budget_diff"] = round(eval_budget - c["cost"], 1)
+                candidates.append(c)
                 
+        candidates = sorted(candidates, key=decision_engine_score, reverse=True)
+        affordable_candidates = [c for c in candidates if c["cost"] <= eval_budget]
+
+        unconstrained_best = candidates[0] if candidates else None
+        affordable_best = affordable_candidates[0] if affordable_candidates else None
+        best_candidate = unconstrained_best if req.unlimited_budget else affordable_best
+
+        def compute_transfer_decision(candidate):
+            recommendation = "HOLD"
+            explanation = ""
+            delta = 0.0
+            raw_gain = None
+            hit_cost = 0
+            net_gain = None
+            threshold = 0.0
+
+            if current_player and candidate:
+                delta = round(
+                    candidate["xp"] - current_player["xp"], 2
+                )
+                raw_gain = round(delta * ctx["gw_range"], 2)
+
+                chip = (req.active_chip or "").lower().replace("_", "").replace(" ", "")
+                chip_active = chip in {"wildcard", "freehit"}
+
+                free_transfers = max(0, min(5, int(req.free_transfers or 0)))
+                transfers_before = max(0, int(req.transfers_before or 0))
+
+                hits_before = max(0, transfers_before - free_transfers)
+                hits_after = max(0, transfers_before + 1 - free_transfers)
+                hit_cost = 0 if chip_active else (hits_after - hits_before) * 4
+
+                net_gain = raw_gain - hit_cost
+
+                # Universal Player Vitality Metrics
+                curr_p_raw = next((p for p in elements if p["id"] == req.transfer_out_id), None)
+                curr_form = float(curr_p_raw.get("form", 0) or 0) if curr_p_raw else 0.0
+                curr_pts = int(curr_p_raw.get("total_points", 0) or 0) if curr_p_raw else 0
+                curr_starts = int(curr_p_raw.get("starts", 0) or 0) if curr_p_raw else 0
+                curr_mins = int(curr_p_raw.get("minutes", 0) or 0) if curr_p_raw else 0
+                curr_cop = curr_p_raw.get("chance_of_playing_next_round") if curr_p_raw else None
+                curr_cost = current_player.get("cost", 0.0)
+                curr_diff = current_player.get("fixture_diff", 3)
+                cand_diff = candidate.get("fixture_diff", 3)
+
+                is_flagged = curr_cop is not None and curr_cop < 75
+                is_healthy = curr_cop is None or curr_cop >= 75
+
+                is_established_starter = is_healthy and (
+                    (curr_starts >= 3 and curr_mins >= 220) or
+                    (curr_mins >= 350)
+                )
+
+                is_elite_asset = is_established_starter and (
+                    (curr_form >= 4.5 and (curr_pts >= 35 or curr_cost >= 8.0)) or
+                    (curr_form >= 5.5 and curr_pts >= 28) or
+                    (curr_form >= 6.0)
+                )
+
+                is_in_form_starter = is_established_starter and (
+                    curr_form >= 3.5 or
+                    (curr_form >= 3.0 and curr_pts >= 25)
+                )
+
+                curr_xp_next = current_player.get("xp_next", current_player["xp"])
+                cand_xp_next = candidate.get("xp_next", candidate["xp"])
+
+                # 1. IMMEDIATE FIXTURE GATEKEEPER
+                has_immediate_match_advantage = (
+                    is_healthy and
+                    is_established_starter and
+                    curr_xp_next > 0 and
+                    (curr_xp_next >= cand_xp_next) and
+                    raw_gain < 8.0
+                )
+
+                # 2. STATUS-BASED DYNAMIC HURDLE RATE
+                if is_flagged or (curr_mins < 120 and curr_starts == 0):
+                    hurdle = 2.0
+                    tier = "URGENT"
+                elif is_elite_asset:
+                    hurdle = 7.5
+                    tier = "ELITE"
+                elif is_in_form_starter:
+                    hurdle = 5.5
+                    tier = "STARTER"
+                elif is_established_starter:
+                    hurdle = 4.0
+                    tier = "REGULAR"
+                else:
+                    hurdle = 3.0
+                    tier = "ROTATION"
+
+                # Fixture swing adjustment: if current player faces severe run (diff >= 4) vs easy candidate (diff <= 2)
+                if curr_diff >= 4 and cand_diff <= 2:
+                    hurdle = max(2.0, hurdle - 1.0)
+
+                threshold = hurdle + hit_cost
+
+                if has_immediate_match_advantage:
+                    recommendation = "HOLD"
+                    explanation = (
+                        f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
+                        f"with a {hit_cost}-point hit cost. "
+                        f"Hold for GW{ctx['next_gw']}: {current_player['name']} projects higher or equal for the immediate match "
+                        f"({curr_xp_next:.1f} vs {candidate['name']}'s {cand_xp_next:.1f} xP). "
+                        "Do not sacrifice immediate points for a speculative medium-term move."
+                    )
+                elif raw_gain <= threshold:
+                    recommendation = "HOLD"
+                    if tier == "ELITE":
+                        explanation = (
+                            f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
+                            f"with a {hit_cost}-point hit cost. "
+                            f"{current_player['name']} is in elite form ({curr_form:.1f}, {curr_pts} pts). "
+                            f"A 5-GW difference does not justify transferring out a firing talisman for a threshold of {threshold:.1f} points. "
+                            "Hold your transfer or target weaker squad positions."
+                        )
+                    elif tier == "STARTER":
+                        explanation = (
+                            f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
+                            f"with a {hit_cost}-point hit cost. "
+                            f"{current_player['name']} is an established starter in solid form ({curr_form:.1f}). "
+                            f"The projected gain is too marginal to clear the required threshold of {threshold:.1f} points."
+                        )
+                    else:
+                        explanation = (
+                            f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
+                            f"with a {hit_cost}-point hit cost. "
+                            f"The transfer does not clear the required threshold of {threshold:.1f} points."
+                        )
+                else:
+                    recommendation = "TRANSFER"
+                    explanation = (
+                        f"The projected gain over {ctx['gw_range']} GWs is {raw_gain:.2f} points, "
+                        f"with a {hit_cost}-point hit cost. "
+                        f"Replacing with {candidate['name']} clears the required threshold of {threshold:.1f} points."
+                    )
+            else:
+                recommendation = "MONITOR"
+                explanation = "Not enough data to form a definitive transfer decision."
+
+            return {
+                "recommendation": recommendation,
+                "explanation": explanation,
+                "delta": delta,
+                "raw_gain": raw_gain,
+                "hit_cost": hit_cost,
+                "net_gain": net_gain,
+                "threshold": threshold,
+                "best_transfer": candidate
+            }
+
+        main_decision = compute_transfer_decision(best_candidate)
+        affordable_decision = compute_transfer_decision(affordable_best)
+
         if current_player:
             log_prediction(current_player, next_gw, "Transfer Lab - Current")
         if best_candidate:
             log_prediction(best_candidate, next_gw, "Transfer Lab - Candidate")
-            
-        if current_player and best_candidate:
-            log_transfer_decision(next_gw, current_player, best_candidate, delta, recommendation)
 
         return {
-            "recommendation": recommendation,
-            "delta": delta,
-            "threshold": threshold,
-            "explanation": explanation,
+            "recommendation": main_decision["recommendation"],
+            "explanation": main_decision["explanation"],
+            "delta": main_decision["delta"],
+            "raw_gain": main_decision["raw_gain"],
+            "hit_cost": main_decision["hit_cost"],
+            "net_gain": main_decision["net_gain"],
+            "threshold": main_decision["threshold"],
             "current_player": current_player,
+            "current_player_rank": current_player_rank,
+            "total_relevant": total_relevant,
             "best_transfer": best_candidate,
-            "candidates": candidates
+            "candidates": candidates,
+            "affordable_decision": affordable_decision
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
