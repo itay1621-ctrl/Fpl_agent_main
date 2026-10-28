@@ -191,6 +191,9 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [transferError, setTransferError] = useState('');
   const [allowOverBudget, setAllowOverBudget] = useState(true);
+  const [plannerSquads, setPlannerSquads] = useState<Record<number, any[]>>({});
+  const [plannerBanks, setPlannerBanks] = useState<Record<number, number>>({});
+  const [plannerTargetGw, setPlannerTargetGw] = useState<number | null>(null);
 
   // חדש: מצב כהה ושפות
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -620,6 +623,19 @@ export default function Home() {
               if (result.schedule && savedPlan.next_gw === result.next_gw) {
                 savedPlan.schedule = result.schedule;
               }
+              if (savedPlan.planner_squads && savedPlan.planner_banks) {
+                setPlannerSquads(savedPlan.planner_squads);
+                setPlannerBanks(savedPlan.planner_banks);
+              } else {
+                const initSquads: Record<number, any[]> = {};
+                const initBanks: Record<number, number> = {};
+                for (let gw = result.next_gw; gw <= 38; gw++) {
+                  initSquads[gw] = (savedPlan.squad || []).map((p: any) => ({ ...p }));
+                  initBanks[gw] = savedPlan.bank ?? 0;
+                }
+                setPlannerSquads(initSquads);
+                setPlannerBanks(initBanks);
+              }
               setData(savedPlan);
               setAppMode(targetMode);
               return;
@@ -634,6 +650,15 @@ export default function Home() {
         cost: p.purchase_price ?? p.cost
       }));
       setData({ ...JSON.parse(JSON.stringify(result)), squad: initialSquad });
+      const freshSquads: Record<number, any[]> = {};
+      const freshBanks: Record<number, number> = {};
+      for (let gw = result.next_gw; gw <= 38; gw++) {
+        freshSquads[gw] = initialSquad.map((p: any) => ({ ...p }));
+        freshBanks[gw] = result.bank ?? 0;
+      }
+      setPlannerSquads(freshSquads);
+      setPlannerBanks(freshBanks);
+      setPlannerTargetGw(null);
       setAppMode(targetMode);
     } catch (err: any) {
       const isServerUpdating = err.message?.includes('500') || err.message?.includes('502') || err.message?.includes('503') || err.message?.includes('Failed to fetch');
@@ -713,14 +738,25 @@ export default function Home() {
         (data.squad || []).some((p: any) => {
           const orig = originalData.squad?.find((op: any) => op.id === p.id);
           return !orig || p.is_empty;
-        }) || (typeof data.bank === 'number' && typeof originalData.bank === 'number' && Math.abs(data.bank - originalData.bank) > 0.05)
+        }) || (typeof data.bank === 'number' && typeof originalData.bank === 'number' && Math.abs(data.bank - originalData.bank) > 0.05) ||
+        Object.values(plannerSquads || {}).some((sq: any[]) =>
+          Array.isArray(sq) && sq.some((p: any) => {
+            const orig = originalData.squad?.find((op: any) => op.id === p.id);
+            return !orig || p.is_empty;
+          })
+        )
       );
 
       if (isCustomPlan) {
-        localStorage.setItem(`fpl_plan_${data?.team_id}`, JSON.stringify({ ...data, is_custom_plan: true }));
+        localStorage.setItem(`fpl_plan_${data?.team_id}`, JSON.stringify({
+          ...data,
+          planner_squads: plannerSquads,
+          planner_banks: plannerBanks,
+          is_custom_plan: true
+        }));
       }
     }
-  }, [data, originalData]);
+  }, [data, originalData, plannerSquads, plannerBanks]);
 
   useEffect(() => {
     if (data && data.team_id && data.next_gw) {
@@ -742,6 +778,15 @@ export default function Home() {
         cost: p.purchase_price ?? p.cost
       }));
       setData({ ...JSON.parse(JSON.stringify(originalData)), bank: originalData.bank ?? 0, squad: resetSquad });
+      const resetSquads: Record<number, any[]> = {};
+      const resetBanks: Record<number, number> = {};
+      for (let gw = originalData.next_gw; gw <= 38; gw++) {
+        resetSquads[gw] = resetSquad.map((p: any) => ({ ...p }));
+        resetBanks[gw] = originalData.bank ?? 0;
+      }
+      setPlannerSquads(resetSquads);
+      setPlannerBanks(resetBanks);
+      setPlannerTargetGw(null);
       setSwapSourceId(null);
       setTransferOutId(null);
       setActiveChip(null);
@@ -750,35 +795,73 @@ export default function Home() {
     }
   };
 
-  const handleRestorePlayer = (position: number) => {
+  const handleRestorePlayer = (position: number, targetGw?: number) => {
     if (!originalData) return;
     const originalPlayer = originalData.squad.find((p: any) => p.position === position);
-    const currentPlayer = data.squad.find((p: any) => p.position === position);
+    const effectiveGw = targetGw ?? data?.next_gw;
+    const isPlannerFuture = effectiveGw > (data?.next_gw ?? 0);
+    const activeSquad = isPlannerFuture ? (plannerSquads[effectiveGw] || data.squad) : data.squad;
+    const currentPlayer = activeSquad.find((p: any) => p.position === position);
     if (!originalPlayer || !currentPlayer) return;
     if (currentPlayer.id === originalPlayer.id) return;
 
     const currentCost = currentPlayer.is_empty ? 0 : currentPlayer.cost;
     const restoredCost = originalPlayer.purchase_price ?? originalPlayer.cost;
-    const newBank = Math.round((data.bank + currentCost - restoredCost) * 10) / 10;
     const restoredPlayer = {
       ...originalPlayer,
       cost: restoredCost,
       selling_price: originalPlayer.selling_price ?? originalPlayer.cost,
       purchase_price: originalPlayer.purchase_price ?? originalPlayer.cost
     };
-    const newSquad = data.squad.map((p: any) => p.position === position ? restoredPlayer : p);
-    const isAllOriginal = newSquad.every((p: any) => {
-      const orig = originalData.squad.find((op: any) => op.id === p.id);
-      return orig && !p.is_empty;
-    });
-    const finalBank = isAllOriginal ? (originalData.bank ?? 0) : newBank;
 
-    setData({ ...data, squad: newSquad, bank: finalBank });
+    if (isPlannerFuture) {
+      const updatedSquads = { ...plannerSquads };
+      const updatedBanks = { ...plannerBanks };
+      for (let g = effectiveGw; g <= 38; g++) {
+        const sq = updatedSquads[g] ? [...updatedSquads[g]] : [...data.squad];
+        const idx = sq.findIndex((p: any) => p.position === position);
+        if (idx !== -1) {
+          sq[idx] = { ...restoredPlayer };
+          updatedSquads[g] = sq;
+          const prevB = typeof updatedBanks[g] === 'number' ? updatedBanks[g] : data.bank;
+          updatedBanks[g] = Math.round((prevB + currentCost - restoredCost) * 10) / 10;
+        }
+      }
+      setPlannerSquads(updatedSquads);
+      setPlannerBanks(updatedBanks);
+    } else {
+      const newBank = Math.round((data.bank + currentCost - restoredCost) * 10) / 10;
+      const newSquad = data.squad.map((p: any) => p.position === position ? restoredPlayer : p);
+      const isAllOriginal = newSquad.every((p: any) => {
+        const orig = originalData.squad.find((op: any) => op.id === p.id);
+        return orig && !p.is_empty;
+      });
+      const finalBank = isAllOriginal ? (originalData.bank ?? 0) : newBank;
+      setData({ ...data, squad: newSquad, bank: finalBank });
+
+      const updatedSquads = { ...plannerSquads };
+      const updatedBanks = { ...plannerBanks };
+      for (let g = data.next_gw; g <= 38; g++) {
+        const sq = updatedSquads[g] ? [...updatedSquads[g]] : [...data.squad];
+        const idx = sq.findIndex((p: any) => p.position === position);
+        if (idx !== -1) {
+          sq[idx] = { ...restoredPlayer };
+          updatedSquads[g] = sq;
+          const prevB = typeof updatedBanks[g] === 'number' ? updatedBanks[g] : data.bank;
+          updatedBanks[g] = Math.round((prevB + currentCost - restoredCost) * 10) / 10;
+        }
+      }
+      setPlannerSquads(updatedSquads);
+      setPlannerBanks(updatedBanks);
+    }
   };
 
   const executeTransfer = (newPlayer: any) => {
     if (!transferOutId) return;
-    const oldPlayer = data.squad.find((p: any) => p.id === transferOutId);
+    const effectiveGw = plannerTargetGw ?? (data?.next_gw ?? 0);
+    const isPlannerFuture = effectiveGw > (data?.next_gw ?? 0);
+    const currentSquad = isPlannerFuture ? (plannerSquads[effectiveGw] || data.squad) : data.squad;
+    const oldPlayer = currentSquad.find((p: any) => p.id === transferOutId);
     if (!oldPlayer) return;
 
     const sellPrice = oldPlayer.is_empty ? 0 : (oldPlayer.selling_price ?? oldPlayer.cost);
@@ -787,8 +870,6 @@ export default function Home() {
     const effectiveCost = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : newPlayer.cost;
     const effectiveSellingPrice = origPlayer ? (origPlayer.selling_price ?? origPlayer.cost) : newPlayer.cost;
     const effectivePurchasePrice = origPlayer ? (origPlayer.purchase_price ?? origPlayer.cost) : newPlayer.cost;
-
-    const newBank = Math.round((data.bank + sellPrice - effectiveCost) * 10) / 10;
 
     const upcoming_fixtures = [];
     for (let offset = 0; offset <= 38 - data?.next_gw; offset++) {
@@ -816,9 +897,8 @@ export default function Home() {
     }
 
     setTransferError('');
-    const newSquad = data.squad.filter((p: any) => p.id !== oldPlayer.id);
 
-    newSquad.push({
+    const playerToAdd = {
       ...newPlayer,
       position: oldPlayer.position,
       is_captain: oldPlayer.is_captain,
@@ -829,12 +909,75 @@ export default function Home() {
       cost: effectiveCost,
       selling_price: effectiveSellingPrice,
       purchase_price: effectivePurchasePrice
-    });
-    newSquad.sort((a: any, b: any) => a.position - b.position);
+    };
 
-    setData({ ...data, squad: newSquad, bank: newBank });
+    if (isPlannerFuture) {
+      // Future Gameweek transfer:
+      // Update plannerSquads and plannerBanks from effectiveGw onward ONLY!
+      // Earlier Gameweeks (gw < effectiveGw) are NEVER modified.
+      const updatedSquads = { ...plannerSquads };
+      const updatedBanks = { ...plannerBanks };
+
+      for (let gw = effectiveGw; gw <= 38; gw++) {
+        const sq = updatedSquads[gw] ? [...updatedSquads[gw]] : [...data.squad];
+        const idx = sq.findIndex((p: any) => p.id === oldPlayer.id);
+        if (idx !== -1) {
+          const prevP = sq[idx];
+          sq[idx] = {
+            ...playerToAdd,
+            position: prevP.position,
+            is_captain: prevP.is_captain,
+            is_vice_captain: prevP.is_vice_captain,
+            fixture: upcoming_fixtures[gw - data.next_gw]?.opponent || "Blank",
+            fixture_diff: upcoming_fixtures[gw - data.next_gw]?.difficulty || 5
+          };
+          sq.sort((a: any, b: any) => a.position - b.position);
+          updatedSquads[gw] = sq;
+
+          const prevBank = typeof updatedBanks[gw] === 'number' ? updatedBanks[gw] : data.bank;
+          updatedBanks[gw] = Math.round((prevBank + sellPrice - effectiveCost) * 10) / 10;
+        }
+      }
+
+      setPlannerSquads(updatedSquads);
+      setPlannerBanks(updatedBanks);
+    } else {
+      // Current Gameweek transfer:
+      const newSquad = data.squad.filter((p: any) => p.id !== oldPlayer.id);
+      newSquad.push(playerToAdd);
+      newSquad.sort((a: any, b: any) => a.position - b.position);
+      const newBank = Math.round((data.bank + sellPrice - effectiveCost) * 10) / 10;
+      setData({ ...data, squad: newSquad, bank: newBank });
+
+      const updatedSquads = { ...plannerSquads };
+      const updatedBanks = { ...plannerBanks };
+      for (let gw = data.next_gw; gw <= 38; gw++) {
+        const sq = updatedSquads[gw] ? [...updatedSquads[gw]] : [...data.squad];
+        const idx = sq.findIndex((p: any) => p.id === oldPlayer.id);
+        if (idx !== -1) {
+          const prevP = sq[idx];
+          sq[idx] = {
+            ...playerToAdd,
+            position: prevP.position,
+            is_captain: prevP.is_captain,
+            is_vice_captain: prevP.is_vice_captain,
+            fixture: upcoming_fixtures[gw - data.next_gw]?.opponent || "Blank",
+            fixture_diff: upcoming_fixtures[gw - data.next_gw]?.difficulty || 5
+          };
+          sq.sort((a: any, b: any) => a.position - b.position);
+          updatedSquads[gw] = sq;
+          const prevBank = typeof updatedBanks[gw] === 'number' ? updatedBanks[gw] : data.bank;
+          updatedBanks[gw] = Math.round((prevBank + sellPrice - effectiveCost) * 10) / 10;
+        }
+      }
+      setPlannerSquads(updatedSquads);
+      setPlannerBanks(updatedBanks);
+    }
+
     setTransferOutId(null);
-    setTransferRecs([]); setTransferDecision(null);
+    setPlannerTargetGw(null);
+    setTransferRecs([]);
+    setTransferDecision(null);
     setSearchQuery('');
     setActiveTab(activeTab === 'transfer' ? 'pitch' : 'planner');
   };
@@ -971,13 +1114,15 @@ export default function Home() {
     setData({ ...data, squad: newSquad });
   };
 
-  const handleSwapClick = (playerId: number) => {
+  const handleSwapClick = (playerId: number, gwNumber?: number) => {
     if (swapSourceId === null) {
       setSwapSourceId(playerId);
     } else if (swapSourceId === playerId) {
       setSwapSourceId(null);
     } else {
-      const newSquad = [...data.squad];
+      const isPlannerMode = gwNumber && gwNumber > (data?.next_gw ?? 0);
+      const activeSquad = isPlannerMode ? (plannerSquads[gwNumber] || data.squad) : data.squad;
+      const newSquad = activeSquad.map((p: any) => ({ ...p }));
       const p1 = newSquad.find((p: any) => p.id === swapSourceId);
       const p2 = newSquad.find((p: any) => p.id === playerId);
 
@@ -1027,13 +1172,23 @@ export default function Home() {
           if (p2.is_vice_captain) { p2.is_vice_captain = false; p1.is_vice_captain = true; }
         }
       }
-      setData({ ...data, squad: newSquad });
+
+      if (isPlannerMode) {
+        setPlannerSquads(prev => ({ ...prev, [gwNumber]: newSquad }));
+      } else {
+        setData({ ...data, squad: newSquad });
+        if (data?.next_gw) {
+          setPlannerSquads(prev => ({ ...prev, [data.next_gw]: newSquad }));
+        }
+      }
       setSwapSourceId(null);
     }
   };
 
-  const handleSetCaptain = (id: number) => {
-    const newSquad = [...data.squad];
+  const handleSetCaptain = (id: number, gwNumber?: number) => {
+    const isPlannerMode = gwNumber && gwNumber > (data?.next_gw ?? 0);
+    const activeSquad = isPlannerMode ? (plannerSquads[gwNumber] || data.squad) : data.squad;
+    const newSquad = activeSquad.map((p: any) => ({ ...p }));
     const oldCap = newSquad.find((p: any) => p.is_captain);
     const newCap = newSquad.find((p: any) => p.id === id);
     if (!newCap) return;
@@ -1050,11 +1205,20 @@ export default function Home() {
     const finalCap = newSquad.find((p: any) => p.is_captain);
     if (finalCap) finalCap.multiplier = 2;
 
-    setData({ ...data, squad: newSquad });
+    if (isPlannerMode) {
+      setPlannerSquads(prev => ({ ...prev, [gwNumber]: newSquad }));
+    } else {
+      setData({ ...data, squad: newSquad });
+      if (data?.next_gw) {
+        setPlannerSquads(prev => ({ ...prev, [data.next_gw]: newSquad }));
+      }
+    }
   };
 
-  const handleSetViceCaptain = (id: number) => {
-    const newSquad = [...data.squad];
+  const handleSetViceCaptain = (id: number, gwNumber?: number) => {
+    const isPlannerMode = gwNumber && gwNumber > (data?.next_gw ?? 0);
+    const activeSquad = isPlannerMode ? (plannerSquads[gwNumber] || data.squad) : data.squad;
+    const newSquad = activeSquad.map((p: any) => ({ ...p }));
     const oldVice = newSquad.find((p: any) => p.is_vice_captain);
     const newVice = newSquad.find((p: any) => p.id === id);
     if (!newVice) return;
@@ -1071,7 +1235,15 @@ export default function Home() {
     }
 
     newVice.is_vice_captain = true;
-    setData({ ...data, squad: newSquad });
+
+    if (isPlannerMode) {
+      setPlannerSquads(prev => ({ ...prev, [gwNumber]: newSquad }));
+    } else {
+      setData({ ...data, squad: newSquad });
+      if (data?.next_gw) {
+        setPlannerSquads(prev => ({ ...prev, [data.next_gw]: newSquad }));
+      }
+    }
   };
 
   const affordableRecs = transferRecs.filter(p => {
@@ -1712,6 +1884,16 @@ export default function Home() {
                                 {effectiveDecision.best_transfer ? (
                                   <>
                                     <div className={`font-black text-sm mb-1 ${textHighlight}`}>{effectiveDecision.best_transfer.name}</div>
+                                    {effectiveDecision.best_transfer.within_budget === false && (
+                                      <div className="mt-1 mb-1 inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                                        <span>⚠️</span>
+                                        <span>
+                                          {isEnglish
+                                            ? `Requires +£${Math.abs(effectiveDecision.best_transfer.budget_diff ?? 0).toFixed(1)}m in bank`
+                                            : `דורש עוד £${Math.abs(effectiveDecision.best_transfer.budget_diff ?? 0).toFixed(1)}m בבנק`}
+                                        </span>
+                                      </div>
+                                    )}
                                     <div className={`text-xs ${textMuted} mt-1`}>
                                       {isEnglish ? 'Projected:' : 'צפי:'} <span className="font-bold text-green-500">{effectiveDecision.best_transfer.xp} xP/GW</span>
                                     </div>
@@ -1768,11 +1950,17 @@ export default function Home() {
                               <div className="flex items-center justify-between">
                                 <span className={`text-sm font-bold ${textMuted}`}>{isEnglish ? 'Strategy Decision' : 'החלטת אסטרטגיה'}</span>
                                 <span className={`px-3 py-1 rounded-full text-xs font-black ${
-                                  effectiveDecision.recommendation === 'TRANSFER' ? 'bg-green-100 text-green-700' :
-                                  effectiveDecision.recommendation === 'HOLD' ? 'bg-yellow-100 text-yellow-700' :
-                                  'bg-gray-100 text-gray-700'
+                                  effectiveDecision.recommendation === 'TRANSFER'
+                                    ? (effectiveDecision.best_transfer?.within_budget === false
+                                        ? 'bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-700/50'
+                                        : 'bg-green-100 text-green-700')
+                                    : effectiveDecision.recommendation === 'HOLD'
+                                      ? 'bg-yellow-100 text-yellow-700'
+                                      : 'bg-gray-100 text-gray-700'
                                 }`}>
-                                  {effectiveDecision.recommendation}
+                                  {effectiveDecision.recommendation === 'TRANSFER' && effectiveDecision.best_transfer?.within_budget === false
+                                    ? (isEnglish ? 'TRANSFER (UNFUNDED)' : 'העברה (ללא תקציב)')
+                                    : effectiveDecision.recommendation}
                                 </span>
                               </div>
                               {effectiveDecision.explanation && (
@@ -2054,6 +2242,8 @@ export default function Home() {
               </h3>
               <GWPlannerTab
                 data={data}
+                plannerSquads={plannerSquads}
+                plannerBanks={plannerBanks}
                 isEnglish={isEnglish}
                 isDarkMode={isDarkMode}
                 textMuted={textMuted}
@@ -2063,12 +2253,15 @@ export default function Home() {
                 onCaptain={handleSetCaptain}
                 onVice={handleSetViceCaptain}
                 onReset={handleReset}
-                onClearAll={() => {
+                onClearAll={(targetGw?: number) => {
                   const origPurchaseVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.purchase_price ?? p.cost ?? 0), 0);
                   const origSellingVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
                   const maxOrigVal = Math.max(origPurchaseVal, origSellingVal);
                   const totalBudget = Math.max(100.0, Math.round(((originalData?.bank ?? 0) + maxOrigVal) * 10) / 10);
-                  const newSquad = data.squad.map((p: any) => ({
+                  const effectiveGw = targetGw ?? data?.next_gw;
+                  const isPlannerFuture = effectiveGw > (data?.next_gw ?? 0);
+                  const activeSquad = isPlannerFuture ? (plannerSquads[effectiveGw] || data.squad) : data.squad;
+                  const newSquad = activeSquad.map((p: any) => ({
                     ...p,
                     id: p.id > 0 ? -p.id : p.id,
                     is_empty: true,
@@ -2080,25 +2273,93 @@ export default function Home() {
                     xp: 0,
                     form: 0
                   }));
-                  setData({ ...data, bank: totalBudget, squad: newSquad });
+
+                  if (isPlannerFuture) {
+                    const updatedSquads = { ...plannerSquads };
+                    const updatedBanks = { ...plannerBanks };
+                    for (let g = effectiveGw; g <= 38; g++) {
+                      updatedSquads[g] = newSquad.map((p: any) => ({ ...p }));
+                      updatedBanks[g] = totalBudget;
+                    }
+                    setPlannerSquads(updatedSquads);
+                    setPlannerBanks(updatedBanks);
+                  } else {
+                    setData({ ...data, bank: totalBudget, squad: newSquad });
+                    const updatedSquads: Record<number, any[]> = {};
+                    const updatedBanks: Record<number, number> = {};
+                    for (let g = data?.next_gw ?? 0; g <= 38; g++) {
+                      updatedSquads[g] = newSquad.map((p: any) => ({ ...p }));
+                      updatedBanks[g] = totalBudget;
+                    }
+                    setPlannerSquads(updatedSquads);
+                    setPlannerBanks(updatedBanks);
+                  }
                 }}
                 originalData={originalData}
                 onRestorePlayer={handleRestorePlayer}
                 activeChip={activeChip}
                 setActiveChip={setActiveChip}
                 swapSourceId={swapSourceId}
-                onSell={async (   id: number,   targetGw?: number,   removeOnly: boolean = false,   simulatedFt?: number,   transfersBefore?: number ) => {
-                  const playerToSell = data.squad.find((p: any) => p.id === id);
+                onSell={async (id: number, targetGw?: number, removeOnly: boolean = false, simulatedFt?: number, transfersBefore?: number) => {
+                  const effectiveGw = targetGw ?? data?.next_gw;
+                  setPlannerTargetGw(effectiveGw);
+                  const isPlannerFuture = effectiveGw > (data?.next_gw ?? 0);
+                  const activeSquad = isPlannerFuture ? (plannerSquads[effectiveGw] || data.squad) : data.squad;
+                  const activeBank = isPlannerFuture && typeof plannerBanks[effectiveGw] === 'number' ? plannerBanks[effectiveGw] : data.bank;
+                  const playerToSell = activeSquad.find((p: any) => p.id === id);
+
                   if (playerToSell && removeOnly) {
                     const sellVal = playerToSell.is_empty ? 0 : (playerToSell.selling_price ?? playerToSell.cost);
-                    const newBank = Math.round((data.bank + sellVal) * 10) / 10;
-                    const newSquad = data.squad.map((p: any) => {
-                        if (p.id === id) {
-                            return { ...p, id: -Math.abs(id), is_empty: true, name: 'Add Player', team: 'TBD', cost: 0, selling_price: 0, purchase_price: 0, xp: 0, form: 0 };
+                    const emptyPlayer = {
+                      ...playerToSell,
+                      id: -Math.abs(id),
+                      is_empty: true,
+                      name: 'Add Player',
+                      team: 'TBD',
+                      cost: 0,
+                      selling_price: 0,
+                      purchase_price: 0,
+                      xp: 0,
+                      form: 0
+                    };
+
+                    if (isPlannerFuture) {
+                      const updatedSquads = { ...plannerSquads };
+                      const updatedBanks = { ...plannerBanks };
+                      for (let gw = effectiveGw; gw <= 38; gw++) {
+                        const sq = updatedSquads[gw] ? [...updatedSquads[gw]] : [...data.squad];
+                        const idx = sq.findIndex((p: any) => p.id === id);
+                        if (idx !== -1) {
+                          sq[idx] = { ...emptyPlayer, position: sq[idx].position };
+                          updatedSquads[gw] = sq;
+                          const prevB = typeof updatedBanks[gw] === 'number' ? updatedBanks[gw] : data.bank;
+                          updatedBanks[gw] = Math.round((prevB + sellVal) * 10) / 10;
                         }
+                      }
+                      setPlannerSquads(updatedSquads);
+                      setPlannerBanks(updatedBanks);
+                    } else {
+                      const newBank = Math.round((data.bank + sellVal) * 10) / 10;
+                      const newSquad = data.squad.map((p: any) => {
+                        if (p.id === id) return emptyPlayer;
                         return p;
-                    });
-                    setData({ ...data, bank: newBank, squad: newSquad });
+                      });
+                      setData({ ...data, bank: newBank, squad: newSquad });
+                      const updatedSquads = { ...plannerSquads };
+                      const updatedBanks = { ...plannerBanks };
+                      for (let gw = data.next_gw; gw <= 38; gw++) {
+                        const sq = updatedSquads[gw] ? [...updatedSquads[gw]] : [...data.squad];
+                        const idx = sq.findIndex((p: any) => p.id === id);
+                        if (idx !== -1) {
+                          sq[idx] = { ...emptyPlayer, position: sq[idx].position };
+                          updatedSquads[gw] = sq;
+                          const prevB = typeof updatedBanks[gw] === 'number' ? updatedBanks[gw] : data.bank;
+                          updatedBanks[gw] = Math.round((prevB + sellVal) * 10) / 10;
+                        }
+                      }
+                      setPlannerSquads(updatedSquads);
+                      setPlannerBanks(updatedBanks);
+                    }
                     return;
                   }
 
@@ -2107,28 +2368,28 @@ export default function Home() {
                   setTransferOutId(id);
                   if (playerToSell) {
                     setLoadingRecs(true);
-                    const budget = data.bank + (playerToSell.selling_price ?? playerToSell.cost);
-                    const currentSquadIds = data.squad.filter((p: any) => !p.is_empty).map((p: any) => p.id > 0 ? p.id : -p.id);
+                    const budget = activeBank + (playerToSell.selling_price ?? playerToSell.cost);
+                    const currentSquadIds = activeSquad.filter((p: any) => !p.is_empty).map((p: any) => p.id > 0 ? p.id : -p.id);
                     try {
                       const res = await fetch(`${API_BASE_URL}/api/transfer-lab`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                        pos_code: playerToSell.pos_code,
-                        max_budget: 100.0,
-                        actual_budget: budget,
-                        current_squad_ids: currentSquadIds,
-                        transfer_out_id: playerToSell.is_empty ? null : playerToSell.id,
-                        target_gw: targetGw,
-                        free_transfers: simulatedFt ?? data.free_transfers,
-                        transfers_before: transfersBefore ?? 0,
-                        active_chip: (targetGw === data?.next_gw ? (activeChip ?? null) : null),
-                        unlimited_budget: true
+                          pos_code: playerToSell.pos_code,
+                          max_budget: 100.0,
+                          actual_budget: budget,
+                          current_squad_ids: currentSquadIds,
+                          transfer_out_id: playerToSell.is_empty ? null : playerToSell.id,
+                          target_gw: effectiveGw,
+                          free_transfers: simulatedFt ?? data.free_transfers,
+                          transfers_before: transfersBefore ?? 0,
+                          active_chip: (effectiveGw === data?.next_gw ? (activeChip ?? null) : null),
+                          unlimited_budget: true
                         })
                       });
                       const recs = await res.json();
                       setTransferRecs(recs.candidates || []);
-          setTransferDecision(recs);
+                      setTransferDecision(recs);
                     } catch (err) {
                       console.error("Failed to fetch recs", err);
                       setTransferError(isEnglish ? 'Failed to fetch recommendations.' : 'שגיאה בטעינת המלצות.');
@@ -2145,9 +2406,13 @@ export default function Home() {
                   <div className={`w-full max-w-4xl max-h-[90vh] overflow-hidden p-6 rounded-2xl shadow-2xl flex flex-col ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'}`}>
                     <div className="flex justify-between items-center mb-4 shrink-0">
                       {(() => {
-                        const transferOutPlayer = data?.squad?.find((p: any) => p.id === transferOutId);
+                        const effectiveGw = plannerTargetGw ?? data?.next_gw;
+                        const isPlannerFuture = effectiveGw > (data?.next_gw ?? 0);
+                        const activeSquad = isPlannerFuture ? (plannerSquads[effectiveGw] || data.squad) : data.squad;
+                        const activeBank = isPlannerFuture && typeof plannerBanks[effectiveGw] === 'number' ? plannerBanks[effectiveGw] : data.bank;
+                        const transferOutPlayer = activeSquad.find((p: any) => p.id === transferOutId);
                         const sellVal = transferOutPlayer?.is_empty ? 0 : (transferOutPlayer?.selling_price ?? transferOutPlayer?.cost ?? 0);
-                        const availableBudget = Math.round(((data?.bank ?? 0) + sellVal) * 10) / 10;
+                        const availableBudget = Math.round((activeBank + sellVal) * 10) / 10;
                         return (
                           <div className="flex flex-col-reverse sm:flex-row justify-between items-start sm:items-center w-full mb-4">
                             <div className={`text-base sm:text-lg font-bold ${
@@ -2222,6 +2487,16 @@ export default function Home() {
                                 {effectiveDecision.best_transfer ? (
                                   <>
                                     <div className={`font-black text-sm mb-1 ${textHighlight}`}>{effectiveDecision.best_transfer.name}</div>
+                                    {effectiveDecision.best_transfer.within_budget === false && (
+                                      <div className="mt-1 mb-1 inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                                        <span>⚠️</span>
+                                        <span>
+                                          {isEnglish
+                                            ? `Requires +£${Math.abs(effectiveDecision.best_transfer.budget_diff ?? 0).toFixed(1)}m in bank`
+                                            : `דורש עוד £${Math.abs(effectiveDecision.best_transfer.budget_diff ?? 0).toFixed(1)}m בבנק`}
+                                        </span>
+                                      </div>
+                                    )}
                                     <div className={`text-xs ${textMuted} mt-1`}>
                                       {isEnglish ? 'Projected:' : 'צפי:'} <span className="font-bold text-green-500">{effectiveDecision.best_transfer.xp} xP/GW</span>
                                     </div>
@@ -2250,12 +2525,19 @@ export default function Home() {
                               <div className="flex items-center justify-between">
                                 <span className={`text-sm font-bold ${textMuted}`}>{isEnglish ? 'Strategy Decision' : 'החלטת אסטרטגיה'}</span>
                                 <span className={`px-3 py-1 rounded-full text-xs font-black ${
-                                  effectiveDecision.recommendation === 'TRANSFER' ? 'bg-green-100 text-green-700' :
-                                  effectiveDecision.recommendation === 'HOLD' ? 'bg-yellow-100 text-yellow-700' :
-                                  effectiveDecision.recommendation === 'CONSIDER' ? 'bg-blue-100 text-blue-700' :
-                                  'bg-gray-100 text-gray-700'
+                                  effectiveDecision.recommendation === 'TRANSFER'
+                                    ? (effectiveDecision.best_transfer?.within_budget === false
+                                        ? 'bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-700/50'
+                                        : 'bg-green-100 text-green-700')
+                                    : effectiveDecision.recommendation === 'HOLD'
+                                      ? 'bg-yellow-100 text-yellow-700'
+                                      : effectiveDecision.recommendation === 'CONSIDER'
+                                        ? 'bg-blue-100 text-blue-700'
+                                        : 'bg-gray-100 text-gray-700'
                                 }`}>
-                                  {effectiveDecision.recommendation}
+                                  {effectiveDecision.recommendation === 'TRANSFER' && effectiveDecision.best_transfer?.within_budget === false
+                                    ? (isEnglish ? 'TRANSFER (UNFUNDED)' : 'העברה (ללא תקציב)')
+                                    : effectiveDecision.recommendation}
                                 </span>
                               </div>
                               {effectiveDecision.explanation && (
@@ -2269,9 +2551,13 @@ export default function Home() {
                         )}
 
                         {(() => {
-                          const transferOutPlayer = data?.squad?.find((p: any) => p.id === transferOutId);
+                          const effectiveGw = plannerTargetGw ?? data?.next_gw;
+                          const isPlannerFuture = effectiveGw > (data?.next_gw ?? 0);
+                          const activeSquad = isPlannerFuture ? (plannerSquads[effectiveGw] || data.squad) : data.squad;
+                          const activeBank = isPlannerFuture && typeof plannerBanks[effectiveGw] === 'number' ? plannerBanks[effectiveGw] : data.bank;
+                          const transferOutPlayer = activeSquad.find((p: any) => p.id === transferOutId);
                           const sellVal = transferOutPlayer?.is_empty ? 0 : (transferOutPlayer?.selling_price ?? transferOutPlayer?.cost ?? 0);
-                          const availableBudget = Math.round(((data?.bank ?? 0) + sellVal) * 10) / 10;
+                          const availableBudget = Math.round((activeBank + sellVal) * 10) / 10;
                           const tableCandidates = searchQuery === ''
                             ? (affordableRecs.length > 3 ? affordableRecs.slice(3) : affordableRecs)
                             : filteredRecs;
@@ -3318,7 +3604,7 @@ function BudgetScenariosTab({ data, teamId, isEnglish, isDarkMode, textMuted, te
   );
 }
 
-function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onSwap, swapSourceId, onSell, onCaptain, onVice, onReset, onClearAll, originalData, onRestorePlayer, activeChip, setActiveChip }: any) {
+function GWPlannerTab({ data, plannerSquads, plannerBanks, isEnglish, isDarkMode, textMuted, textHighlight, bgBox, onSwap, swapSourceId, onSell, onCaptain, onVice, onReset, onClearAll, originalData, onRestorePlayer, activeChip, setActiveChip }: any) {
   const handleSharePitch = async (elementId: string, title: string) => {
     const element = document.getElementById(elementId);
     if (!element) return;
@@ -3405,24 +3691,59 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
   };
 
   const isChipActiveForSelectedGw = selectedGwOffset === 0 ? activeChip : null;
-  const starters = data.squad.filter((p: any) => isChipActiveForSelectedGw === 'bboost' ? true : p.position <= 11);
-  const bench = data.squad.filter((p: any) => p.position > 11).sort((a: any, b: any) => a.position - b.position);
-  const totalXP = starters.reduce((acc: number, p: any) => { let mult = p.multiplier || 1; if (isChipActiveForSelectedGw === '3xc' && p.is_captain) mult = 3; return acc + (p.xp * mult); }, 0);
-
   const selectedGwNumber = data?.next_gw + selectedGwOffset;
+  const currentGwSquad = (plannerSquads && plannerSquads[selectedGwNumber]) || data?.squad || [];
+  const currentGwBank = (plannerBanks && typeof plannerBanks[selectedGwNumber] === 'number') ? plannerBanks[selectedGwNumber] : (data?.bank ?? 0);
+  const starters = currentGwSquad.filter((p: any) => isChipActiveForSelectedGw === 'bboost' ? true : p.position <= 11);
+  const bench = currentGwSquad.filter((p: any) => p.position > 11).sort((a: any, b: any) => a.position - b.position);
+  const totalXP = starters.reduce((acc: number, p: any) => { let mult = p.multiplier || 1; if (isChipActiveForSelectedGw === '3xc' && p.is_captain) mult = 3; return acc + (p.xp * mult); }, 0);
   const scheduleForGw = data.schedule?.[selectedGwNumber] || [];
+
+  const formatGwDateRange = (fixtures: any[], isEn: boolean = true): string | null => {
+    if (!Array.isArray(fixtures) || fixtures.length === 0) return null;
+    const validDates: Date[] = [];
+    for (const f of fixtures) {
+      if (f && f.time && typeof f.time === 'string') {
+        const d = new Date(f.time);
+        if (!isNaN(d.getTime())) {
+          validDates.push(d);
+        }
+      }
+    }
+    if (validDates.length === 0) return null;
+    validDates.sort((a, b) => a.getTime() - b.getTime());
+    const first = validDates[0];
+    const last = validDates[validDates.length - 1];
+    const enMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const heMonths = ['ינו׳', 'פבר׳', 'מרץ', 'אפר׳', 'מאי', 'יוני', 'יולי', 'אוג׳', 'ספט׳', 'אוק׳', 'נוב׳', 'דצמ׳'];
+    const months = isEn ? enMonths : heMonths;
+    const startDay = first.getUTCDate();
+    const startMonth = months[first.getUTCMonth()];
+    const endDay = last.getUTCDate();
+    const endMonth = months[last.getUTCMonth()];
+
+    if (startDay === endDay && startMonth === endMonth) {
+      return `${startDay} ${startMonth}`;
+    } else if (startMonth === endMonth) {
+      return `${startDay}–${endDay} ${startMonth}`;
+    } else {
+      return `${startDay} ${startMonth} – ${endDay} ${endMonth}`;
+    }
+  };
+
+  const selectedGwDateRange = formatGwDateRange(scheduleForGw, isEnglish);
 
   const origPurchaseVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.purchase_price ?? p.cost ?? 0), 0);
   const origSellingVal = (originalData?.squad || []).reduce((sum: number, p: any) => sum + (p.selling_price ?? p.cost ?? 0), 0);
   const maxOrigVal = Math.max(origPurchaseVal, origSellingVal);
   const totalBudget = originalData
     ? Math.max(100.0, Math.round(((originalData.bank ?? 0) + maxOrigVal) * 10) / 10)
-    : Math.max(100.0, Math.round(((data?.bank ?? 0) + (data?.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0)) * 10) / 10);
-  const currentSquadCost = (data?.squad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0);
-  const remainingBank = typeof data?.bank === 'number' ? Math.round(data.bank * 10) / 10 : Math.round((totalBudget - currentSquadCost) * 10) / 10;
+    : Math.max(100.0, Math.round(((currentGwBank) + (currentGwSquad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0)) * 10) / 10);
+  const currentSquadCost = (currentGwSquad || []).reduce((sum: number, p: any) => sum + (p.is_empty ? 0 : (p.cost || 0)), 0);
+  const remainingBank = typeof currentGwBank === 'number' ? Math.round(currentGwBank * 10) / 10 : Math.round((totalBudget - currentSquadCost) * 10) / 10;
 
   const originalSquadIds = originalData?.squad.map((p: any) => p.id) || [];
-  const transfersMade = data.squad.filter((p: any) => !originalSquadIds.includes(p.id)).length;
+  const transfersMade = currentGwSquad.filter((p: any) => !originalSquadIds.includes(p.id)).length;
   const simulatedFt = Math.min(5, ftAvailable + selectedGwOffset);
   const transfersRemaining = Math.max(0, simulatedFt - transfersMade);
   const additionalTransfers = Math.max(0, transfersMade - simulatedFt);
@@ -3441,15 +3762,15 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
         player={mappedPlayer}
         isBench={isBench}
         activeId={swapSourceId}
-        onActionClick={(id: number) => { swapSourceId !== null ? onSwap(id) : setActionPlayer(p) }}
+        onActionClick={(id: number) => { swapSourceId !== null ? onSwap(id, selectedGwNumber) : setActionPlayer(p) }}
       />
     );
   };
 
   return (
     <div className="flex flex-col w-full">
-      <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={onSwap} onCaptain={onCaptain} onVice={onVice} onSell={(id: number, removeOnly: boolean) =>   onSell(id, selectedGwNumber, removeOnly, simulatedFt, transfersMade) } onShowInfo={(id: number) => setInfoPlayerId(id)} isEnglish={isEnglish} isDarkMode={isDarkMode} />
-      {infoPlayerId && <PlayerInfoModal playerId={infoPlayerId} preloadedPlayer={data?.squad?.find((p:any) => p.id === infoPlayerId) || originalData?.squad?.find((p:any) => p.id === infoPlayerId)} onClose={() => setInfoPlayerId(null)} isDarkMode={isDarkMode} isEnglish={isEnglish} teams={originalData?.teams || {}} />}
+      <ActionModal player={actionPlayer} onClose={() => setActionPlayer(null)} onSwap={(id: number) => onSwap(id, selectedGwNumber)} onCaptain={(id: number) => onCaptain(id, selectedGwNumber)} onVice={(id: number) => onVice(id, selectedGwNumber)} onSell={(id: number, removeOnly: boolean) => onSell(id, selectedGwNumber, removeOnly, simulatedFt, transfersMade) } onShowInfo={(id: number) => setInfoPlayerId(id)} isEnglish={isEnglish} isDarkMode={isDarkMode} />
+      {infoPlayerId && <PlayerInfoModal playerId={infoPlayerId} preloadedPlayer={currentGwSquad.find((p:any) => p.id === infoPlayerId) || originalData?.squad?.find((p:any) => p.id === infoPlayerId)} onClose={() => setInfoPlayerId(null)} isDarkMode={isDarkMode} isEnglish={isEnglish} teams={originalData?.teams || {}} />}
 
       <div className={`p-4 sm:p-6 rounded-xl shadow-sm border mb-6 ${bgBox}`}>
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
@@ -3461,7 +3782,7 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
               {isEnglish ? 'Reset Squad' : 'אפס סגל'}
             </button>
             <button
-              onClick={onClearAll}
+              onClick={() => onClearAll(selectedGwNumber)}
               className="bg-red-600 hover:bg-red-700 text-white font-black py-2.5 px-4 rounded-lg shadow-sm text-sm transition-colors w-full sm:w-auto"
             >
               {isEnglish ? 'Clear Squad (WC)' : 'נקה סגל (WC)'}
@@ -3509,9 +3830,16 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
                 onChange={(e) => setSelectedGwOffset(Number(e.target.value))}
                 className={`border rounded-lg px-3 py-1.5 text-sm font-black shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 ${isDarkMode ? 'bg-gray-800 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'}`}
               >
-                {Array.from({length: Math.max(1, 38 - data?.next_gw + 1)}, (_, i) => i).map(offset => (
-                  <option key={offset} value={offset}>GW {data?.next_gw + offset} {offset === 0 ? (isEnglish ? '(Current)' : '(נוכחי)') : ''}</option>
-                ))}
+                {Array.from({length: Math.max(1, 38 - data?.next_gw + 1)}, (_, i) => i).map(offset => {
+                  const gwNum = data?.next_gw + offset;
+                  const gwMatches = data.schedule?.[gwNum] || [];
+                  const dateRange = formatGwDateRange(gwMatches, isEnglish);
+                  return (
+                    <option key={offset} value={offset}>
+                      GW {gwNum}{dateRange ? ` (${dateRange})` : ''} {offset === 0 ? (isEnglish ? '(Current)' : '(נוכחי)') : ''}
+                    </option>
+                  );
+                })}
               </select>
               <button
                 onClick={() => setSelectedGwOffset(Math.min(38 - data?.next_gw, selectedGwOffset + 1))}
@@ -3522,6 +3850,77 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Gameweek Selector Bar with Dates */}
+        <div className="mb-6 flex items-center gap-1.5 sm:gap-2 w-full">
+          <button
+            onClick={() => setSelectedGwOffset(Math.max(0, selectedGwOffset - 1))}
+            disabled={selectedGwOffset === 0}
+            aria-label={isEnglish ? 'Previous Gameweek' : 'מחזור קודם'}
+            className={`w-8 sm:w-9 h-11 sm:h-12 shrink-0 flex items-center justify-center rounded-xl border font-bold text-base shadow-xs transition-colors cursor-pointer ${
+              selectedGwOffset === 0
+                ? (isDarkMode ? 'opacity-40 cursor-not-allowed bg-gray-800 text-gray-500 border-gray-700' : 'opacity-40 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200')
+                : (isDarkMode ? 'hover:bg-gray-700 bg-gray-800 text-white border-gray-700' : 'hover:bg-purple-50 hover:text-purple-700 bg-white border-gray-200 text-gray-700')
+            }`}
+          >
+            &lt;
+          </button>
+
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-1 px-0.5 no-scrollbar flex-1 scroll-smooth">
+            {Array.from({ length: Math.max(1, 38 - data?.next_gw + 1) }, (_, offset) => {
+              const gwNum = data?.next_gw + offset;
+              const gwMatches = data.schedule?.[gwNum] || [];
+              const dateRange = formatGwDateRange(gwMatches, isEnglish);
+              const isSelected = selectedGwOffset === offset;
+
+              return (
+                <button
+                  key={offset}
+                  onClick={() => setSelectedGwOffset(offset)}
+                  className={`flex flex-col items-center justify-center min-w-[74px] sm:min-w-[88px] px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border text-center transition-all shrink-0 cursor-pointer ${
+                    isSelected
+                      ? (isDarkMode 
+                          ? 'bg-purple-600 text-white border-purple-500 shadow-sm ring-2 ring-purple-400/30' 
+                          : 'bg-[#37003c] text-white border-[#37003c] shadow-sm ring-2 ring-purple-300')
+                      : (isDarkMode
+                          ? 'bg-gray-800/90 border-gray-700 text-gray-300 hover:bg-gray-700 hover:border-gray-600'
+                          : 'bg-white border-gray-200 text-gray-700 hover:bg-purple-50 hover:border-purple-200')
+                  }`}
+                >
+                  <span className={`text-xs sm:text-sm font-black tracking-tight leading-tight ${isSelected ? 'text-white' : ''}`}>
+                    GW{gwNum}
+                  </span>
+                  {dateRange ? (
+                    <span className={`text-[10px] font-semibold leading-tight mt-0.5 whitespace-nowrap ${
+                      isSelected ? 'text-purple-200' : textMuted
+                    }`}>
+                      {dateRange}
+                    </span>
+                  ) : (
+                    <span className={`text-[10px] font-medium leading-tight mt-0.5 ${
+                      isSelected ? 'text-purple-200' : textMuted
+                    }`}>
+                      {offset === 0 ? (isEnglish ? 'Current' : 'נוכחי') : '—'}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => setSelectedGwOffset(Math.min(38 - data?.next_gw, selectedGwOffset + 1))}
+            disabled={selectedGwOffset === Math.max(0, 38 - data?.next_gw)}
+            aria-label={isEnglish ? 'Next Gameweek' : 'מחזור הבא'}
+            className={`w-8 sm:w-9 h-11 sm:h-12 shrink-0 flex items-center justify-center rounded-xl border font-bold text-base shadow-xs transition-colors cursor-pointer ${
+              selectedGwOffset === Math.max(0, 38 - data?.next_gw)
+                ? (isDarkMode ? 'opacity-40 cursor-not-allowed bg-gray-800 text-gray-500 border-gray-700' : 'opacity-40 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-200')
+                : (isDarkMode ? 'hover:bg-gray-700 bg-gray-800 text-white border-gray-700' : 'hover:bg-purple-50 hover:text-purple-700 bg-white border-gray-200 text-gray-700')
+            }`}
+          >
+            &gt;
+          </button>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -3606,7 +4005,12 @@ function GWPlannerTab({ data, isEnglish, isDarkMode, textMuted, textHighlight, b
         </div>
 
         <div className={`w-full lg:w-1/4 rounded-xl border p-4 shadow-sm flex flex-col h-fit ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <h4 className={`text-lg font-black mb-4 ${textHighlight}`}>{isEnglish ? `GW ${selectedGwNumber} Fixtures` : `משחקי מחזור ${selectedGwNumber}`}</h4>
+          <div className="mb-4">
+            <h4 className={`text-lg font-black leading-tight ${textHighlight}`}>{isEnglish ? `GW ${selectedGwNumber} Fixtures` : `משחקי מחזור ${selectedGwNumber}`}</h4>
+            {selectedGwDateRange && (
+              <span className={`text-xs font-semibold ${textMuted} mt-0.5 block`}>{selectedGwDateRange}</span>
+            )}
+          </div>
           <div className="flex flex-col gap-2 overflow-y-auto max-h-[600px] pr-1">
             {scheduleForGw.map((match: any, idx: number) => (
               <div key={idx} className={`flex items-center justify-between p-2 rounded border ${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-100'} text-xs font-bold`}>
